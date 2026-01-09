@@ -151,12 +151,53 @@ If you want to run this like a true sprint board, the cleanest next move is to t
     * `GET /v1/assets/{asset_id}/download`:
       * streaming response
       * HTTP range support (resume-friendly)
-    * Basic ingest metadata extraction (mime, size, image dimensions if image)
+    * **IMPORTANT**: Ingest metadata extraction via [exiftool](https://exiftool.org/)
+      * Embed `exiftool` binary (avoid Perl requirements) - install the correct edition per OS (this should be incorporated into the install process later)
+      * Run on asset upload to extract metadata
+        * Store in asset record under `metadata` JSON field
+        * Spawn parallel process to run `exiftool` if needed (be sure to log events properly)
+        * EXCEPTIONS (Files matching these patterns should skip exiftool processing):
+          * `_(meta|directorymeta)\.json$`
+          * `\.(cover|thumb|thumb(s|db|index|nail))$`
+          * `^(thumb|thumb(s|db|index|nail))\.db$`
+      * Send parameters to exiftool via parameter file: `exiftool -@ "$ArgsFile" 2> $null` (in PowerShell, for example)
+      * Use these exact parameters in the `$ArgsFile`:
+        ```
+        -quiet -extractEmbedded3 -scanForXMP -unknown2 -json -G3:1 -struct -b -ignoreMinorErrors -charset filename=utf8 -api requestall=3 -api largefilesupport=1 --
+        ```
+      * Parse the output and **REMOVE** the following keys from the JSON before storing:
+        - `ExifTool:ExifToolVersion`
+        - `ExifTool:FileSequence`
+        - `ExifTool:NewGUID`
+        - `System:BaseName`
+        - `System:Directory`
+        - `System:FileBlockCount`
+        - `System:FileBlockSize`
+        - `System:FileDeviceID`
+        - `System:FileDeviceNumber`
+        - `System:FileGroupID`
+        - `System:FileHardLinks`
+        - `System:FileInodeNumber`
+        - `System:FileName`
+        - `System:FilePath`
+        - `System:FilePermissions`
+        - `System:FileUserID`
+      * The final resulting JSON data (`$ExifToolOutput`) must be validated as proper JSON and being not-empty and nested into the following structure before storing:
+        ```json
+        {
+            "Source": "ExifTool",
+            "Type": "JsonMetadata",
+            "Name": $null,
+            "NameHashes": $null,
+            "Data": {ExifToolOutput}
+        }
+        ```
 
 - **Acceptance**
 
     * Upload a 2–5GB file and download it reliably
     * Range requests work (spot-check with curl / a download manager)
+    * Uploaded asset gets metadata extracted and stored correctly (with proper error handling/logging/validation)
 
 ---
 

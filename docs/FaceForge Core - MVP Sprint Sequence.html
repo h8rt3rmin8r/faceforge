@@ -555,7 +555,57 @@ code {
 <li>HTTP range support (resume-friendly)</li>
 </ul>
 </li>
-<li>Basic ingest metadata extraction (mime, size, image dimensions if image)</li>
+<li><strong>IMPORTANT</strong>: Ingest metadata extraction via <a href="https://exiftool.org/">exiftool</a>
+<ul>
+<li>Embed <code>exiftool</code> binary (avoid Perl requirements) - install the correct edition per OS (this should be incorporated into the install process later)</li>
+<li>Run on asset upload to extract metadata
+<ul>
+<li>Store in asset record under <code>metadata</code> JSON field</li>
+<li>Spawn parallel process to run <code>exiftool</code> if needed (be sure to log events properly)</li>
+<li>EXCEPTIONS (Files matching these patterns should skip exiftool processing):
+<ul>
+<li><code>_(meta|directorymeta)\.json$</code></li>
+<li><code>\.(cover|thumb|thumb(s|db|index|nail))$</code></li>
+<li><code>^(thumb|thumb(s|db|index|nail))\.db$</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Send parameters to exiftool via parameter file: <code>exiftool -@ &quot;$ArgsFile&quot; 2&gt; $null</code> (in PowerShell, for example)</li>
+<li>Use these exact parameters in the <code>$ArgsFile</code>:<pre class="hljs"><code><div>-quiet -extractEmbedded3 -scanForXMP -unknown2 -json -G3:1 -struct -b -ignoreMinorErrors -charset filename=utf8 -api requestall=3 -api largefilesupport=1 --
+</div></code></pre>
+</li>
+<li>Parse the output and <strong>REMOVE</strong> the following keys from the JSON before storing:
+<ul>
+<li><code>ExifTool:ExifToolVersion</code></li>
+<li><code>ExifTool:FileSequence</code></li>
+<li><code>ExifTool:NewGUID</code></li>
+<li><code>System:BaseName</code></li>
+<li><code>System:Directory</code></li>
+<li><code>System:FileBlockCount</code></li>
+<li><code>System:FileBlockSize</code></li>
+<li><code>System:FileDeviceID</code></li>
+<li><code>System:FileDeviceNumber</code></li>
+<li><code>System:FileGroupID</code></li>
+<li><code>System:FileHardLinks</code></li>
+<li><code>System:FileInodeNumber</code></li>
+<li><code>System:FileName</code></li>
+<li><code>System:FilePath</code></li>
+<li><code>System:FilePermissions</code></li>
+<li><code>System:FileUserID</code></li>
+</ul>
+</li>
+<li>The final resulting JSON data (<code>$ExifToolOutput</code>) must be validated as proper JSON and being not-empty and nested into the following structure before storing:<pre class="hljs"><code><div>{
+    <span class="hljs-attr">"Source"</span>: <span class="hljs-string">"ExifTool"</span>,
+    <span class="hljs-attr">"Type"</span>: <span class="hljs-string">"JsonMetadata"</span>,
+    <span class="hljs-attr">"Name"</span>: $<span class="hljs-literal">null</span>,
+    <span class="hljs-attr">"NameHashes"</span>: $<span class="hljs-literal">null</span>,
+    <span class="hljs-attr">"Data"</span>: {ExifToolOutput}
+}
+</div></code></pre>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li>
@@ -563,6 +613,7 @@ code {
 <ul>
 <li>Upload a 2–5GB file and download it reliably</li>
 <li>Range requests work (spot-check with curl / a download manager)</li>
+<li>Uploaded asset gets metadata extracted and stored correctly (with proper error handling/logging/validation)</li>
 </ul>
 </li>
 </ul>
