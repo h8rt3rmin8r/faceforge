@@ -1,0 +1,5 @@
+title: FaceForge
+description: A local-first, self-hosted Asset Management System (AMS) focused on entities (real or fictional, human or non-human) and the assets related to them.
+show_downloads: true
+encoding: utf-8
+theme: jekyll-theme-midnight
