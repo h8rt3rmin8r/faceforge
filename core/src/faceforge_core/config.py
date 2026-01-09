@@ -16,6 +16,79 @@ class NetworkConfig(BaseModel):
     seaweed_s3_port: int | None = Field(default=None, ge=1, le=65535)
 
 
+class SeaweedManagedConfig(BaseModel):
+    """Optional Core-managed SeaweedFS process settings.
+
+    Desktop will ultimately orchestrate this, but Core can optionally run it for dev/testing
+    as long as the binary is available under FACEFORGE_HOME/tools.
+    """
+
+    enabled: bool = Field(default=False)
+    weed_path: str | None = Field(
+        default=None,
+        description=(
+            "Optional path to the SeaweedFS 'weed' binary; if relative, resolved under "
+            "FACEFORGE_HOME/tools"
+        ),
+    )
+    data_dir: str | None = Field(
+        default=None,
+        description="Optional data dir for SeaweedFS; if relative, resolved under FACEFORGE_HOME",
+    )
+    ip: str = Field(default="127.0.0.1")
+    master_port: int = Field(default=9333, ge=1, le=65535)
+    volume_port: int = Field(default=8080, ge=1, le=65535)
+    filer_port: int = Field(default=8888, ge=1, le=65535)
+    s3_port: int | None = Field(
+        default=None,
+        ge=1,
+        le=65535,
+        description="If omitted, Core uses network.seaweed_s3_port when available, else 8333.",
+    )
+
+
+class S3StorageConfig(BaseModel):
+    """S3-compatible storage settings (intended: SeaweedFS S3 endpoint)."""
+
+    enabled: bool = Field(default=False)
+    endpoint_url: str | None = Field(
+        default=None,
+        description=(
+            "S3 endpoint URL, e.g. http://127.0.0.1:8333 (SeaweedFS s3). If omitted, "
+            "derived from bind_host + seaweed_s3_port."
+        ),
+    )
+    access_key: str | None = Field(default=None)
+    secret_key: str | None = Field(default=None)
+    bucket: str = Field(default="faceforge")
+    region: str = Field(default="us-east-1")
+    use_ssl: bool = Field(default=False)
+
+
+class StorageRoutingConfig(BaseModel):
+    """Rules for choosing a storage provider at upload time."""
+
+    default_provider: str = Field(default="fs", description="'fs' or 's3'")
+    kind_map: dict[str, str] = Field(
+        default_factory=dict,
+        description=(
+            "Optional mapping of asset kind -> provider name (e.g. {'thumb': 'fs', 'file': 's3'})."
+        ),
+    )
+    s3_min_size_bytes: int | None = Field(
+        default=None,
+        ge=0,
+        description=(
+            "If set, assets with byte_size >= threshold are routed to S3 unless kind_map overrides."
+        ),
+    )
+
+
+class StorageConfig(BaseModel):
+    routing: StorageRoutingConfig = Field(default_factory=StorageRoutingConfig)
+    s3: S3StorageConfig = Field(default_factory=S3StorageConfig)
+
+
 class PathOverrides(BaseModel):
     db_dir: str | None = None
     s3_dir: str | None = None
@@ -41,6 +114,8 @@ class CoreConfig(BaseModel):
     paths: PathOverrides = Field(default_factory=PathOverrides)
     auth: AuthConfig = Field(default_factory=AuthConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
+    storage: StorageConfig = Field(default_factory=StorageConfig)
+    seaweed: SeaweedManagedConfig = Field(default_factory=SeaweedManagedConfig)
 
 
 def _read_json(path: Path) -> dict[str, Any]:

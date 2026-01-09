@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -85,3 +86,43 @@ def test_assets_upload_metadata_download_range_and_linking(tmp_path: Path, monke
         )
         assert unlink.status_code == 200
         assert unlink.json()["data"]["linked"] is True
+
+
+def test_assets_upload_s3_routing_falls_back_to_filesystem_when_unhealthy(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setenv("FACEFORGE_HOME", str(tmp_path))
+
+    # Configure S3 as preferred default, but point it at a port that is not listening.
+    (tmp_path / "config").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "config" / "core.json").write_text(
+        json.dumps(
+            {
+                "network": {"seaweed_s3_port": 65534},
+                "storage": {
+                    "routing": {"default_provider": "s3"},
+                    "s3": {
+                        "enabled": True,
+                        "access_key": "test",
+                        "secret_key": "test",
+                        "bucket": "faceforge",
+                    },
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with TestClient(create_app()) as client:
+        token = client.app.state.faceforge_config.auth.install_token
+        headers = {"Authorization": f"Bearer {token}"}
+
+        r = client.post(
+            "/v1/assets/upload",
+            headers=headers,
+            files={"file": ("hello.txt", b"hello", "text/plain")},
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["ok"] is True
+        assert body["data"]["storage_provider"] == "fs"

@@ -42,7 +42,7 @@ Those capabilities are intended to ship as plugins that talk to Core over its pu
 
 - **FaceForge Desktop** (Tauri v2): orchestrates local components (Core server, optional sidecars like object storage, plugin runners), manages lifecycle, and opens the UI.
 - **FaceForge Core** (planned: Python 3.11/3.12 + FastAPI + Uvicorn): serves a versioned API under `/v1/...`, plus `/docs` and `/redoc`, and hosts the web UI.
-- **Storage**: transparent, user-controlled storage paths. Default object storage is intended to be an S3-compatible local endpoint (SeaweedFS), but Core must also work in filesystem-only mode.
+- **Storage**: transparent, user-controlled storage paths. Core supports filesystem-only mode and an optional S3-compatible provider (intended: SeaweedFS S3 endpoint) with upload-time routing + automatic fallback.
 - **Metadata DB**: SQLite, using a “relational spine + JSON fields” approach (entities/assets/relationships/jobs + flexible descriptors).
 
 ## Core conventions (from the spec)
@@ -113,6 +113,10 @@ Core now exposes initial Entities + Assets v1 endpoints (token required):
 - `GET /v1/assets/{asset_id}/download` (streaming + HTTP Range)
 - `POST /v1/entities/{entity_id}/assets/{asset_id}` (link)
 - `DELETE /v1/entities/{entity_id}/assets/{asset_id}` (unlink)
+
+For optional SeaweedFS/S3 storage configuration (Sprint 6), see:
+
+- [core/README.md](core/README.md)
 
 ### Auth (Sprint 3)
 

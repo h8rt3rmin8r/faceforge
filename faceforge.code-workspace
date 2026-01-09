@@ -106,6 +106,10 @@
             "/^pwsh -File \\.\\\\scripts\\\\_ensure-venv\\.ps1; \\.\\\\\\.venv\\\\Scripts\\\\ruff format core\\\\src\\\\faceforge_core core\\\\tests$/": {
                 "approve": true,
                 "matchCommandLine": true
+            },
+            "/^pwsh -NoProfile -ExecutionPolicy Bypass -File \"a:\\\\Code\\\\faceforge\\\\scripts\\\\check-core\\.ps1\"$/": {
+                "approve": true,
+                "matchCommandLine": true
             }
         }
     }

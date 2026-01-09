@@ -16,6 +16,8 @@ from faceforge_core.config import ensure_install_token, load_core_config, resolv
 from faceforge_core.db import resolve_db_path
 from faceforge_core.db.migrate import apply_migrations
 from faceforge_core.home import ensure_faceforge_layout, resolve_faceforge_home
+from faceforge_core.seaweedfs import start_managed_seaweed, stop_managed_seaweed
+from faceforge_core.storage.manager import build_storage_manager
 
 
 def create_app() -> FastAPI:
@@ -35,7 +37,16 @@ def create_app() -> FastAPI:
         app.state.faceforge_config = config
         app.state.db_path = db_path
 
-        yield
+        # Storage manager (filesystem + optional S3).
+        app.state.storage_manager = build_storage_manager(paths=paths, config=config)
+
+        # Optional: Core-managed SeaweedFS process (dev/testing only; Desktop orchestrates later).
+        app.state.seaweed_process = start_managed_seaweed(paths, config)
+
+        try:
+            yield
+        finally:
+            stop_managed_seaweed(getattr(app.state, "seaweed_process", None))
 
     app = FastAPI(title="FaceForge Core", version="0.0.0", lifespan=_lifespan)
 

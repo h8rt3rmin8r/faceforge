@@ -8,6 +8,7 @@ license = { file = "LICENSE" }
 authors = [{ name = "FaceForge contributors" }]
 dependencies = [
   "fastapi>=0.110",
+  "boto3>=1.34",
   "python-multipart>=0.0.9",
   "uvicorn[standard]>=0.27",
 ]

@@ -61,8 +61,8 @@ Current config shape (v1, subject to change):
 	},
 	"network": {
 		"bind_host": "127.0.0.1",
-		"core_port": 8787,
-		"seaweed_s3_port": null
+	- `.\.venv\Scripts\python.exe -m faceforge_core.internal.seaweedfs_cli --home <FACEFORGE_HOME> --health`
+	- `.\.venv\Scripts\python.exe -m faceforge_core.internal.seaweedfs_cli --home <FACEFORGE_HOME> --run`
 	},
 	"paths": {
 		"db_dir": null,
@@ -73,6 +73,32 @@ Current config shape (v1, subject to change):
 	"tools": {
 		"exiftool_enabled": true,
 		"exiftool_path": null
+	},
+	"storage": {
+		"routing": {
+			"default_provider": "fs",
+			"kind_map": {},
+			"s3_min_size_bytes": null
+		},
+		"s3": {
+			"enabled": false,
+			"endpoint_url": null,
+			"access_key": null,
+			"secret_key": null,
+			"bucket": "faceforge",
+			"region": "us-east-1",
+			"use_ssl": false
+		}
+	},
+	"seaweed": {
+		"enabled": false,
+		"weed_path": null,
+		"data_dir": null,
+		"ip": "127.0.0.1",
+		"master_port": 9333,
+		"volume_port": 8080,
+		"filer_port": 8888,
+		"s3_port": null
 	}
 }
 ```
@@ -218,6 +244,50 @@ Bundling/embedding requirement:
 - Core does **not** search your system `PATH` for `exiftool`.
 - If `tools.exiftool_path` is not set, Core only checks bundled locations under `${FACEFORGE_HOME}/tools`, using these candidate paths:
 	- Windows: `${FACEFORGE_HOME}/tools/exiftool.exe` or `${FACEFORGE_HOME}/tools/exiftool/exiftool.exe`
+
+## Sprint 6: SeaweedFS provider + “default local S3” wiring
+
+Core can optionally store asset bytes in an **S3-compatible backend** (intended: SeaweedFS S3 endpoint), while still supporting filesystem-only mode.
+
+### Storage routing (upload-time)
+
+Uploads are routed based on:
+
+- `storage.routing.kind_map` (highest priority)
+- `storage.routing.s3_min_size_bytes` (optional)
+- `storage.routing.default_provider`
+
+If routing selects `s3` but the endpoint is not reachable, Core **falls back to filesystem** automatically.
+
+### S3 configuration
+
+Set these in `${FACEFORGE_HOME}/config/core.json`:
+
+- `storage.s3.enabled`: enable S3 provider
+- `storage.s3.endpoint_url`: optional; if omitted, Core derives from `network.bind_host` + `network.seaweed_s3_port`
+- `storage.s3.access_key` / `storage.s3.secret_key`: credentials for the endpoint
+- `storage.s3.bucket`: default bucket name (Core will create it best-effort)
+
+### SeaweedFS “managed binary” contract (optional)
+
+Desktop will orchestrate SeaweedFS later, but Core can optionally start it for dev/testing if you set `seaweed.enabled=true` and provide the `weed` binary under `${FACEFORGE_HOME}/tools`.
+
+Binary resolution order:
+
+- `seaweed.weed_path` (absolute or relative to `${FACEFORGE_HOME}/tools`)
+- Otherwise, Core checks:
+	- Windows: `${FACEFORGE_HOME}/tools/weed.exe`, `${FACEFORGE_HOME}/tools/seaweedfs/weed.exe`, `${FACEFORGE_HOME}/tools/seaweed/weed.exe`
+	- Non-Windows: analogous paths without `.exe`
+
+Core-managed runner:
+
+- `weed server -s3 ...` with ports from `seaweed.*` (and/or `network.seaweed_s3_port`)
+- Data dir defaults to `${FACEFORGE_HOME}/s3/seaweedfs` (override via `seaweed.data_dir`)
+
+Dev helper CLI:
+
+- `.\.venv\Scripts\python.exe -m faceforge_core.internal.seaweedfs_cli --home <FACEFORGE_HOME> --health`
+- `.\.venv\Scripts\python.exe -m faceforge_core.internal.seaweedfs_cli --home <FACEFORGE_HOME> --run`
 	- macOS/Linux: `${FACEFORGE_HOME}/tools/exiftool` or `${FACEFORGE_HOME}/tools/exiftool/exiftool`
 - If `tools.exiftool_path` is a relative path, it is resolved relative to `${FACEFORGE_HOME}/tools`.
 

@@ -24,7 +24,8 @@ from faceforge_core.db.assets import (
 )
 from faceforge_core.db.ids import asset_id_from_content_hash
 from faceforge_core.ingest.exiftool import run_exiftool, should_skip_exiftool
-from faceforge_core.storage.filesystem import FilesystemStorageProvider
+from faceforge_core.storage.manager import StorageManager
+from faceforge_core.storage.s3 import S3ObjectLocation
 
 logger = logging.getLogger(__name__)
 
@@ -124,16 +125,11 @@ def _parse_range_header(range_header: str, *, size: int) -> tuple[int, int] | No
     return (start, end)
 
 
-def _iter_file_range(path: Path, *, start: int, end: int, chunk_size: int = 1024 * 1024):
-    with path.open("rb") as f:
-        f.seek(start)
-        remaining = end - start + 1
-        while remaining > 0:
-            chunk = f.read(min(chunk_size, remaining))
-            if not chunk:
-                break
-            remaining -= len(chunk)
-            yield chunk
+def _unlink_best_effort(path: Path) -> None:
+    try:
+        path.unlink(missing_ok=True)
+    except OSError:
+        pass
 
 
 def _guess_mime_type(filename: str | None, fallback: str | None) -> str:
@@ -216,6 +212,7 @@ def _exiftool_background_task(
     exiftool_path: Path,
     asset_id: str,
     asset_path: Path,
+    cleanup_path: Path | None = None,
 ) -> None:
     try:
         entry = run_exiftool(exiftool_path=exiftool_path, asset_path=asset_path)
@@ -230,22 +227,30 @@ def _exiftool_background_task(
             "ExifTool metadata extraction failed",
             extra={"asset_id": asset_id, "error": str(e)},
         )
+    finally:
+        if cleanup_path is not None:
+            _unlink_best_effort(cleanup_path)
+
+
+def _cleanup_temp_file(path: Path) -> None:
+    _unlink_best_effort(path)
 
 
 @router.post("/assets/upload", response_model=ApiResponse[Asset])
 async def assets_upload(
     request: Request,
     background_tasks: BackgroundTasks,
+    kind: str = "file",
     file: UploadFile = UPLOAD_FILE,
     meta: UploadFile | None = UPLOAD_META_FILE,
 ) -> ApiResponse[Asset]:
     db_path = getattr(request.app.state, "db_path", None)
     paths = getattr(request.app.state, "faceforge_paths", None)
+    storage_mgr: StorageManager | None = getattr(request.app.state, "storage_manager", None)
     if db_path is None or paths is None:
         raise HTTPException(status_code=500, detail="Server not initialized")
-
-    storage = FilesystemStorageProvider(paths.assets_dir)
-    storage.ensure_layout()
+    if storage_mgr is None:
+        raise HTTPException(status_code=500, detail="Storage not initialized")
 
     if not file.filename:
         raise HTTPException(status_code=422, detail="Missing filename")
@@ -279,10 +284,20 @@ async def assets_upload(
 
     content_hash = h.hexdigest()
     asset_id = asset_id_from_content_hash(content_hash)
-    storage_key = storage.key_for_asset_id(asset_id)
 
-    # Finalize bytes to storage location.
-    asset_path = storage.finalize_temp_file(temp_path=temp_path, storage_key=storage_key)
+    # If already present, do not store bytes again.
+    existing = get_asset_by_content_hash(db_path, content_hash=content_hash, include_deleted=False)
+    if existing is not None:
+        _unlink_best_effort(temp_path)
+        return ok(_to_asset(existing))
+
+    # Store bytes using routing rules (S3 if available, else filesystem).
+    upload_result = storage_mgr.store_upload(
+        temp_path=temp_path,
+        asset_id=asset_id,
+        kind=kind,
+        byte_size=byte_size,
+    )
 
     mime_type = file.content_type
     if mime_type is not None and mime_type.strip() == "":
@@ -306,13 +321,13 @@ async def assets_upload(
         row = create_asset(
             db_path,
             asset_id=asset_id,
-            kind="file",
+            kind=(kind or "file"),
             filename=file.filename,
             content_hash=content_hash,
             byte_size=byte_size,
             mime_type=mime_type,
-            storage_provider=storage.provider_name,
-            storage_key=storage_key,
+            storage_provider=upload_result.storage_provider,
+            storage_key=upload_result.storage_key,
             meta=meta_obj,
         )
     except sqlite3.IntegrityError as e:
@@ -325,16 +340,33 @@ async def assets_upload(
             raise HTTPException(status_code=409, detail="Asset already exists") from e
         row = existing
 
+        # If the DB insert lost a race, clean up any temp file we still own.
+        if upload_result.cleanup_temp_path is not None:
+            _unlink_best_effort(upload_result.cleanup_temp_path)
+
     # Best-effort exiftool extraction.
     exiftool_path = _resolve_exiftool_executable(request)
     if exiftool_path is not None and not should_skip_exiftool(file.filename):
-        background_tasks.add_task(
-            _exiftool_background_task,
-            db_path=Path(db_path),
-            exiftool_path=exiftool_path,
-            asset_id=row.asset_id,
-            asset_path=asset_path,
-        )
+        # If bytes landed in S3, run ExifTool against the local temp file and
+        # delete it when the background task completes.
+        local_for_exif = upload_result.local_path or upload_result.cleanup_temp_path
+        if local_for_exif is not None:
+            background_tasks.add_task(
+                _exiftool_background_task,
+                db_path=Path(db_path),
+                exiftool_path=exiftool_path,
+                asset_id=row.asset_id,
+                asset_path=local_for_exif,
+                cleanup_path=upload_result.cleanup_temp_path,
+            )
+        else:
+            logger.info(
+                "ExifTool skipped: no local bytes available",
+                extra={"asset_id": row.asset_id},
+            )
+    elif upload_result.cleanup_temp_path is not None:
+        # Ensure temp bytes are cleaned up if we kept them for a potential ExifTool run.
+        background_tasks.add_task(_cleanup_temp_file, upload_result.cleanup_temp_path)
 
     return ok(_to_asset(row))
 
@@ -356,22 +388,33 @@ async def assets_get(request: Request, asset_id: str) -> ApiResponse[Asset]:
 async def assets_download(request: Request, asset_id: str):
     db_path = getattr(request.app.state, "db_path", None)
     paths = getattr(request.app.state, "faceforge_paths", None)
+    config = getattr(request.app.state, "faceforge_config", None)
+    storage_mgr: StorageManager | None = getattr(request.app.state, "storage_manager", None)
     if db_path is None or paths is None:
         raise HTTPException(status_code=500, detail="Server not initialized")
+    if storage_mgr is None:
+        raise HTTPException(status_code=500, detail="Storage not initialized")
 
     row = get_asset(db_path, asset_id=asset_id, include_deleted=False)
     if row is None:
         raise HTTPException(status_code=404, detail="Asset not found")
 
-    if row.storage_provider != "fs":
-        raise HTTPException(status_code=501, detail="Unsupported storage provider")
+    if row.storage_provider == "s3":
+        s3_cfg = getattr(getattr(config, "storage", None), "s3", None) if config else None
+        if not (s3_cfg is not None and bool(getattr(s3_cfg, "enabled", False))):
+            raise HTTPException(status_code=503, detail="S3 storage disabled")
+        if storage_mgr.get_s3_provider() is None:
+            raise HTTPException(status_code=503, detail="S3 storage not configured")
 
-    storage = FilesystemStorageProvider(paths.assets_dir)
-    asset_path = storage.resolve_path(row.storage_key)
-    if not asset_path.exists():
-        raise HTTPException(status_code=404, detail="Asset bytes not found")
-
-    size = asset_path.stat().st_size
+    try:
+        size = storage_mgr.get_size_bytes(
+            storage_provider=row.storage_provider,
+            storage_key=row.storage_key,
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail="Asset bytes not found") from e
+    except Exception as e:
+        raise HTTPException(status_code=501, detail="Unsupported storage provider") from e
     mime = _guess_mime_type(row.filename, row.mime_type)
 
     range_header = request.headers.get("range")
@@ -389,10 +432,32 @@ async def assets_download(request: Request, asset_id: str):
         headers["Content-Range"] = f"bytes */{size}"
         return Response(status_code=416, headers=headers)
 
+    def _iter_full() -> Any:
+        if row.storage_provider == "fs":
+            p = storage_mgr.fs.resolve_path(row.storage_key)
+            with p.open("rb") as f:
+                while True:
+                    chunk = f.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    yield chunk
+            return
+
+        if row.storage_provider == "s3":
+            s3 = storage_mgr.get_s3_provider()
+            if s3 is None:
+                return
+            loc = S3ObjectLocation.from_storage_key(
+                row.storage_key,
+                default_bucket=s3.default_bucket,
+            )
+            yield from s3.iter_range(location=loc, start=0, end=size - 1)
+            return
+
     if range_tuple is None:
         headers["Content-Length"] = str(size)
         return StreamingResponse(
-            _iter_file_range(asset_path, start=0, end=size - 1),
+            _iter_full(),
             media_type=mime,
             headers=headers,
         )
@@ -402,8 +467,33 @@ async def assets_download(request: Request, asset_id: str):
     headers["Content-Range"] = f"bytes {start}-{end}/{size}"
     headers["Content-Length"] = str(content_length)
 
+    def _iter_partial() -> Any:
+        if row.storage_provider == "fs":
+            p = storage_mgr.fs.resolve_path(row.storage_key)
+            with p.open("rb") as f:
+                f.seek(start)
+                remaining = end - start + 1
+                while remaining > 0:
+                    chunk = f.read(min(1024 * 1024, remaining))
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+                    yield chunk
+            return
+
+        if row.storage_provider == "s3":
+            s3 = storage_mgr.get_s3_provider()
+            if s3 is None:
+                return
+            loc = S3ObjectLocation.from_storage_key(
+                row.storage_key,
+                default_bucket=s3.default_bucket,
+            )
+            yield from s3.iter_range(location=loc, start=start, end=end)
+            return
+
     return StreamingResponse(
-        _iter_file_range(asset_path, start=start, end=end),
+        _iter_partial(),
         status_code=206,
         media_type=mime,
         headers=headers,
