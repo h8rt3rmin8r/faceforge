@@ -13,7 +13,7 @@ FaceForge is designed to be a stable, integration-friendly “boring core” for
 
 This repository is currently **docs-first scaffolding** with an initial runnable Core skeleton:
 
-- `core/` contains a minimal FastAPI app (`GET /healthz`) and dev/CI wiring.
+- `core/` contains a minimal FastAPI app with versioned routing (`/v1/...`), token auth defaults, and dev/CI wiring.
 - `desktop/` is still a placeholder.
 - The “what it is / how it should work” is defined in the spec and the MVP sprint plan.
 
@@ -77,6 +77,27 @@ Then open:
 
 - `http://127.0.0.1:8787/healthz`
 - `http://127.0.0.1:8787/docs`
+
+### Auth (Sprint 3)
+
+Core binds to localhost by default and requires a **per-install token** for non-health endpoints.
+
+- Health endpoint (no token): `GET /healthz`
+- Example protected endpoint: `GET /v1/ping`
+- System identity endpoint (protected): `GET /v1/system/info`
+
+The token is generated on first start (if missing) and stored in:
+
+- `${FACEFORGE_HOME}/config/core.json` → `auth.install_token`
+
+Send it using either header:
+
+- `Authorization: Bearer <token>`
+- `X-FaceForge-Token: <token>`
+
+Example (PowerShell):
+
+- `Invoke-RestMethod -Headers @{ Authorization = "Bearer <token>" } http://127.0.0.1:8787/v1/ping`
 
 ### Checks (format + lint + tests)
 

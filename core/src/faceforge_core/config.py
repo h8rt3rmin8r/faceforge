@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import secrets
 from pathlib import Path
 from typing import Any
 
@@ -22,10 +23,15 @@ class PathOverrides(BaseModel):
     plugins_dir: str | None = None
 
 
+class AuthConfig(BaseModel):
+    install_token: str | None = Field(default=None)
+
+
 class CoreConfig(BaseModel):
     version: str = Field(default="1")
     network: NetworkConfig = Field(default_factory=NetworkConfig)
     paths: PathOverrides = Field(default_factory=PathOverrides)
+    auth: AuthConfig = Field(default_factory=AuthConfig)
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -46,6 +52,31 @@ def load_core_config(paths: FaceForgePaths) -> CoreConfig:
 
     raw = _read_json(config_path)
     return CoreConfig.model_validate(raw)
+
+
+def write_core_config(paths: FaceForgePaths, config: CoreConfig) -> None:
+    """Persist config to ${FACEFORGE_HOME}/config/core.json."""
+
+    payload = config.model_dump(mode="json", exclude_none=True)
+    paths.config_dir.mkdir(parents=True, exist_ok=True)
+    paths.core_config_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def ensure_install_token(paths: FaceForgePaths, config: CoreConfig) -> CoreConfig:
+    """Ensure a per-install auth token exists and is stored in config.
+
+    If missing, generate a new token and persist it to core.json.
+    """
+
+    raw = (config.auth.install_token or "").strip()
+    if raw:
+        return config
+
+    token = secrets.token_urlsafe(32)
+    updated_auth = config.auth.model_copy(update={"install_token": token})
+    updated = config.model_copy(update={"auth": updated_auth})
+    write_core_config(paths, updated)
+    return updated
 
 
 def resolve_configured_paths(paths: FaceForgePaths, config: CoreConfig) -> FaceForgePaths:

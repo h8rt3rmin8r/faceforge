@@ -86,6 +86,10 @@
             "/^& \"a:\\\\Code\\\\faceforge\\\\scripts\\\\check-core\\.ps1\"$/": {
                 "approve": true,
                 "matchCommandLine": true
+            },
+            "/^\\.\\\\\\.venv\\\\Scripts\\\\python\\.exe -m ruff format core\\\\src core\\\\tests$/": {
+                "approve": true,
+                "matchCommandLine": true
             }
         }
     }

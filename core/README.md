@@ -35,6 +35,9 @@ Current config shape (v1, subject to change):
 ```json
 {
 	"version": "1",
+	"auth": {
+		"install_token": "..."
+	},
 	"network": {
 		"bind_host": "127.0.0.1",
 		"core_port": 8787,
@@ -88,7 +91,18 @@ Prereq: Python 3.12+ installed (used only to bootstrap the repo-local `.venv`).
 The service should come up on `http://127.0.0.1:8787` and expose:
 
 - `GET /healthz`
-- `GET /docs`
+- `GET /docs` (public)
+- `GET /v1/ping` (requires token)
+- `GET /v1/system/info` (requires token)
+
+### Auth (Sprint 3)
+
+Core requires a per-install token for non-health endpoints.
+
+- The token is stored in `${FACEFORGE_HOME}/config/core.json` under `auth.install_token`.
+- Requests may provide the token via:
+	- `Authorization: Bearer <token>`
+	- `X-FaceForge-Token: <token>`
 
 ## Sprint 2: SQLite schema + migrations (internal)
 
