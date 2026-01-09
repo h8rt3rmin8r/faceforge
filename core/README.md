@@ -89,3 +89,15 @@ The service should come up on `http://127.0.0.1:8787` and expose:
 
 - `GET /healthz`
 - `GET /docs`
+
+## Sprint 2: SQLite schema + migrations (internal)
+
+Core stores metadata in a SQLite DB under:
+
+- `${FACEFORGE_HOME}/db/core.sqlite3`
+
+Apply migrations and create sample records without using the API:
+
+- `python -m faceforge_core.internal.bootstrap_db --home <PATH> --migrate`
+- `python -m faceforge_core.internal.bootstrap_db --home <PATH> --create-entity "Ada Lovelace"`
+- `python -m faceforge_core.internal.bootstrap_db --home <PATH> --create-asset <FILEPATH>`

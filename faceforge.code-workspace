@@ -81,6 +81,12 @@
         },
         "[log]": {
             "editor.wordWrap": "off"
+        },
+        "chat.tools.terminal.autoApprove": {
+            "/^& \"a:\\\\Code\\\\faceforge\\\\scripts\\\\check-core\\.ps1\"$/": {
+                "approve": true,
+                "matchCommandLine": true
+            }
         }
     }
 }

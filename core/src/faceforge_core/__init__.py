@@ -1,4 +1,5 @@
 from faceforge_core.config import CoreConfig, load_core_config
+from faceforge_core.db import resolve_db_path
 from faceforge_core.home import FaceForgePaths, ensure_faceforge_layout, resolve_faceforge_home
 from faceforge_core.ports import RuntimePorts, read_ports_file, write_ports_file
 
@@ -11,6 +12,7 @@ __all__ = [
     "__version__",
     "ensure_faceforge_layout",
     "load_core_config",
+    "resolve_db_path",
     "read_ports_file",
     "resolve_faceforge_home",
     "write_ports_file",
