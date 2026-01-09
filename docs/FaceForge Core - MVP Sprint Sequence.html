@@ -557,7 +557,12 @@ code {
 </li>
 <li><strong>IMPORTANT</strong>: Ingest metadata extraction via <a href="https://exiftool.org/">exiftool</a>
 <ul>
-<li>Embed <code>exiftool</code> binary (avoid Perl requirements) - install the correct edition per OS (this should be incorporated into the install process later)</li>
+<li>Use a bundled <code>exiftool</code> binary (avoid Perl requirements). Do <strong>not</strong> rely on a system-wide install or PATH lookup.
+<ul>
+<li>Bundling/installation is handled in <strong>Sprint 13 — Packaging + release hardening</strong>.</li>
+<li>Target install location: <code>${FACEFORGE_HOME}/tools/</code> (per-install managed tools directory)</li>
+</ul>
+</li>
 <li>Run on asset upload to extract metadata
 <ul>
 <li>Store in asset record under <code>metadata</code> JSON field</li>
@@ -847,7 +852,14 @@ code {
 <li>Packaging plan implemented:
 <ul>
 <li>Core service shipped as frozen binary or embedded Python runtime (pick one and commit)</li>
+<li>Bundled third-party toolchain (no end-user installs required):
+<ul>
+<li>ExifTool is bundled per-OS and installed/extracted to <code>${FACEFORGE_HOME}/tools/</code> on first run (or during install)</li>
 <li>SeaweedFS binaries bundled or fetched in a controlled way</li>
+<li>Integrity checks (hash/size) + predictable paths so Core can resolve tools reliably</li>
+<li>Third-party notices/licenses included in the distributed bundle</li>
+</ul>
+</li>
 </ul>
 </li>
 <li>Installer / portable bundle per OS (Windows first if that’s your priority)</li>

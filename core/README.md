@@ -21,6 +21,7 @@ On startup, Core ensures these directories exist:
 - `${FACEFORGE_HOME}/logs`
 - `${FACEFORGE_HOME}/run`
 - `${FACEFORGE_HOME}/config`
+- `${FACEFORGE_HOME}/tools`
 - `${FACEFORGE_HOME}/plugins`
 
 ### Core config file
@@ -183,11 +184,19 @@ Example (curl):
 
 ### ExifTool metadata extraction (best-effort)
 
-On upload, Core will attempt to run `exiftool` in the background (if available) and store extracted JSON under the asset `meta.metadata[]` list.
+On upload, Core will attempt to run ExifTool in the background (if available) and store extracted JSON under the asset `meta.metadata[]` list.
 
 Configuration:
 
 - `${FACEFORGE_HOME}/config/core.json` → `tools.exiftool_enabled` (default `true`)
-- `${FACEFORGE_HOME}/config/core.json` → `tools.exiftool_path` (optional; otherwise Core tries to locate `exiftool` on `PATH`)
+- `${FACEFORGE_HOME}/config/core.json` → `tools.exiftool_path` (optional override)
+
+Bundling/embedding requirement:
+
+- Core does **not** search your system `PATH` for `exiftool`.
+- If `tools.exiftool_path` is not set, Core only checks bundled locations under `${FACEFORGE_HOME}/tools`, using these candidate paths:
+	- Windows: `${FACEFORGE_HOME}/tools/exiftool.exe` or `${FACEFORGE_HOME}/tools/exiftool/exiftool.exe`
+	- macOS/Linux: `${FACEFORGE_HOME}/tools/exiftool` or `${FACEFORGE_HOME}/tools/exiftool/exiftool`
+- If `tools.exiftool_path` is a relative path, it is resolved relative to `${FACEFORGE_HOME}/tools`.
 
 Core skips ExifTool processing for filenames matching the exclusions defined in core/src/faceforge_core/ingest/exiftool.py.

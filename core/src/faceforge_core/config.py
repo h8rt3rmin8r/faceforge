@@ -121,5 +121,6 @@ def resolve_configured_paths(paths: FaceForgePaths, config: CoreConfig) -> FaceF
         logs_dir=logs_dir,
         run_dir=paths.run_dir,
         config_dir=paths.config_dir,
+        tools_dir=paths.tools_dir,
         plugins_dir=plugins_dir,
     )

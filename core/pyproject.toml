@@ -4,7 +4,7 @@ version = "0.0.0"
 description = "FaceForge Core API service (scaffolding)"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-license = { file = "../LICENSE" }
+license = { file = "LICENSE" }
 authors = [{ name = "FaceForge contributors" }]
 dependencies = [
   "fastapi>=0.110",

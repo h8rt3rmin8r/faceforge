@@ -42,6 +42,7 @@ async def system_info(request: Request) -> ApiResponse[SystemInfo]:
             "logs_dir": str(paths.logs_dir) if paths is not None else "",
             "run_dir": str(paths.run_dir) if paths is not None else "",
             "config_dir": str(paths.config_dir) if paths is not None else "",
+            "tools_dir": str(paths.tools_dir) if paths is not None else "",
             "plugins_dir": str(paths.plugins_dir) if paths is not None else "",
         },
     )

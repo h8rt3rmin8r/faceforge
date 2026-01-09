@@ -152,7 +152,9 @@ If you want to run this like a true sprint board, the cleanest next move is to t
       * streaming response
       * HTTP range support (resume-friendly)
     * **IMPORTANT**: Ingest metadata extraction via [exiftool](https://exiftool.org/)
-      * Embed `exiftool` binary (avoid Perl requirements) - install the correct edition per OS (this should be incorporated into the install process later)
+      * Use a bundled `exiftool` binary (avoid Perl requirements). Do **not** rely on a system-wide install or PATH lookup.
+        * Bundling/installation is handled in **Sprint 13 — Packaging + release hardening**.
+        * Target install location: `${FACEFORGE_HOME}/tools/` (per-install managed tools directory)
       * Run on asset upload to extract metadata
         * Store in asset record under `metadata` JSON field
         * Spawn parallel process to run `exiftool` if needed (be sure to log events properly)
@@ -359,7 +361,11 @@ If you want to run this like a true sprint board, the cleanest next move is to t
 
     * Packaging plan implemented:
       * Core service shipped as frozen binary or embedded Python runtime (pick one and commit)
-      * SeaweedFS binaries bundled or fetched in a controlled way
+      * Bundled third-party toolchain (no end-user installs required):
+        * ExifTool is bundled per-OS and installed/extracted to `${FACEFORGE_HOME}/tools/` on first run (or during install)
+        * SeaweedFS binaries bundled or fetched in a controlled way
+        * Integrity checks (hash/size) + predictable paths so Core can resolve tools reliably
+        * Third-party notices/licenses included in the distributed bundle
     * Installer / portable bundle per OS (Windows first if that’s your priority)
     * Logging + crash reports in `${FACEFORGE_HOME}/logs`
     * Security defaults verified:

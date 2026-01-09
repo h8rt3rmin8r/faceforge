@@ -4,7 +4,7 @@ import hashlib
 import json
 import logging
 import mimetypes
-import shutil
+import os
 import sqlite3
 import uuid
 from pathlib import Path
@@ -166,17 +166,48 @@ def _load_sidecar_json(upload: UploadFile) -> Any:
 
 def _resolve_exiftool_executable(request: Request) -> Path | None:
     config = getattr(request.app.state, "faceforge_config", None)
+    paths = getattr(request.app.state, "faceforge_paths", None)
     enabled = bool(getattr(getattr(config, "tools", None), "exiftool_enabled", True))
     if not enabled:
         return None
 
+    tools_dir = getattr(paths, "tools_dir", None)
+    if tools_dir is None:
+        return None
+
+    tools_dir = Path(tools_dir)
+
     raw = getattr(getattr(config, "tools", None), "exiftool_path", None)
     if raw and str(raw).strip():
         p = Path(str(raw)).expanduser()
-        return p if p.is_absolute() else p.resolve()
+        # Relative paths are resolved relative to the managed tools dir.
+        p = p if p.is_absolute() else (tools_dir / p)
+        p = p.resolve()
+        return p if p.exists() else None
 
-    which = shutil.which("exiftool")
-    return Path(which) if which else None
+    # Bundled locations only (no PATH fallback).
+    is_windows = os.name == "nt"
+    candidates: list[Path] = []
+    if is_windows:
+        candidates.extend(
+            [
+                tools_dir / "exiftool.exe",
+                tools_dir / "exiftool" / "exiftool.exe",
+            ]
+        )
+    else:
+        candidates.extend(
+            [
+                tools_dir / "exiftool",
+                tools_dir / "exiftool" / "exiftool",
+            ]
+        )
+
+    for c in candidates:
+        if c.exists():
+            return c
+
+    return None
 
 
 def _exiftool_background_task(

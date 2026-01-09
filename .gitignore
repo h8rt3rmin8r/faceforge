@@ -191,6 +191,9 @@ cython_debug/
 # Ruff stuff:
 .ruff_cache/
 
+# Local build artifacts (created by CI/local packaging commands)
+artifacts/
+
 # PyPI configuration file
 .pypirc
 
