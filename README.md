@@ -11,9 +11,10 @@ FaceForge is designed to be a stable, integration-friendly “boring core” for
 
 ## Status
 
-This repository is currently **docs-first scaffolding**:
+This repository is currently **docs-first scaffolding** with an initial runnable Core skeleton:
 
-- `core/` and `desktop/` are placeholders today.
+- `core/` contains a minimal FastAPI app (`GET /healthz`) and dev/CI wiring.
+- `desktop/` is still a placeholder.
 - The “what it is / how it should work” is defined in the spec and the MVP sprint plan.
 
 If you’re arriving here to understand the project, start with:
@@ -55,14 +56,33 @@ When implementation starts, the repo will follow these conventions:
 
 ## Repository layout
 
-- `core/` — planned Core API service (currently placeholder)
+- `core/` — Core API service (currently minimal scaffold)
 - `desktop/` — planned Tauri desktop orchestrator (currently placeholder)
 - `docs/` — design spec + MVP sprint sequence (current source of truth)
 - `brand/` — logos, favicon assets, and fonts used for UI branding
 
 ## Getting started (today)
 
-There isn’t runnable Core/Desktop code in this repo yet.
+FaceForge Desktop isn’t implemented yet, but **FaceForge Core has an initial dev scaffold** you can run locally.
+
+### Run Core (dev)
+
+From the repo root (Windows PowerShell):
+
+Prereq: Python 3.12.x installed (used only to bootstrap the repo-local `.venv`).
+
+- `./scripts/dev-core.ps1`
+
+Then open:
+
+- `http://127.0.0.1:8787/healthz`
+- `http://127.0.0.1:8787/docs`
+
+### Checks (format + lint + tests)
+
+- `./scripts/check-core.ps1`
+
+These scripts create/use the repo-local `.venv` and always run commands through it.
 
 To get productive right now:
 

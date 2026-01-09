@@ -5,7 +5,8 @@
 - The implementation roadmap lives in: `docs/FaceForge Core - MVP Sprint Sequence.md`.
 
 ## Repo layout (current)
-- `core/` and `desktop/` are currently placeholders (`.keep`); most “how it should work” is only in `docs/` today.
+- `core/` is now a minimal runnable scaffold (FastAPI app + `/healthz` + lint/tests/CI); `desktop/` remains a placeholder.
+- Most “how it should work” is still described in `docs/` today.
 - `brand/` contains fonts/logo/favicon assets used for UI branding.
 
 ## Big-picture architecture (intended)
@@ -24,3 +25,4 @@
 ## How to work in this repo as it evolves
 - When adding initial code, keep boundaries: Core service code under `core/`, desktop orchestrator under `desktop/`.
 - Prefer small, spec-aligned increments (Sprint 0 → Sprint N); if you introduce dev commands/scripts, document them in `README.md`.
+- **Do not rely on global Python for running commands**: use the repo-local `.venv` and the PowerShell scripts in `scripts/` (e.g. `scripts/dev-core.ps1`, `scripts/check-core.ps1`).

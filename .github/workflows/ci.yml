@@ -1,0 +1,68 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  core:
+    name: core (ruff + pytest)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Create venv
+        shell: pwsh
+        run: |
+          python -m venv .venv
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          $py = if ($IsWindows) { '.\.venv\Scripts\python.exe' } else { './.venv/bin/python' }
+          & $py -m pip install --upgrade pip
+          & $py -m pip install -e ./core[dev]
+
+      - name: Ruff format (check)
+        shell: pwsh
+        run: |
+          $py = if ($IsWindows) { '.\.venv\Scripts\python.exe' } else { './.venv/bin/python' }
+          & $py -m ruff format --check ./core/src ./core/tests
+
+      - name: Ruff lint
+        shell: pwsh
+        run: |
+          $py = if ($IsWindows) { '.\.venv\Scripts\python.exe' } else { './.venv/bin/python' }
+          & $py -m ruff check ./core/src ./core/tests
+
+      - name: Pytest
+        shell: pwsh
+        run: |
+          $py = if ($IsWindows) { '.\.venv\Scripts\python.exe' } else { './.venv/bin/python' }
+          & $py -m pytest ./core/tests
+
+      - name: Build Core artifacts (sdist + wheel)
+        if: matrix.os == 'ubuntu-latest'
+        shell: pwsh
+        run: |
+          $py = './.venv/bin/python'
+          & $py -m pip install --upgrade build
+          & $py -m build ./core --outdir ./artifacts/core-dist
+
+      - name: Upload Core artifacts
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-dist
+          path: artifacts/core-dist
