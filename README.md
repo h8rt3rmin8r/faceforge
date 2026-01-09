@@ -114,6 +114,19 @@ Core now exposes initial Entities + Assets v1 endpoints (token required):
 - `POST /v1/entities/{entity_id}/assets/{asset_id}` (link)
 - `DELETE /v1/entities/{entity_id}/assets/{asset_id}` (unlink)
 
+Core also exposes initial Descriptor + Field Definition endpoints (Sprint 7):
+
+- `GET /v1/admin/field-defs` (admin)
+- `POST /v1/admin/field-defs` (admin)
+- `GET /v1/admin/field-defs/{field_def_id}` (admin)
+- `PATCH /v1/admin/field-defs/{field_def_id}` (admin)
+- `DELETE /v1/admin/field-defs/{field_def_id}` (admin)
+
+- `GET /v1/entities/{entity_id}/descriptors`
+- `POST /v1/entities/{entity_id}/descriptors`
+- `PATCH /v1/descriptors/{descriptor_id}`
+- `DELETE /v1/descriptors/{descriptor_id}`
+
 For optional SeaweedFS/S3 storage configuration (Sprint 6), see:
 
 - [core/README.md](core/README.md)

@@ -138,4 +138,26 @@ ALTER TABLE assets ADD COLUMN updated_at TEXT NOT NULL
     DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
 """,
     ),
+    (
+        "0003_descriptors",
+        """
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS descriptors (
+    descriptor_id TEXT PRIMARY KEY,
+    entity_id TEXT NOT NULL,
+    scope TEXT NOT NULL DEFAULT 'descriptor',
+    field_key TEXT NOT NULL,
+    value_json TEXT NOT NULL DEFAULT 'null',
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    deleted_at TEXT,
+    FOREIGN KEY(entity_id) REFERENCES entities(entity_id) ON DELETE RESTRICT,
+    UNIQUE(entity_id, scope, field_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_descriptors_entity_id ON descriptors(entity_id);
+CREATE INDEX IF NOT EXISTS idx_descriptors_deleted_at ON descriptors(deleted_at);
+""",
+    ),
 ]

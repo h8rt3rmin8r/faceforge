@@ -36,6 +36,18 @@ def new_entity_id() -> str:
     return sha256_hex(uuid.uuid4().bytes)
 
 
+def new_field_def_id() -> str:
+    """Generate a new field definition ID (SHA-256 hex string)."""
+
+    return sha256_hex(uuid.uuid4().bytes)
+
+
+def new_descriptor_id() -> str:
+    """Generate a new descriptor ID (SHA-256 hex string)."""
+
+    return sha256_hex(uuid.uuid4().bytes)
+
+
 def asset_id_from_content_hash(content_hash: str) -> str:
     """Derive the asset ID from a content hash.
 

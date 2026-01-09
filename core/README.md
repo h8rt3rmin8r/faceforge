@@ -155,6 +155,17 @@ The service should come up on `http://127.0.0.1:8787` and expose:
 - `POST /v1/entities/{entity_id}/assets/{asset_id}` (requires token; link)
 - `DELETE /v1/entities/{entity_id}/assets/{asset_id}` (requires token; unlink)
 
+- `GET /v1/admin/field-defs` (requires token)
+- `POST /v1/admin/field-defs` (requires token)
+- `GET /v1/admin/field-defs/{field_def_id}` (requires token)
+- `PATCH /v1/admin/field-defs/{field_def_id}` (requires token)
+- `DELETE /v1/admin/field-defs/{field_def_id}` (requires token)
+
+- `GET /v1/entities/{entity_id}/descriptors` (requires token)
+- `POST /v1/entities/{entity_id}/descriptors` (requires token)
+- `PATCH /v1/descriptors/{descriptor_id}` (requires token)
+- `DELETE /v1/descriptors/{descriptor_id}` (requires token)
+
 ### Auth (Sprint 3)
 
 Core requires a per-install token for non-health endpoints.
@@ -238,6 +249,40 @@ Configuration:
 
 - `${FACEFORGE_HOME}/config/core.json` → `tools.exiftool_enabled` (default `true`)
 - `${FACEFORGE_HOME}/config/core.json` → `tools.exiftool_path` (optional override)
+
+## Sprint 7: Descriptors + Field Definitions (admin)
+
+FaceForge Core supports a small “flexible schema without migrations” layer:
+
+- Admin creates **field definitions** (scope + key + type + validation rules)
+- API accepts **descriptors** immediately once a field definition exists
+- Invalid descriptor values are rejected with a clear `validation_error` response
+
+### Field definitions
+
+- `GET /v1/admin/field-defs` (optional query: `scope=...`)
+- `POST /v1/admin/field-defs`
+- `GET /v1/admin/field-defs/{field_def_id}`
+- `PATCH /v1/admin/field-defs/{field_def_id}`
+- `DELETE /v1/admin/field-defs/{field_def_id}` (soft delete)
+
+Field definition fields:
+
+- `scope` (string; default `descriptor`)
+- `field_key` (string)
+- `field_type` (string; supports `string`, `int`, `float`, `bool`, `enum`, `json`)
+- `required` (bool)
+- `regex` (string; `string` only)
+- `options` (object; for `enum`, use `{ "options": ["a", "b"] }`)
+
+### Descriptors
+
+- `GET /v1/entities/{entity_id}/descriptors`
+- `POST /v1/entities/{entity_id}/descriptors`
+- `PATCH /v1/descriptors/{descriptor_id}`
+- `DELETE /v1/descriptors/{descriptor_id}` (soft delete)
+
+Descriptors are validated against the matching field definition (`scope` + `field_key`).
 
 Bundling/embedding requirement:
 

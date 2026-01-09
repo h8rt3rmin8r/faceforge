@@ -5,13 +5,17 @@ from pydantic import BaseModel
 
 from faceforge_core import __version__
 from faceforge_core.api.models import ApiResponse, ok
+from faceforge_core.api.v1.admin_field_defs import router as admin_field_defs_router
 from faceforge_core.api.v1.assets import router as assets_router
+from faceforge_core.api.v1.descriptors import router as descriptors_router
 from faceforge_core.api.v1.entities import router as entities_router
 
 router = APIRouter(prefix="/v1", tags=["v1"])
 
 router.include_router(entities_router)
+router.include_router(descriptors_router)
 router.include_router(assets_router)
+router.include_router(admin_field_defs_router)
 
 
 class SystemInfo(BaseModel):
