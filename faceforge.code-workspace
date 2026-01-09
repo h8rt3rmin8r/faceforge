@@ -110,6 +110,10 @@
             "/^pwsh -NoProfile -ExecutionPolicy Bypass -File \"a:\\\\Code\\\\faceforge\\\\scripts\\\\check-core\\.ps1\"$/": {
                 "approve": true,
                 "matchCommandLine": true
+            },
+            "/^Set-Location 'a:\\\\Code\\\\faceforge\\\\core'; A:/Code/faceforge/\\.venv/Scripts/python\\.exe -m pytest -q$/": {
+                "approve": true,
+                "matchCommandLine": true
             }
         }
     }

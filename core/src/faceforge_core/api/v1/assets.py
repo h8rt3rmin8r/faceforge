@@ -23,7 +23,9 @@ from faceforge_core.db.assets import (
     get_asset_by_content_hash,
 )
 from faceforge_core.db.ids import asset_id_from_content_hash
+from faceforge_core.db.ids import new_job_id
 from faceforge_core.ingest.exiftool import run_exiftool, should_skip_exiftool
+from faceforge_core.jobs.dispatcher import JobContext, start_job_thread
 from faceforge_core.storage.manager import StorageManager
 from faceforge_core.storage.s3 import S3ObjectLocation
 
@@ -369,6 +371,52 @@ async def assets_upload(
         background_tasks.add_task(_cleanup_temp_file, upload_result.cleanup_temp_path)
 
     return ok(_to_asset(row))
+
+
+class BulkImportRequest(BaseModel):
+    path: str = Field(min_length=1, description="Directory to scan for files")
+    recursive: bool = True
+    kind: str = "file"
+
+
+class BulkImportResponse(BaseModel):
+    job_id: str
+    job_type: str
+    status: str
+    created_at: str
+
+
+@router.post("/assets/bulk-import", response_model=ApiResponse[BulkImportResponse])
+async def assets_bulk_import(request: Request, payload: BulkImportRequest) -> ApiResponse[BulkImportResponse]:
+    """Start a bulk import of a local directory as a durable job."""
+
+    db_path = getattr(request.app.state, "db_path", None)
+    storage_mgr: StorageManager | None = getattr(request.app.state, "storage_manager", None)
+    if db_path is None:
+        raise HTTPException(status_code=500, detail="DB not initialized")
+    if storage_mgr is None:
+        raise HTTPException(status_code=500, detail="Storage not initialized")
+
+    from faceforge_core.db.jobs import append_job_log, create_job
+
+    job_id = new_job_id()
+    job_type = "assets.bulk-import"
+    job_input = {"path": payload.path, "recursive": payload.recursive, "kind": payload.kind}
+
+    row = create_job(db_path, job_id=job_id, job_type=job_type, status="queued", input=job_input)
+    append_job_log(db_path, job_id=job_id, level="info", message="Job queued")
+
+    ctx = JobContext(db_path=db_path, storage_mgr=storage_mgr)
+    start_job_thread(ctx=ctx, job_id=job_id)
+
+    return ok(
+        BulkImportResponse(
+            job_id=row.job_id,
+            job_type=row.job_type,
+            status=row.status,
+            created_at=row.created_at,
+        )
+    )
 
 
 @router.get("/assets/{asset_id}", response_model=ApiResponse[Asset])

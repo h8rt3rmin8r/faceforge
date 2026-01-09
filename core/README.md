@@ -152,8 +152,15 @@ The service should come up on `http://127.0.0.1:8787` and expose:
 - `POST /v1/assets/upload` (requires token; multipart)
 - `GET /v1/assets/{asset_id}` (requires token)
 - `GET /v1/assets/{asset_id}/download` (requires token; streaming + Range)
+- `POST /v1/assets/bulk-import` (requires token; starts a job)
 - `POST /v1/entities/{entity_id}/assets/{asset_id}` (requires token; link)
 - `DELETE /v1/entities/{entity_id}/assets/{asset_id}` (requires token; unlink)
+
+- `POST /v1/jobs` (requires token)
+- `GET /v1/jobs` (requires token)
+- `GET /v1/jobs/{job_id}` (requires token)
+- `GET /v1/jobs/{job_id}/log` (requires token; pollable)
+- `POST /v1/jobs/{job_id}/cancel` (requires token)
 
 - `GET /v1/admin/field-defs` (requires token)
 - `POST /v1/admin/field-defs` (requires token)
@@ -240,6 +247,25 @@ Example (PowerShell):
 Example (curl):
 
 - `curl -H "Authorization: Bearer <token>" -H "Range: bytes=0-1048575" -o first-1mb.bin http://127.0.0.1:8787/v1/assets/<asset_id>/download`
+
+## Sprint 9: Jobs + structured logs + bulk import
+
+Core exposes a minimal durable job model backed by SQLite:
+
+- Jobs are created with status `queued` and executed in-process.
+- Logs are append-only and stored in `job_logs` with timestamps and levels.
+- Cancellation is cooperative: `POST /v1/jobs/{job_id}/cancel` requests cancellation and the worker stops at a safe point.
+
+### Create a bulk import job
+
+- `POST /v1/assets/bulk-import`
+	- Body: `{ "path": "...", "recursive": true, "kind": "file" }`
+	- Response: `{ job_id, job_type, status, created_at }`
+
+Then poll:
+
+- `GET /v1/jobs/{job_id}` (status + progress)
+- `GET /v1/jobs/{job_id}/log?after_id=0` (logs; use `next_after_id` for incremental polling)
 
 ### Link/unlink to entities
 

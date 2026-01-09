@@ -54,6 +54,12 @@ def new_relationship_id() -> str:
     return sha256_hex(uuid.uuid4().bytes)
 
 
+def new_job_id() -> str:
+    """Generate a new job ID (SHA-256 hex string)."""
+
+    return sha256_hex(uuid.uuid4().bytes)
+
+
 def asset_id_from_content_hash(content_hash: str) -> str:
     """Derive the asset ID from a content hash.
 

@@ -111,8 +111,17 @@ Core now exposes initial Entities + Assets v1 endpoints (token required):
 - `POST /v1/assets/upload` (multipart)
 - `GET /v1/assets/{asset_id}`
 - `GET /v1/assets/{asset_id}/download` (streaming + HTTP Range)
+- `POST /v1/assets/bulk-import` (starts a durable job)
 - `POST /v1/entities/{entity_id}/assets/{asset_id}` (link)
 - `DELETE /v1/entities/{entity_id}/assets/{asset_id}` (unlink)
+
+Core also exposes initial Jobs endpoints (Sprint 9):
+
+- `POST /v1/jobs`
+- `GET /v1/jobs`
+- `GET /v1/jobs/{job_id}`
+- `GET /v1/jobs/{job_id}/log` (append-only, pollable)
+- `POST /v1/jobs/{job_id}/cancel` (cooperative cancellation)
 
 Core also exposes initial Descriptor + Field Definition endpoints (Sprint 7):
 

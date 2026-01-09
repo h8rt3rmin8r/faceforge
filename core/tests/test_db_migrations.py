@@ -17,6 +17,12 @@ def _table_names(db_path: Path) -> set[str]:
     return {r[0] for r in rows}
 
 
+def _table_columns(db_path: Path, table: str) -> set[str]:
+    with sqlite3.connect(db_path) as conn:
+        rows = conn.execute(f"PRAGMA table_info({table});").fetchall()
+    return {r[1] for r in rows}
+
+
 def test_migrations_blank_to_latest(tmp_path: Path) -> None:
     paths = ensure_faceforge_layout(tmp_path)
     config = load_core_config(paths)
@@ -38,3 +44,8 @@ def test_migrations_blank_to_latest(tmp_path: Path) -> None:
     assert "job_logs" in tables
     assert "field_definitions" in tables
     assert "plugin_registry" in tables
+
+    jobs_cols = _table_columns(db_path, "jobs")
+    assert "input_json" in jobs_cols
+    assert "result_json" in jobs_cols
+    assert "cancel_requested_at" in jobs_cols

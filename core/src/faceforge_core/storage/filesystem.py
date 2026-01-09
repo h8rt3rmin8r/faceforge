@@ -76,3 +76,33 @@ class FilesystemStorageProvider:
             pass
 
         return dst
+
+
+    def ingest_existing_file(self, *, source_path: Path, storage_key: str) -> Path:
+        """Copy (or hardlink when possible) an existing file into storage.
+
+        The source file is left in place.
+        """
+
+        dst = self.resolve_path(storage_key)
+        dst.parent.mkdir(parents=True, exist_ok=True)
+
+        if dst.exists():
+            return dst
+
+        # Best effort hardlink for speed; fall back to copy.
+        try:
+            os.link(source_path, dst)
+            return dst
+        except OSError:
+            pass
+
+        with source_path.open("rb") as src, dst.open("wb") as out:
+            shutil.copyfileobj(src, out, length=1024 * 1024)
+
+        try:
+            os.chmod(dst, 0o644)
+        except OSError:
+            pass
+
+        return dst

@@ -160,4 +160,20 @@ CREATE INDEX IF NOT EXISTS idx_descriptors_entity_id ON descriptors(entity_id);
 CREATE INDEX IF NOT EXISTS idx_descriptors_deleted_at ON descriptors(deleted_at);
 """,
     ),
+    (
+        "0004_jobs_inputs_and_cancel",
+        """
+PRAGMA foreign_keys = ON;
+
+-- Store job input/output blobs for durability and plugin compatibility.
+ALTER TABLE jobs ADD COLUMN input_json TEXT NOT NULL DEFAULT '{}';
+ALTER TABLE jobs ADD COLUMN result_json TEXT;
+
+-- Cancellation is cooperative: API requests cancellation; workers poll.
+ALTER TABLE jobs ADD COLUMN cancel_requested_at TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_jobs_job_type ON jobs(job_type);
+CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON jobs(created_at);
+""",
+    ),
 ]

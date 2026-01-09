@@ -10,6 +10,7 @@ from faceforge_core.api.v1.assets import router as assets_router
 from faceforge_core.api.v1.descriptors import router as descriptors_router
 from faceforge_core.api.v1.entities import router as entities_router
 from faceforge_core.api.v1.relationships import router as relationships_router
+from faceforge_core.api.v1.jobs import router as jobs_router
 
 router = APIRouter(prefix="/v1", tags=["v1"])
 
@@ -18,6 +19,7 @@ router.include_router(descriptors_router)
 router.include_router(assets_router)
 router.include_router(admin_field_defs_router)
 router.include_router(relationships_router)
+router.include_router(jobs_router)
 
 
 class SystemInfo(BaseModel):

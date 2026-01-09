@@ -92,6 +92,13 @@ class S3StorageProvider:
         with temp_path.open("rb") as f:
             client.put_object(Bucket=location.bucket, Key=location.key, Body=f)
 
+
+    def put_file_from_path(self, *, source_path: Path, location: S3ObjectLocation) -> None:
+        client = self._get_client()
+        self.ensure_bucket(location.bucket)
+        with source_path.open("rb") as f:
+            client.put_object(Bucket=location.bucket, Key=location.key, Body=f)
+
     def head_size_bytes(self, *, location: S3ObjectLocation) -> int:
         client = self._get_client()
         r = client.head_object(Bucket=location.bucket, Key=location.key)

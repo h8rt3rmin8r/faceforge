@@ -155,6 +155,47 @@ class StorageManager:
             cleanup_temp_path=None,
         )
 
+
+    def store_existing_file(
+        self,
+        *,
+        source_path: Path,
+        asset_id: str,
+        kind: str,
+        byte_size: int,
+    ) -> UploadResult:
+        """Store an existing file path into the configured backend.
+
+        The source file is not modified.
+        """
+
+        preferred = self.choose_provider_for_upload(kind=kind, byte_size=byte_size)
+
+        provider = preferred
+        if provider == "s3" and not self.s3_available():
+            provider = "fs"
+
+        if provider == "s3":
+            s3 = self._get_s3()
+            key = s3.key_for_asset_id(asset_id)
+            loc = S3ObjectLocation(bucket=s3.default_bucket, key=key)
+            s3.put_file_from_path(source_path=source_path, location=loc)
+            return UploadResult(
+                storage_provider=s3.provider_name,
+                storage_key=loc.to_storage_key(),
+                local_path=None,
+                cleanup_temp_path=None,
+            )
+
+        storage_key = self._fs.key_for_asset_id(asset_id)
+        asset_path = self._fs.ingest_existing_file(source_path=source_path, storage_key=storage_key)
+        return UploadResult(
+            storage_provider=self._fs.provider_name,
+            storage_key=storage_key,
+            local_path=asset_path,
+            cleanup_temp_path=None,
+        )
+
     def open_download(
         self,
         *,
