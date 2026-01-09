@@ -166,6 +166,11 @@ The service should come up on `http://127.0.0.1:8787` and expose:
 - `PATCH /v1/descriptors/{descriptor_id}` (requires token)
 - `DELETE /v1/descriptors/{descriptor_id}` (requires token)
 
+- `POST /v1/relationships` (requires token)
+- `GET /v1/relationships?entity_id=...` (requires token)
+- `DELETE /v1/relationships/{relationship_id}` (requires token)
+- `GET /v1/relation-types?query=...` (requires token)
+
 ### Auth (Sprint 3)
 
 Core requires a per-install token for non-health endpoints.

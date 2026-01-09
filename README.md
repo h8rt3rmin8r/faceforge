@@ -127,6 +127,13 @@ Core also exposes initial Descriptor + Field Definition endpoints (Sprint 7):
 - `PATCH /v1/descriptors/{descriptor_id}`
 - `DELETE /v1/descriptors/{descriptor_id}`
 
+Core also exposes initial Relationships endpoints (Sprint 8):
+
+- `POST /v1/relationships`
+- `GET /v1/relationships?entity_id=...`
+- `DELETE /v1/relationships/{relationship_id}`
+- `GET /v1/relation-types?query=...`
+
 For optional SeaweedFS/S3 storage configuration (Sprint 6), see:
 
 - [core/README.md](core/README.md)
