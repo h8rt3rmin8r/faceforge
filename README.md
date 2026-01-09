@@ -18,8 +18,8 @@ This repository is currently **docs-first scaffolding**:
 
 If you’re arriving here to understand the project, start with:
 
-- Design spec: [docs/FaceForge Core - Project Design Specification - v0.2.9.md](docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.md)
-- Roadmap / implementation sequence: [docs/FaceForge Core - MVP Sprint Sequence.md](docs/FaceForge%20Core%20-%20MVP%20Sprint%20Sequence.md)
+- Design spec: [docs/FaceForge Core - Project Design Specification - v0.2.9.html](docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.html)
+- Roadmap / implementation sequence: [docs/FaceForge Core - MVP Sprint Sequence.html](docs/FaceForge%20Core%20-%20MVP%20Sprint%20Sequence.html)
 
 ## What FaceForge is (and isn’t)
 
@@ -66,9 +66,16 @@ There isn’t runnable Core/Desktop code in this repo yet.
 
 To get productive right now:
 
-1. Read the spec: [docs/FaceForge Core - Project Design Specification - v0.2.9.md](docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.md)
-2. Follow the MVP sprint sequence to implement in small, shippable increments: [docs/FaceForge Core - MVP Sprint Sequence.md](docs/FaceForge%20Core%20-%20MVP%20Sprint%20Sequence.md)
-3. Keep AI agent guidance in sync as code lands: [.github/copilot-instructions.md](.github/copilot-instructions.md)
+- Read the Project Design Specification:
+  - [HTML](docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.html)
+  - [Markdown](docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.md)
+  - [PDF](docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.pdf)
+- Follow the MVP sprint sequence to implement in small, shippable increments:
+  - [HTML](docs/FaceForge%20Core%20-%20MVP%20Sprint%20Sequence.html)
+  - [Markdown](docs/FaceForge%20Core%20-%20MVP%20Sprint%20Sequence.md)
+  - [PDF](docs/FaceForge%20Core%20-%20MVP%20Sprint%20Sequence.pdf)
+- For implementers using AI assistance (e.g. GitHub Copilot), follow these guidelines
+  - Markdown: [.github/copilot-instructions.md](.github/copilot-instructions.md)
 
 ## Contributing
 
