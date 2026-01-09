@@ -75,7 +75,7 @@ To get productive right now:
   - [Markdown](docs/FaceForge%20Core%20-%20MVP%20Sprint%20Sequence.md)
   - [PDF](docs/FaceForge%20Core%20-%20MVP%20Sprint%20Sequence.pdf)
 - For implementers using AI assistance (e.g. GitHub Copilot), follow these guidelines
-  - Markdown: [.github/copilot-instructions.md](.github/copilot-instructions.md)
+  - Markdown doc via the repo UI: [copilot-instructions.md](https://github.com/h8rt3rmin8r/faceforge/blob/main/.github/copilot-instructions.md)
 
 ## Contributing
 
