@@ -6,6 +6,10 @@
         }
     ],
     "settings": {
+        "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+        "python.analysis.extraPaths": [
+            "${workspaceFolder}\\core\\src"
+        ],
         "powershell.cwd": "faceforge",
         "powershell.buttons.showPanelMovementButtons": true,
         "powershell.enableReferencesCodeLens": true,
