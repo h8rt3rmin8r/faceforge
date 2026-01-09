@@ -2,6 +2,25 @@
 
 This folder contains the **Core API service** (planned: FastAPI + Uvicorn).
 
+## Repo structure (Core)
+
+If you’re trying to find things quickly:
+
+```
+core/
+	src/faceforge_core/
+		__main__.py            # `python -m faceforge_core` entrypoint
+		app.py                 # FastAPI app wiring
+		api/v1/                # versioned HTTP routes
+		auth.py                # install-token auth helpers
+		config.py              # config loading + path resolution
+		home.py                # FACEFORGE_HOME + layout contract
+		db/                    # SQLite schema + migrations + queries
+		internal/              # internal CLIs (dev/admin helpers)
+	tests/                   # pytest tests
+	pyproject.toml           # packaging/dependencies
+```
+
 ## Sprint 1: home/config/runtime contract
 
 Core is **local-first** and writes all persistent/runtime files under `FACEFORGE_HOME`.
@@ -129,9 +148,12 @@ On Core startup, schema migrations are applied automatically (idempotent).
 
 Apply migrations and create sample records without using the API:
 
-- `python -m faceforge_core.internal.bootstrap_db --home <PATH> --migrate`
-- `python -m faceforge_core.internal.bootstrap_db --home <PATH> --create-entity "Ada Lovelace"`
-- `python -m faceforge_core.internal.bootstrap_db --home <PATH> --create-asset <FILEPATH>`
+1) Run `./scripts/dev-core.ps1` once (it installs Core editable into `.venv`).
+2) Then invoke internal modules using the venv Python:
+
+- `.\.venv\Scripts\python.exe -m faceforge_core.internal.bootstrap_db --home <PATH> --migrate`
+- `.\.venv\Scripts\python.exe -m faceforge_core.internal.bootstrap_db --home <PATH> --create-entity "Ada Lovelace"`
+- `.\.venv\Scripts\python.exe -m faceforge_core.internal.bootstrap_db --home <PATH> --create-asset <FILEPATH>`
 
 ## Sprint 4: Entities CRUD (v1)
 

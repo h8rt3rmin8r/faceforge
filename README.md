@@ -56,10 +56,34 @@ When implementation starts, the repo will follow these conventions:
 
 ## Repository layout
 
-- `core/` — Core API service (currently minimal scaffold)
-- `desktop/` — planned Tauri desktop orchestrator (currently placeholder)
-- `docs/` — design spec + MVP sprint sequence (current source of truth)
-- `brand/` — logos, favicon assets, and fonts used for UI branding
+Quick map of what lives where:
+
+```
+faceforge/
+  core/         # FastAPI Core service (runnable today)
+  desktop/      # Tauri desktop shell (placeholder for now)
+  docs/         # Project spec + MVP sprint plan (source of truth)
+  scripts/      # Dev scripts (PowerShell) to run/check Core using .venv
+  brand/        # Logos, favicon, fonts (UI branding assets)
+```
+
+Core service code is a standard Python package under:
+
+```
+core/
+  src/faceforge_core/       # app entrypoint + API + DB + storage
+    app.py                  # FastAPI app factory / wiring
+    api/v1/                 # versioned HTTP routes
+    db/                     # SQLite schema + migrations + queries
+    internal/               # internal CLIs/utilities (dev/admin)
+  tests/                    # pytest tests for Core
+  pyproject.toml            # Core packaging/deps
+```
+
+If you’re new and wondering “where do I add a route?”, start at:
+
+- `core/src/faceforge_core/api/v1/router.py` (v1 router)
+- `core/src/faceforge_core/app.py` (app wiring)
 
 ## Getting started (today)
 
