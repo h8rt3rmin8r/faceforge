@@ -41,6 +41,14 @@ class AssetRow:
     deleted_at: str | None
 
 
+@dataclass(frozen=True)
+class EntityAssetRow:
+    entity_id: str
+    asset: AssetRow
+    role: str | None
+    linked_at: str
+
+
 def _asset_from_db_row(row: sqlite3.Row) -> AssetRow:
     return AssetRow(
         asset_id=row["asset_id"],
@@ -242,3 +250,61 @@ def unlink_asset_from_entity(db_path, *, entity_id: str, asset_id: str) -> bool:
             (_utc_now_sqlite_iso(), entity_id, asset_id),
         )
         return cur.rowcount > 0
+
+
+def list_assets_for_entity(
+    db_path,
+    *,
+    entity_id: str,
+    include_deleted_links: bool = False,
+    include_deleted_assets: bool = False,
+) -> list[EntityAssetRow]:
+    link_where = "ea.entity_id = ?"
+    params: list[Any] = [entity_id]
+
+    if not include_deleted_links:
+        link_where += " AND ea.deleted_at IS NULL"
+
+    asset_where = "1=1"
+    if not include_deleted_assets:
+        asset_where += " AND a.deleted_at IS NULL"
+
+    with _connect(db_path) as conn:
+        rows = conn.execute(
+            f"""
+            SELECT
+                ea.entity_id,
+                ea.role,
+                ea.created_at AS linked_at,
+                a.asset_id,
+                a.kind,
+                a.filename,
+                a.content_hash,
+                a.byte_size,
+                a.mime_type,
+                a.storage_provider,
+                a.storage_key,
+                a.meta_json,
+                a.created_at,
+                a.updated_at,
+                a.deleted_at
+            FROM entity_assets ea
+            JOIN assets a ON a.asset_id = ea.asset_id
+            WHERE {link_where} AND {asset_where}
+            ORDER BY ea.created_at DESC, a.asset_id ASC;
+            """.strip(),
+            params,
+        ).fetchall()
+
+    out: list[EntityAssetRow] = []
+    for r in rows:
+        asset = _asset_from_db_row(r)
+        out.append(
+            EntityAssetRow(
+                entity_id=r["entity_id"],
+                asset=asset,
+                role=r["role"],
+                linked_at=r["linked_at"],
+            )
+        )
+    return out

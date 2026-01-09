@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="panel">
+    <div class="row space">
+      <div>
+        <h1>{{ entity.display_name }}</h1>
+        <div class="code muted">{{ entity.entity_id }}</div>
+      </div>
+      <div class="row">
+        <form method="post" action="/ui/entities/{{ entity.entity_id }}/delete" style="margin:0;">
+          <button class="btn danger" type="submit" onclick="return confirm('Soft-delete this entity?');">Delete</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <a href="/ui/entities/{{ entity.entity_id }}?tab=overview" class="{% if tab == 'overview' %}active{% endif %}">Overview</a>
+      <a href="/ui/entities/{{ entity.entity_id }}?tab=descriptors" class="{% if tab == 'descriptors' %}active{% endif %}">Descriptors</a>
+      <a href="/ui/entities/{{ entity.entity_id }}?tab=attachments" class="{% if tab == 'attachments' %}active{% endif %}">Attachments</a>
+      <a href="/ui/entities/{{ entity.entity_id }}?tab=relationships" class="{% if tab == 'relationships' %}active{% endif %}">Relationships</a>
+    </div>
+
+    {% if tab == 'overview' %}
+      <h2>Overview</h2>
+      <form method="post" action="/ui/entities/{{ entity.entity_id }}/update">
+        <label>Display name</label>
+        <input type="text" name="display_name" value="{{ entity.display_name }}" required />
+
+        <label>Tags (comma-separated)</label>
+        <input type="text" name="tags" value="{{ entity.tags|join(', ') }}" />
+
+        <label>Aliases (comma-separated)</label>
+        <input type="text" name="aliases" value="{{ entity.aliases|join(', ') }}" />
+
+        <label>Fields (JSON object)</label>
+        <textarea name="fields_json">{{ fields_json }}</textarea>
+
+        <div class="row" style="margin-top: 12px;">
+          <button class="btn" type="submit">Save</button>
+        </div>
+      </form>
+
+      <div style="margin-top: 14px;" class="kv">
+        <div class="k">Created</div><div class="v">{{ entity.created_at }}</div>
+        <div class="k">Updated</div><div class="v">{{ entity.updated_at }}</div>
+      </div>
+
+    {% elif tab == 'descriptors' %}
+      <h2>Descriptors</h2>
+
+      {% if descriptors %}
+        <table class="table" style="margin-bottom: 14px;">
+          <thead><tr><th>Scope</th><th>Key</th><th>Value</th><th></th></tr></thead>
+          <tbody>
+            {% for d in descriptors %}
+              <tr>
+                <td class="code">{{ d.scope }}</td>
+                <td class="code">{{ d.field_key }}</td>
+                <td><pre class="code" style="margin:0; white-space:pre-wrap;">{{ d.value_json }}</pre></td>
+                <td>
+                  <form method="post" action="/ui/descriptors/{{ d.descriptor_id }}/delete" style="margin:0;">
+                    <input type="hidden" name="entity_id" value="{{ entity.entity_id }}" />
+                    <button class="btn danger" type="submit" onclick="return confirm('Delete this descriptor?');">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="muted" style="margin-bottom: 14px;">No descriptors yet.</div>
+      {% endif %}
+
+      <div class="panel" style="padding: 12px; margin-bottom: 12px;">
+        <h3>Add descriptor</h3>
+        <form method="post" action="/ui/entities/{{ entity.entity_id }}/descriptors/create">
+          <div class="row">
+            <div style="min-width: 180px; flex: 1;">
+              <label>Scope</label>
+              <input type="text" name="scope" value="descriptor" />
+            </div>
+            <div style="min-width: 240px; flex: 2;">
+              <label>Field key</label>
+              <input type="text" name="field_key" placeholder="e.g. external_id" list="field_keys" />
+              <datalist id="field_keys">
+                {% for fd in field_defs %}<option value="{{ fd.field_key }}"></option>{% endfor %}
+              </datalist>
+              <div class="muted" style="font-size:12px;">Descriptors require an admin field definition (scope + key) to exist.</div>
+            </div>
+          </div>
+
+          <label>Value (JSON)</label>
+          <textarea name="value_json" placeholder="\"abc\" or 123 or true or { }"></textarea>
+
+          <div class="row" style="margin-top: 12px;">
+            <button class="btn" type="submit">Add</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="panel" style="padding: 12px;">
+        <h3>Create field definition (admin)</h3>
+        <form method="post" action="/ui/field-defs/create">
+          <div class="row">
+            <div style="min-width: 180px; flex: 1;">
+              <label>Scope</label>
+              <input type="text" name="scope" value="descriptor" />
+            </div>
+            <div style="min-width: 240px; flex: 2;">
+              <label>Field key</label>
+              <input type="text" name="field_key" placeholder="e.g. external_id" required />
+            </div>
+            <div style="min-width: 180px; flex: 1;">
+              <label>Field type</label>
+              <select name="field_type">
+                <option value="string">string</option>
+                <option value="int">int</option>
+                <option value="number">number</option>
+                <option value="boolean">boolean</option>
+                <option value="json">json</option>
+              </select>
+            </div>
+            <div style="min-width: 120px;">
+              <label>Required</label>
+              <select name="required">
+                <option value="false" selected>false</option>
+                <option value="true">true</option>
+              </select>
+            </div>
+          </div>
+
+          <label>Options (JSON) — optional (for enum/options)</label>
+          <textarea name="options_json" placeholder="{\"options\": [\"a\", \"b\"]}"></textarea>
+
+          <label>Regex (optional)</label>
+          <input type="text" name="regex" />
+
+          <input type="hidden" name="return_to" value="/ui/entities/{{ entity.entity_id }}?tab=descriptors" />
+          <div class="row" style="margin-top: 12px;">
+            <button class="btn" type="submit">Create field definition</button>
+          </div>
+        </form>
+      </div>
+
+    {% elif tab == 'attachments' %}
+      <h2>Attachments</h2>
+
+      {% if assets %}
+        <table class="table" style="margin-bottom: 14px;">
+          <thead><tr><th>Filename</th><th>Kind</th><th>Size</th><th>Asset ID</th><th></th></tr></thead>
+          <tbody>
+            {% for a in assets %}
+              <tr>
+                <td>{{ a.filename or '' }}</td>
+                <td class="code">{{ a.kind }}</td>
+                <td class="code">{{ a.byte_size }}</td>
+                <td class="code">{{ a.asset_id }}</td>
+                <td class="row" style="gap: 8px;">
+                  <a class="btn" href="/v1/assets/{{ a.asset_id }}/download">Download</a>
+                  <form method="post" action="/ui/entities/{{ entity.entity_id }}/attachments/unlink" style="margin:0;">
+                    <input type="hidden" name="asset_id" value="{{ a.asset_id }}" />
+                    <button class="btn danger" type="submit">Unlink</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="muted" style="margin-bottom: 14px;">No attachments linked to this entity yet.</div>
+      {% endif %}
+
+      <div class="panel" style="padding: 12px; margin-bottom: 12px;">
+        <h3>Upload + link</h3>
+        <form method="post" action="/ui/entities/{{ entity.entity_id }}/attachments/upload" enctype="multipart/form-data">
+          <div class="row">
+            <div style="min-width: 220px; flex: 2;">
+              <label>File</label>
+              <input type="file" name="file" required />
+            </div>
+            <div style="min-width: 180px; flex: 1;">
+              <label>Kind</label>
+              <input type="text" name="kind" value="file" />
+            </div>
+            <div style="min-width: 180px; flex: 1;">
+              <label>Role (optional)</label>
+              <input type="text" name="role" placeholder="primary" />
+            </div>
+          </div>
+          <label>Optional _meta.json (JSON sidecar)</label>
+          <input type="file" name="meta" />
+
+          <div class="row" style="margin-top: 12px;">
+            <button class="btn" type="submit">Upload</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="panel" style="padding: 12px;">
+        <h3>Link existing asset</h3>
+        <form method="post" action="/ui/entities/{{ entity.entity_id }}/attachments/link-existing">
+          <div class="row">
+            <div style="min-width: 320px; flex: 2;">
+              <label>Asset ID</label>
+              <input type="text" name="asset_id" placeholder="sha256..." required />
+            </div>
+            <div style="min-width: 180px; flex: 1;">
+              <label>Role (optional)</label>
+              <input type="text" name="role" />
+            </div>
+          </div>
+          <div class="row" style="margin-top: 12px;">
+            <button class="btn" type="submit">Link</button>
+          </div>
+        </form>
+      </div>
+
+    {% elif tab == 'relationships' %}
+      <h2>Relationships</h2>
+
+      {% if relationships %}
+        <table class="table" style="margin-bottom: 14px;">
+          <thead><tr><th>Type</th><th>Src</th><th>Dst</th><th>Fields</th><th></th></tr></thead>
+          <tbody>
+            {% for r in relationships %}
+              <tr>
+                <td class="code">{{ r.relationship_type }}</td>
+                <td class="code">{{ r.src_entity_id }}</td>
+                <td class="code">{{ r.dst_entity_id }}</td>
+                <td><pre class="code" style="margin:0; white-space:pre-wrap;">{{ r.fields_json }}</pre></td>
+                <td>
+                  <form method="post" action="/ui/relationships/{{ r.relationship_id }}/delete" style="margin:0;">
+                    <input type="hidden" name="entity_id" value="{{ entity.entity_id }}" />
+                    <button class="btn danger" type="submit" onclick="return confirm('Delete this relationship?');">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="muted" style="margin-bottom: 14px;">No relationships for this entity yet.</div>
+      {% endif %}
+
+      <div class="panel" style="padding: 12px;">
+        <h3>Create relationship</h3>
+        <form method="post" action="/ui/entities/{{ entity.entity_id }}/relationships/create">
+          <div class="row">
+            <div style="min-width: 320px; flex: 2;">
+              <label>Destination entity ID</label>
+              <input type="text" name="dst_entity_id" required />
+            </div>
+            <div style="min-width: 220px; flex: 1;">
+              <label>Relationship type</label>
+              <input type="text" name="relationship_type" placeholder="friend" required />
+            </div>
+          </div>
+
+          <label>Fields (JSON object)</label>
+          <textarea name="fields_json" placeholder="{}"></textarea>
+
+          <div class="row" style="margin-top: 12px;">
+            <button class="btn" type="submit">Create</button>
+          </div>
+        </form>
+      </div>
+
+    {% endif %}
+
+  </div>
+{% endblock %}

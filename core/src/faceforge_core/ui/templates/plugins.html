@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="row space" style="margin-bottom: 12px;">
+    <div>
+      <h1>Plugins</h1>
+      <div class="muted">Discovered from <span class="code">FACEFORGE_HOME/plugins</span></div>
+    </div>
+  </div>
+
+  {% if items %}
+    {% for p in items %}
+      <div class="panel" style="margin-bottom: 14px;">
+        <div class="row space">
+          <div>
+            <div style="font-weight: 650; font-size: 16px;">{{ p.name or p.plugin_id }}</div>
+            <div class="code muted">{{ p.plugin_id }}{% if p.version %} • v{{ p.version }}{% endif %}</div>
+          </div>
+          <div class="row">
+            {% if p.discovered %}<span class="badge ok">discovered</span>{% else %}<span class="badge bad">missing</span>{% endif %}
+            {% if p.enabled %}<span class="badge ok">enabled</span>{% else %}<span class="badge">disabled</span>{% endif %}
+
+            {% if p.enabled %}
+              <form method="post" action="/ui/plugins/{{ p.plugin_id }}/disable" style="margin:0;">
+                <button class="btn danger" type="submit">Disable</button>
+              </form>
+            {% else %}
+              <form method="post" action="/ui/plugins/{{ p.plugin_id }}/enable" style="margin:0;">
+                <button class="btn" type="submit">Enable</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+
+        <div style="margin-top: 12px;">
+          <h2>Config</h2>
+          {% if p.fields %}
+            <form method="post" action="/ui/plugins/{{ p.plugin_id }}/config">
+              {% for f in p.fields %}
+                <label>{{ f.key }}{% if f.required %} (required){% endif %}</label>
+                {% if f.input == 'checkbox' %}
+                  <select name="{{ f.key }}">
+                    <option value="true" {% if f.value is true %}selected{% endif %}>true</option>
+                    <option value="false" {% if f.value is false %}selected{% endif %}>false</option>
+                  </select>
+                {% elif f.input == 'select' %}
+                  <select name="{{ f.key }}">
+                    {% for o in f.enum %}
+                      <option value="{{ o }}" {% if f.value == o %}selected{% endif %}>{{ o }}</option>
+                    {% endfor %}
+                  </select>
+                {% elif f.input == 'number' %}
+                  <input type="number" name="{{ f.key }}" value="{{ f.value if f.value is not none else '' }}" />
+                {% elif f.input == 'text' %}
+                  <input type="text" name="{{ f.key }}" value="{{ f.value if f.value is not none else '' }}" />
+                {% else %}
+                  <textarea name="{{ f.key }}">{{ f.value_json }}</textarea>
+                {% endif %}
+                {% if f.description %}<div class="muted" style="font-size:12px;">{{ f.description }}</div>{% endif %}
+              {% endfor %}
+
+              <div class="row" style="margin-top: 12px;">
+                <button class="btn" type="submit">Save config</button>
+              </div>
+            </form>
+          {% else %}
+            <div class="muted">No config schema provided. Stored config is shown below.</div>
+            <pre class="code" style="white-space:pre-wrap;">{{ p.config_json }}</pre>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="panel">
+      <div class="muted">No plugins discovered yet. Create a folder under <span class="code">FACEFORGE_HOME/plugins</span> with a <span class="code">plugin.json</span>.</div>
+    </div>
+  {% endif %}
+
+{% endblock %}

@@ -77,7 +77,6 @@ class FilesystemStorageProvider:
 
         return dst
 
-
     def ingest_existing_file(self, *, source_path: Path, storage_key: str) -> Path:
         """Copy (or hardlink when possible) an existing file into storage.
 

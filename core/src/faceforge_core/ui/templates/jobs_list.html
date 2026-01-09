@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="row space" style="margin-bottom: 12px;">
+    <div>
+      <h1>Jobs</h1>
+      <div class="muted">{{ total }} total</div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom: 14px;">
+    <h2>Start bulk import</h2>
+    <form method="post" action="/ui/jobs/bulk-import">
+      <div class="row">
+        <div style="flex: 2; min-width: 320px;">
+          <label>Directory path</label>
+          <input type="text" name="path" placeholder="C:\\my\\folder" required />
+        </div>
+        <div style="min-width: 140px;">
+          <label>Recursive</label>
+          <select name="recursive">
+            <option value="true" selected>true</option>
+            <option value="false">false</option>
+          </select>
+        </div>
+        <div style="min-width: 180px;">
+          <label>Kind</label>
+          <input type="text" name="kind" value="file" />
+        </div>
+      </div>
+      <div class="row" style="margin-top: 12px;">
+        <button class="btn" type="submit">Start</button>
+      </div>
+    </form>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Job type</th>
+        <th>Status</th>
+        <th>Progress</th>
+        <th>Job ID</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for j in items %}
+        <tr>
+          <td class="code">{{ j.job_type }}</td>
+          <td>
+            <span class="badge {% if j.status in ['succeeded'] %}ok{% elif j.status in ['failed'] %}bad{% elif j.status in ['canceled'] %}warn{% endif %}">{{ j.status }}</span>
+          </td>
+          <td class="code">{% if j.progress_percent is not none %}{{ '%.1f'|format(j.progress_percent) }}%{% else %}-{% endif %} {% if j.progress_step %}({{ j.progress_step }}){% endif %}</td>
+          <td class="code">{{ j.job_id }}</td>
+          <td><a class="btn" href="/ui/jobs/{{ j.job_id }}">View</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

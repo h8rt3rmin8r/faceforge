@@ -15,7 +15,9 @@ def _sha256_hex(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def _wait_for_job(client: TestClient, *, headers: dict[str, str], job_id: str, timeout_s: float = 10.0):
+def _wait_for_job(
+    client: TestClient, *, headers: dict[str, str], job_id: str, timeout_s: float = 10.0
+):
     start = time.time()
     while True:
         r = client.get(f"/v1/jobs/{job_id}", headers=headers)

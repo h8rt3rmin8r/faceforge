@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ title or 'FaceForge Core' }}</title>
+  {% if not no_static %}
+    <link rel="stylesheet" href="/ui/static/app.css" />
+    <script defer src="/ui/static/app.js"></script>
+  {% endif %}
+  {% if refresh_s %}<meta http-equiv="refresh" content="{{ refresh_s }}" />{% endif %}
+</head>
+<body>
+  <div class="topbar">
+    <div class="inner">
+      <div class="brand">
+        <div class="name"><a href="/ui/entities" style="color: inherit; text-decoration:none;">FaceForge</a></div>
+        <div class="sub">Core UI</div>
+      </div>
+
+      {% if not hide_nav %}
+      <nav class="nav">
+        <a href="/ui/entities" class="{% if active == 'entities' %}active{% endif %}">Entities</a>
+        <a href="/ui/jobs" class="{% if active == 'jobs' %}active{% endif %}">Jobs</a>
+        <a href="/ui/plugins" class="{% if active == 'plugins' %}active{% endif %}">Plugins</a>
+        <a href="/docs" target="_blank" rel="noreferrer">API Docs</a>
+        <form method="post" action="/ui/logout" style="display:inline; margin:0;">
+          <button class="btn ghost" type="submit">Logout</button>
+        </form>
+      </nav>
+      {% endif %}
+    </div>
+  </div>
+
+  <main class="container">
+    {% if flash %}
+      <div class="flash {{ flash.kind or '' }}">{{ flash.message }}</div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

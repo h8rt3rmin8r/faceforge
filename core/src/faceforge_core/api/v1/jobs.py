@@ -12,8 +12,8 @@ from faceforge_core.db.jobs import (
     JobRow,
     append_job_log,
     get_job,
-    list_jobs,
     list_job_logs,
+    list_jobs,
     request_job_cancel,
 )
 from faceforge_core.jobs.dispatcher import JobContext, known_job_types, start_job_thread
@@ -82,7 +82,9 @@ async def jobs_create(request: Request, payload: JobCreateRequest) -> ApiRespons
     # Late import to avoid circular imports at module load time.
     from faceforge_core.db.jobs import create_job
 
-    row = create_job(db_path, job_id=job_id, job_type=job_type, status="queued", input=payload.input)
+    row = create_job(
+        db_path, job_id=job_id, job_type=job_type, status="queued", input=payload.input
+    )
     append_job_log(db_path, job_id=job_id, level="info", message="Job queued")
 
     ctx = JobContext(db_path=db_path, storage_mgr=storage_mgr)

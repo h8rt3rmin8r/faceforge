@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="panel">
+    <div class="row space">
+      <div>
+        <h1>Job</h1>
+        <div class="code muted">{{ job.job_id }}</div>
+      </div>
+      <div class="row">
+        {% if job.status in ['queued','running'] %}
+          <form method="post" action="/ui/jobs/{{ job.job_id }}/cancel" style="margin:0;">
+            <button class="btn danger" type="submit">Cancel</button>
+          </form>
+        {% endif %}
+        <a class="btn ghost" href="/ui/jobs/{{ job.job_id }}?refresh=2">Auto-refresh</a>
+        <a class="btn ghost" href="/ui/jobs/{{ job.job_id }}">Stop refresh</a>
+      </div>
+    </div>
+
+    <div class="kv" style="margin-top: 12px;">
+      <div class="k">Type</div><div class="v">{{ job.job_type }}</div>
+      <div class="k">Status</div><div class="v">{{ job.status }}</div>
+      <div class="k">Progress</div><div class="v">{% if job.progress_percent is not none %}{{ '%.1f'|format(job.progress_percent) }}%{% else %}-{% endif %} {{ job.progress_step or '' }}</div>
+      <div class="k">Created</div><div class="v">{{ job.created_at }}</div>
+      <div class="k">Started</div><div class="v">{{ job.started_at or '' }}</div>
+      <div class="k">Finished</div><div class="v">{{ job.finished_at or '' }}</div>
+    </div>
+
+    <h2 style="margin-top: 16px;">Logs</h2>
+
+    {% if logs %}
+      <table class="table">
+        <thead><tr><th>ID</th><th>TS</th><th>Level</th><th>Message</th><th>Data</th></tr></thead>
+        <tbody>
+          {% for l in logs %}
+            <tr>
+              <td class="code">{{ l.job_log_id }}</td>
+              <td class="code">{{ l.ts }}</td>
+              <td class="code">{{ l.level }}</td>
+              <td>{{ l.message }}</td>
+              <td><pre class="code" style="margin:0; white-space:pre-wrap;">{{ l.data_json }}</pre></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="muted">No logs yet.</div>
+    {% endif %}
+
+  </div>
+{% endblock %}

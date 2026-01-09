@@ -22,8 +22,7 @@ from faceforge_core.db.assets import (
     get_asset,
     get_asset_by_content_hash,
 )
-from faceforge_core.db.ids import asset_id_from_content_hash
-from faceforge_core.db.ids import new_job_id
+from faceforge_core.db.ids import asset_id_from_content_hash, new_job_id
 from faceforge_core.ingest.exiftool import run_exiftool, should_skip_exiftool
 from faceforge_core.jobs.dispatcher import JobContext, start_job_thread
 from faceforge_core.storage.manager import StorageManager
@@ -387,7 +386,9 @@ class BulkImportResponse(BaseModel):
 
 
 @router.post("/assets/bulk-import", response_model=ApiResponse[BulkImportResponse])
-async def assets_bulk_import(request: Request, payload: BulkImportRequest) -> ApiResponse[BulkImportResponse]:
+async def assets_bulk_import(
+    request: Request, payload: BulkImportRequest
+) -> ApiResponse[BulkImportResponse]:
     """Start a bulk import of a local directory as a durable job."""
 
     db_path = getattr(request.app.state, "db_path", None)

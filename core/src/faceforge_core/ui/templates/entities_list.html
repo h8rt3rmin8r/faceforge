@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="row space" style="margin-bottom: 12px;">
+    <div>
+      <h1>Entities</h1>
+      <div class="muted">{{ total }} total</div>
+    </div>
+    <div class="row">
+      <a class="btn {% if view == 'table' %}{% else %}ghost{% endif %}" href="/ui/entities?view=table&q={{ q|urlencode }}">Table</a>
+      <a class="btn {% if view == 'gallery' %}{% else %}ghost{% endif %}" href="/ui/entities?view=gallery&q={{ q|urlencode }}">Gallery</a>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom: 14px;">
+    <form method="get" action="/ui/entities">
+      <div class="row">
+        <div style="flex: 1; min-width: 260px;">
+          <label>Search (q)</label>
+          <input type="text" name="q" value="{{ q or '' }}" />
+        </div>
+        <div style="min-width: 160px;">
+          <label>View</label>
+          <select name="view">
+            <option value="table" {% if view == 'table' %}selected{% endif %}>table</option>
+            <option value="gallery" {% if view == 'gallery' %}selected{% endif %}>gallery</option>
+          </select>
+        </div>
+        <div style="align-self:end;">
+          <button class="btn" type="submit">Apply</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="panel" style="margin-bottom: 14px;">
+    <h2>Create entity</h2>
+    <form method="post" action="/ui/entities/create">
+      <div class="row">
+        <div style="flex: 1; min-width: 260px;">
+          <label>Display name</label>
+          <input type="text" name="display_name" required />
+        </div>
+        <div style="flex: 1; min-width: 260px;">
+          <label>Tags (comma-separated)</label>
+          <input type="text" name="tags" />
+        </div>
+      </div>
+      <label>Aliases (comma-separated)</label>
+      <input type="text" name="aliases" />
+
+      <label>Fields (JSON object)</label>
+      <textarea name="fields_json" placeholder="{}"></textarea>
+
+      <div class="row" style="margin-top: 12px;">
+        <button class="btn" type="submit">Create</button>
+      </div>
+    </form>
+  </div>
+
+  {% if view == 'gallery' %}
+    <div class="grid">
+      {% for e in items %}
+        <div class="card">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap: 10px;">
+            <div>
+              <div style="font-weight: 650;">{{ e.display_name }}</div>
+              <div class="code muted">{{ e.entity_id }}</div>
+            </div>
+            <a class="btn" href="/ui/entities/{{ e.entity_id }}">Open</a>
+          </div>
+          {% if e.tags %}
+            <div style="margin-top: 10px;" class="row">
+              {% for t in e.tags %}<span class="badge">{{ t }}</span>{% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Display name</th>
+          <th>Tags</th>
+          <th>Entity ID</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in items %}
+          <tr>
+            <td>{{ e.display_name }}</td>
+            <td>{% for t in e.tags %}<span class="badge">{{ t }}</span> {% endfor %}</td>
+            <td class="code">{{ e.entity_id }}</td>
+            <td><a class="btn" href="/ui/entities/{{ e.entity_id }}">Open</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+{% endblock %}

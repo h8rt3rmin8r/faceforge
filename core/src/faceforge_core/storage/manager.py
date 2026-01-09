@@ -155,7 +155,6 @@ class StorageManager:
             cleanup_temp_path=None,
         )
 
-
     def store_existing_file(
         self,
         *,

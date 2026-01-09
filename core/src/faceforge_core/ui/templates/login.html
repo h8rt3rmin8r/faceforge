@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+  <style>
+    body { background: #0b0e14; color: #e7eefc; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    .panel { background: #111826; border: 1px solid #22304b; border-radius: 12px; padding: 14px; }
+    input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #22304b; background: #0f1522; color: #e7eefc; }
+    .btn { display:inline-block; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(122, 162, 255, 0.35); background: rgba(122, 162, 255, 0.12); color: #e7eefc; }
+    .btn.ghost { background: transparent; border-color: #22304b; }
+    .muted { color: #9fb0d0; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; }
+  </style>
+  <div class="panel">
+    <h1>Login</h1>
+    <p class="muted">Paste the per-install token from <span class="code">FACEFORGE_HOME/config/core.json</span> (field <span class="code">auth.install_token</span>).</p>
+
+    {% if error %}
+      <div class="flash bad">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/ui/login">
+      <label>Install token</label>
+      <input type="text" name="token" autocomplete="off" spellcheck="false" />
+      <div class="row" style="margin-top: 12px;">
+        <button class="btn" type="submit">Login</button>
+        <a class="btn ghost" href="/docs" target="_blank" rel="noreferrer">Open API Docs</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

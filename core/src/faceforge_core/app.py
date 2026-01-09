@@ -4,10 +4,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
+from starlette.staticfiles import StaticFiles
 
 from faceforge_core.api.models import fail
 from faceforge_core.api.v1.router import router as v1_router
@@ -18,6 +19,8 @@ from faceforge_core.db.migrate import apply_migrations
 from faceforge_core.home import ensure_faceforge_layout, resolve_faceforge_home
 from faceforge_core.seaweedfs import start_managed_seaweed, stop_managed_seaweed
 from faceforge_core.storage.manager import build_storage_manager
+from faceforge_core.ui.router import STATIC_DIR as UI_STATIC_DIR
+from faceforge_core.ui.router import router as ui_router
 
 
 def create_app() -> FastAPI:
@@ -148,6 +151,18 @@ def create_app() -> FastAPI:
         )
 
     app.include_router(v1_router, dependencies=[Depends(require_install_token)])
+
+    # Server-rendered UI (served by Core; no runtime Node dependency).
+    app.mount(
+        "/ui/static",
+        StaticFiles(directory=str(UI_STATIC_DIR)),
+        name="ui-static",
+    )
+    app.include_router(ui_router)
+
+    @app.get("/")
+    async def root() -> RedirectResponse:
+        return RedirectResponse(url="/ui/entities", status_code=302)
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:

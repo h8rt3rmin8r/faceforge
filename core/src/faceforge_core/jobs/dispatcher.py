@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from faceforge_core.db.jobs import (
     append_job_log,
@@ -15,7 +16,6 @@ from faceforge_core.db.jobs import (
 )
 from faceforge_core.jobs.bulk_import import run_assets_bulk_import
 from faceforge_core.storage.manager import StorageManager
-
 
 JobHandler = Callable[["JobContext", str, dict[str, Any]], dict[str, Any]]
 

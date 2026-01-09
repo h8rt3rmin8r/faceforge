@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import json
 import mimetypes
+import sqlite3
 import time
 from pathlib import Path
 from typing import Any
-
-import sqlite3
 
 from faceforge_core.db.assets import (
     append_asset_metadata_entry,
@@ -107,7 +106,9 @@ def run_assets_bulk_import(ctx, job_id: str, job_input: dict[str, Any]) -> dict[
     errors = 0
 
     if total == 0:
-        update_job_progress(db_path, job_id=job_id, progress_percent=100.0, progress_step="no files")
+        update_job_progress(
+            db_path, job_id=job_id, progress_percent=100.0, progress_step="no files"
+        )
         return {
             "path": str(src_dir),
             "imported": 0,
@@ -177,7 +178,9 @@ def run_assets_bulk_import(ctx, job_id: str, job_input: dict[str, Any]) -> dict[
             content_hash = sha256_hex_file(file_path)
             asset_id = asset_id_from_content_hash(content_hash)
 
-            existing = get_asset_by_content_hash(db_path, content_hash=content_hash, include_deleted=False)
+            existing = get_asset_by_content_hash(
+                db_path, content_hash=content_hash, include_deleted=False
+            )
             if existing is not None:
                 skipped_existing += 1
                 if sidecar_data is not None:

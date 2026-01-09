@@ -102,6 +102,11 @@ Then open:
 - `http://127.0.0.1:8787/healthz`
 - `http://127.0.0.1:8787/docs`
 
+Core also serves a lightweight **Web UI** (no runtime Node dependency):
+
+- `http://127.0.0.1:8787/` (redirects to the UI)
+- `http://127.0.0.1:8787/ui/login`
+
 Core now exposes initial Entities + Assets v1 endpoints (token required):
 
 - `GET /v1/entities`
@@ -163,6 +168,8 @@ Send it using either header:
 
 - `Authorization: Bearer <token>`
 - `X-FaceForge-Token: <token>`
+
+For the Web UI in a browser, you can also log in at `/ui/login`, which stores the token in an HttpOnly cookie.
 
 Example (PowerShell):
 

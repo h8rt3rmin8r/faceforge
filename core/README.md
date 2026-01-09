@@ -61,8 +61,8 @@ Current config shape (v1, subject to change):
 	},
 	"network": {
 		"bind_host": "127.0.0.1",
-	- `.\.venv\Scripts\python.exe -m faceforge_core.internal.seaweedfs_cli --home <FACEFORGE_HOME> --health`
-	- `.\.venv\Scripts\python.exe -m faceforge_core.internal.seaweedfs_cli --home <FACEFORGE_HOME> --run`
+		"core_port": 8787,
+		"seaweed_s3_port": null
 	},
 	"paths": {
 		"db_dir": null,
@@ -143,6 +143,25 @@ The service should come up on `http://127.0.0.1:8787` and expose:
 
 - `GET /healthz`
 - `GET /docs` (public)
+- `GET /` (redirects to Web UI)
+
+## Sprint 11: Core Web UI MVP
+
+Core serves a small, server-rendered Web UI (no runtime Node) intended for basic, non-technical workflows.
+
+Routes:
+
+- `GET /ui/login` (public): paste the install token and sign in
+- `POST /ui/login`: sets an HttpOnly cookie
+- `POST /ui/logout`: clears the cookie
+- `GET /ui/entities`: browse/create entities (table/gallery)
+- `GET /ui/entities/{entity_id}`: entity detail (overview/descriptors/attachments/relationships)
+- `GET /ui/jobs`: job list + start bulk-import
+- `GET /ui/jobs/{job_id}`: job details + logs
+- `GET /ui/plugins`: list discovered plugins, enable/disable, edit config
+
+API endpoints (v1):
+
 - `GET /v1/ping` (requires token)
 - `GET /v1/system/info` (requires token)
 - `GET /v1/entities` (requires token)
@@ -178,6 +197,12 @@ The service should come up on `http://127.0.0.1:8787` and expose:
 - `DELETE /v1/relationships/{relationship_id}` (requires token)
 - `GET /v1/relation-types?query=...` (requires token)
 
+- `GET /v1/plugins` (requires token)
+- `POST /v1/plugins/{plugin_id}/enable` (requires token)
+- `POST /v1/plugins/{plugin_id}/disable` (requires token)
+- `GET /v1/plugins/{plugin_id}/config` (requires token)
+- `PUT /v1/plugins/{plugin_id}/config` (requires token)
+
 ### Auth (Sprint 3)
 
 Core requires a per-install token for non-health endpoints.
@@ -186,6 +211,17 @@ Core requires a per-install token for non-health endpoints.
 - Requests may provide the token via:
 	- `Authorization: Bearer <token>`
 	- `X-FaceForge-Token: <token>`
+
+Browser UI support:
+
+- The Web UI can store the token in an HttpOnly cookie named `ff_token` (set by `POST /ui/login`).
+- This makes browser downloads (e.g. `GET /v1/assets/{asset_id}/download`) work without manually setting headers.
+
+## Sprint 10: Plugins (discovery + registry)
+
+Core discovers plugin manifests under `${FACEFORGE_HOME}/plugins/*/plugin.json` and stores metadata/config in the `plugin_registry` table.
+
+The v1 endpoints under `/v1/plugins` expose discovery results, enable/disable state, and a JSON Schema-validated config document.
 
 ## Sprint 2: SQLite schema + migrations (internal)
 
@@ -320,6 +356,7 @@ Bundling/embedding requirement:
 - Core does **not** search your system `PATH` for `exiftool`.
 - If `tools.exiftool_path` is not set, Core only checks bundled locations under `${FACEFORGE_HOME}/tools`, using these candidate paths:
 	- Windows: `${FACEFORGE_HOME}/tools/exiftool.exe` or `${FACEFORGE_HOME}/tools/exiftool/exiftool.exe`
+	- macOS/Linux: `${FACEFORGE_HOME}/tools/exiftool` or `${FACEFORGE_HOME}/tools/exiftool/exiftool`
 
 ## Sprint 6: SeaweedFS provider + “default local S3” wiring
 
@@ -362,9 +399,8 @@ Core-managed runner:
 
 Dev helper CLI:
 
-- `.\.venv\Scripts\python.exe -m faceforge_core.internal.seaweedfs_cli --home <FACEFORGE_HOME> --health`
-- `.\.venv\Scripts\python.exe -m faceforge_core.internal.seaweedfs_cli --home <FACEFORGE_HOME> --run`
-	- macOS/Linux: `${FACEFORGE_HOME}/tools/exiftool` or `${FACEFORGE_HOME}/tools/exiftool/exiftool`
+- `.\.venv\Scripts\python.exe -m faceforge_core.internal.seaweedfs_cli --home <FACEFORGE_HOME> --health`
+- `.\.venv\Scripts\python.exe -m faceforge_core.internal.seaweedfs_cli --home <FACEFORGE_HOME> --run`
 - If `tools.exiftool_path` is a relative path, it is resolved relative to `${FACEFORGE_HOME}/tools`.
 
 Core skips ExifTool processing for filenames matching the exclusions defined in core/src/faceforge_core/ingest/exiftool.py.

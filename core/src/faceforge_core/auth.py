@@ -7,6 +7,7 @@ from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBea
 
 AUTHORIZATION_HEADER: Final[str] = "Authorization"
 TOKEN_HEADER: Final[str] = "X-FaceForge-Token"
+TOKEN_COOKIE: Final[str] = "ff_token"
 
 _bearer_scheme = HTTPBearer(auto_error=False)
 _token_header_scheme = APIKeyHeader(name=TOKEN_HEADER, auto_error=False)
@@ -21,6 +22,8 @@ def is_exempt_path(path: str) -> bool:
         return True
     if path.startswith("/redoc"):
         return True
+    if path == "/ui/login":
+        return True
     return False
 
 
@@ -28,6 +31,10 @@ def extract_token_from_request(request: Request) -> str | None:
     header_token = request.headers.get(TOKEN_HEADER)
     if header_token:
         return header_token
+
+    cookie_token = request.cookies.get(TOKEN_COOKIE)
+    if cookie_token:
+        return cookie_token
 
     auth = request.headers.get(AUTHORIZATION_HEADER)
     if not auth:
@@ -61,6 +68,9 @@ async def require_install_token(
     provided = header_token
     if not provided and bearer is not None:
         provided = bearer.credentials
+
+    if not provided:
+        provided = request.cookies.get(TOKEN_COOKIE)
 
     if not provided:
         raise HTTPException(status_code=401, detail="Missing token")

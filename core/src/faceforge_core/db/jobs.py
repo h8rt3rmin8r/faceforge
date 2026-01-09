@@ -222,7 +222,9 @@ def mark_job_succeeded(db_path, *, job_id: str, result: Any | None = None) -> No
                 progress_percent = COALESCE(progress_percent, 100.0),
                 finished_at = COALESCE(finished_at, ?),
                 result_json = COALESCE(result_json, ?)
-            WHERE job_id = ? AND deleted_at IS NULL AND status NOT IN ('succeeded','failed','canceled');
+                        WHERE job_id = ?
+                            AND deleted_at IS NULL
+                            AND status NOT IN ('succeeded', 'failed', 'canceled');
             """.strip(),
             (_utc_now_sqlite_iso(), result_json, job_id),
         )
@@ -238,7 +240,9 @@ def mark_job_failed(db_path, *, job_id: str, error: Any) -> None:
             SET status = 'failed',
                 finished_at = COALESCE(finished_at, ?),
                 error_json = ?
-            WHERE job_id = ? AND deleted_at IS NULL AND status NOT IN ('succeeded','failed','canceled');
+                        WHERE job_id = ?
+                            AND deleted_at IS NULL
+                            AND status NOT IN ('succeeded', 'failed', 'canceled');
             """.strip(),
             (_utc_now_sqlite_iso(), error_json, job_id),
         )
@@ -273,7 +277,9 @@ def mark_job_canceled(db_path, *, job_id: str, result: Any | None = None) -> Non
                 canceled_at = COALESCE(canceled_at, ?),
                 finished_at = COALESCE(finished_at, ?),
                 result_json = COALESCE(result_json, ?)
-            WHERE job_id = ? AND deleted_at IS NULL AND status NOT IN ('succeeded','failed','canceled');
+                        WHERE job_id = ?
+                            AND deleted_at IS NULL
+                            AND status NOT IN ('succeeded', 'failed', 'canceled');
             """.strip(),
             (now, now, result_json, job_id),
         )
