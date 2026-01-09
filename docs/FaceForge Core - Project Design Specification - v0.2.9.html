@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>FaceForge Core - Project Design Specification - v0.2.9.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="faceforge-core--project-design-specification">FaceForge Core — Project Design Specification</h1>
+<pre class="hljs"><code><div>Document Status: Design &amp; Ideation
+Scope: FaceForge Core
+Last Updated: 2026-01-09
+Version: v0.2.9
+</div></code></pre>
+<h2 id="1-source-of-truth">1. Source of Truth</h2>
+<p>This document is the authoritative design specification for <strong>FaceForge Core</strong>: what it must provide, what it intentionally avoids, and the interfaces that future work will build on.</p>
+<p>FaceForge is designed to stay <strong>stable and boring at the center</strong>, while advanced functionality (recognition, training, integrations, rich visualizations, etc.) is delivered as optional plugins over the Core’s public APIs and job system.</p>
+<p><strong>Note:</strong> This specification describes desired behavior and interfaces. Where implementation details are not specified (or could vary), those areas are marked as <strong>TO-DO</strong> while preserving constraints and intent.</p>
+<h2 id="2-project-philosophy-and-vision">2. Project Philosophy and Vision</h2>
+<h3 id="21-what-is-faceforge">2.1 What is FaceForge?</h3>
+<p>FaceForge is a <strong>local-first, self-hosted Asset Management System (AMS)</strong> specialized for <strong>entities</strong> (real and fictional, human and non-human) and <strong>assets</strong> related to those entities (facial maps, voice samples, attributes, relationships, etc.).</p>
+<p>It is envisioned as a desktop-managed local services bundle:</p>
+<ul>
+<li>A lightweight <strong>desktop shell</strong> (user interface + desktop tray app + admin settings + application updates)</li>
+<li>A <strong>local API server</strong> (headless, API-first) with optional localnet access capabilities</li>
+<li>Managed local sidecars where appropriate (for example: a local S3-compatible object store)</li>
+<li>Optional out-of-process plugins for compute-heavy workloads and other integrations</li>
+</ul>
+<p>External tools (for example, ComfyUI or StashApp) must be able to query FaceForge and retrieve assets through a stable API without depending on the UI.</p>
+<p>A common target environment includes <strong>very large local datasets</strong>. FaceForge is expected to operate primarily on local storage while remaining compatible with remote object storage systems (like Amazon S3, Google Cloud Storage, MEGA S4, MinIO, etc.).</p>
+<h3 id="22-the-%22boring-core%22-philosophy">2.2 The &quot;boring core&quot; philosophy</h3>
+<p>The Core provides stable foundations:</p>
+<ul>
+<li>Database CRUD operations (create, read, update, and delete) for entity records and the metadata of their associated attachments</li>
+<li>Durable storage abstractions for assets (likely visual media, audio clips, Stable Diffusion LoRAs, etc.)</li>
+<li>A consistent jobs + logging model</li>
+<li>A plugin surface (API + worker/process + UI integration hooks)</li>
+</ul>
+<p>The Core does <strong>not</strong> own compute-heavy intelligence such as face recognition, force-directed graph rendering, or LoRA training. Those are delivered as plugins. FaceForge Core is the asset storage and management <strong>platform</strong> those capabilities connect to.</p>
+<h3 id="23-key-design-principles">2.3 Key Design Principles</h3>
+<ol>
+<li>
+<p><strong>Keep the center stable</strong>
+The Core stays small and dependable. New capabilities should plug in through stable interfaces rather than expanding Core scope.</p>
+</li>
+<li>
+<p><strong>Transparent storage</strong>
+Assets must not be hidden inside opaque container volumes. Users must be able to see and manage where their data lives (local disks, NAS, remote storage, etc.). The user can control the application's data storage broadly (running everything from a named folder path) or in a more modular way (e.g., separating database files from object storage).</p>
+</li>
+<li>
+<p><strong>&quot;Double-click&quot; simplicity (cross-platform)</strong>
+The system must be runnable by non‑developer users via a single desktop launcher experience. <strong>Container runtimes (Docker, Podman, etc.) are explicitly out of scope for end‑user deployment.</strong> All required components are managed directly by the desktop shell application.</p>
+</li>
+<li>
+<p><strong>Integration-first</strong><br>
+The Core is designed to serve downstream tools via a stable and well documented API. Documentation of the API is provided by OpenAPI/Swagger and kept in sync with the active implementation at all times.</p>
+</li>
+</ol>
+<h2 id="3-what-faceforge-core-provides">3. What FaceForge Core Provides</h2>
+<p>The specific capabilities and features of FaceForge Core are categorized and defined as follows:</p>
+<h3 id="31-central-metadata-engine">3.1 Central Metadata Engine</h3>
+<ul>
+<li>Immutable <strong>entity IDs</strong> (SHA-256) assigned at creation time.</li>
+<li>Entity records with flexible fields, including:
+<ul>
+<li>standard descriptive information fields</li>
+<li>arbitrary admin-defined custom fields</li>
+</ul>
+</li>
+<li>A universal asset/attachment model that can represent <strong>any file type</strong> (images, audio, PDFs, archives, model artifacts, etc.).</li>
+<li>Durable representations of relationships between:
+<ul>
+<li>entities ↔ assets (attachments)</li>
+<li>assets ↔ derived assets (e.g., thumbnail derived from an original image)</li>
+<li>entities ↔ entities (relationships stored as metadata)</li>
+</ul>
+</li>
+</ul>
+<p><strong>Note:</strong> The <em>visual relationship graph UI</em> is intentionally out of scope for the Core. The Core provides the data surface for relationship metadata; rendering and interaction will live in an official plugin (FFGraph).</p>
+<h3 id="32-storage--retrieval">3.2 Storage &amp; Retrieval</h3>
+<ul>
+<li>A storage abstraction that supports rule-based selection of storage backends per asset type/kind:
+<ul>
+<li>Local S3-compatible object storage (default: SeaweedFS)</li>
+<li>Local filesystem-only provider (e.g., for small files)</li>
+<li>Remote S3 endpoints (AWS S3, Wasabi, Backblaze, MEGA S4, etc.) configured by the user</li>
+</ul>
+</li>
+<li>Stable, secure download URLs for assets (including large artifacts such as LoRAs).</li>
+<li>Streaming downloads with HTTP range support (resume-friendly).</li>
+</ul>
+<blockquote>
+<p>TO-DO: First-run storage UX (wizard choice vs defaults) and the initial set of supported remote endpoints.</p>
+</blockquote>
+<h3 id="33-jobs--logging">3.3 Jobs &amp; Logging</h3>
+<ul>
+<li>Long-running operations are tracked as <strong>jobs</strong> in the database.</li>
+<li>Job state + append-only structured logs:
+<ul>
+<li>Viewable in the web UI</li>
+<li>Retrievable via headless API requests</li>
+</ul>
+</li>
+<li>Jobs can emit <strong>progress updates</strong> (percentage complete, current step, etc.).</li>
+<li>A consistent &quot;job type&quot; contract so plugins can contribute job types.</li>
+</ul>
+<p><strong>Design intent:</strong> Compute-heavy work happens out-of-process. The Core remains the job registry, API surface, and artifact store.</p>
+<h3 id="34-plugin-foundations">3.4 Plugin Foundations</h3>
+<p>Core is responsible for plugin discovery, registration, configuration, permissions, and versioning. Plugins must be able to:</p>
+<ul>
+<li>Add API routes (namespaced)</li>
+<li>Register job types (namespaced) and emit logs/progress updates</li>
+<li>Add new asset kinds / derived artifact types</li>
+<li>Add UI pages/panels and navigation entries (integrated into the Core UI shell)</li>
+<li>Subscribe to events (ingest completed, entity updated, asset created, etc.)</li>
+</ul>
+<h3 id="35-web-based-ui-for-all-core-features">3.5 Web-Based UI for all Core Features</h3>
+<ul>
+<li>The UI exposes <em>everything the Core can do</em> (no &quot;backend-only&quot; features are allowed).</li>
+<li>Plugin UIs integrate into the Core UI shell and navigation.</li>
+</ul>
+<h2 id="4-planned-official-plugins">4. Planned Official Plugins</h2>
+<p>These named plugins are upcoming design targets that the Core must accommodate naturally. The capabilities of these various plugins give a glimpse of the Core’s ultimate role and some potential intended use cases.</p>
+<ul>
+<li>
+<p><strong>FFIdentify — face detection + identity matching</strong><br>
+Detect faces, compute embeddings, match identities across media, and emit structured results back into Core.</p>
+</li>
+<li>
+<p><strong>FFGraph — relationship graphing</strong><br>
+Force-directed graph visualization that turns Core relationship metadata into an interactive &quot;entities web.&quot;</p>
+</li>
+<li>
+<p><strong>FFLoRA — LoRA training</strong><br>
+Produces per-entity LoRAs (SDXL, SD 1.5, SD 2.x). Outputs are stored as assets with clean provenance and derived-asset links.</p>
+</li>
+<li>
+<p><strong>FFSD — Stable Diffusion / ComfyUI integration</strong><br>
+Custom nodes that can list, fetch, and resolve LoRAs and other artifacts directly from FaceForge with a stable API contract.</p>
+</li>
+<li>
+<p><strong>FFStash — StashApp integration</strong><br>
+Bulk-friendly import and sync workflows (performers → entities, media scanning jobs, write-back of tags/notes where configured).</p>
+</li>
+<li>
+<p><strong>FFVoice — voice cloning</strong><br>
+Manages voice samples as assets linked to entities and produces cloning artifacts per entity.</p>
+</li>
+<li>
+<p><strong>FFDialogue — conversational agent</strong><br>
+Builds context-aware chat agents using entity metadata + attachments, with a dedicated UI surface.</p>
+</li>
+<li>
+<p><strong>FFMeta — media library enrichment</strong><br>
+Scans libraries, extracts faces/audio, matches identities, and writes structured outputs (tags, notes, sidecar metadata files).</p>
+</li>
+<li>
+<p><strong>FFBackup — backup/export/restore</strong><br>
+Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and restore workflows.</p>
+</li>
+</ul>
+<h2 id="5-project-non-goals--constraints">5. Project Non-Goals &amp; Constraints</h2>
+<ul>
+<li>No paid SaaS should ever be required.</li>
+<li>Authentication secrets are never committed (appropriate <code>.gitignore</code> rules, environment variable support, etc.).</li>
+<li>Plugins must not silently exfiltrate data; permissions and explicit enablement are required.</li>
+<li>Avoid magical &quot;it trains a LoRA.&quot; Training lives outside the Core and is explicit about tooling and invocation.</li>
+<li>Keep Core stable; breaking changes are rare and intentional.</li>
+<li>Avoid using any infrastructure that forces Electron-scale overhead without a hard requirement for it.</li>
+</ul>
+<p>FaceForge <strong>Core</strong> does not directly:</p>
+<ul>
+<li>Perform face detection or recognition</li>
+<li>Generate embeddings</li>
+<li>Do identity matching</li>
+<li>Train or tune LoRAs</li>
+<li>Render a force-directed relationship graph</li>
+<li>Directly integrate with third-party apps (ComfyUI, StashApp, etc.)</li>
+</ul>
+<p>The Core provides the platform surface those concerns plug into.</p>
+<h2 id="6-core-architecture-baseline-practical-v1-target">6. Core Architecture Baseline (Practical v1 Target)</h2>
+<p>This section describes a practical minimum baseline intended to be reliable and easy to run locally <strong>without containerization</strong>.</p>
+<h3 id="61-runtime-layout-what-ships">6.1 Runtime Layout (What Ships)</h3>
+<p><strong>6.1.1 Desktop Shell Orchestrator</strong></p>
+<ul>
+<li><strong>Tauri v2</strong> desktop app (tray + updates + system popups)</li>
+<li>Responsible for:
+<ul>
+<li>Starting/stopping/monitoring managed components (Core API service, local object storage, plugin runners)</li>
+<li>Autostart at login (optional)</li>
+<li>Presenting status/logs and opening the web UI</li>
+</ul>
+</li>
+</ul>
+<p><strong>6.1.2 Core Service (Python 3.11/3.12 + FastAPI + Uvicorn)</strong></p>
+<ul>
+<li>Runs as a local HTTP API server:
+<ul>
+<li><code>/v1/...</code> API</li>
+<li><code>/docs</code> and <code>/redoc</code> API playground</li>
+<li>the web UI as static assets (one service, one port)</li>
+</ul>
+</li>
+</ul>
+<h3 id="62-database-sqlite">6.2 Database (SQLite)</h3>
+<ul>
+<li><strong>SQLite</strong> is the metadata database.</li>
+<li>The database lives under the user data directory (file-based, easy to relocate and back up).</li>
+<li>The Core uses a <strong>relational spine</strong> for durable relationships (entities/assets/jobs/relationships) plus <strong>JSON fields</strong> for flexible, admin-defined descriptors.</li>
+</ul>
+<p><strong>Why SQLite (design reasoning):</strong></p>
+<ul>
+<li><strong>Embeddable engine</strong>: no separate database service to install/manage; lifecycle is bound to the Core process.</li>
+<li><strong>Local-first reliability</strong>: single-file persistence with excellent durability; easy backups and restores.</li>
+<li><strong>Flexible fields without schema churn</strong>: admin-defined fields live in JSON; common fields can be indexed via generated columns.</li>
+<li><strong>Operational simplicity</strong>: fewer moving parts, fewer failure modes, and a smoother &quot;double-click&quot; experience.</li>
+</ul>
+<h3 id="63-s3-compatible-object-storage-seaweedfs">6.3 S3-Compatible Object Storage (SeaweedFS)</h3>
+<ul>
+<li>Default: <strong>SeaweedFS</strong> providing a <strong>local, S3-compatible endpoint</strong> for asset storage.</li>
+<li>SeaweedFS points at a user-selected directory inside the FaceForge data directory (or another user-chosen path).</li>
+<li>Optional: remote S3 endpoint configured by the user (AWS/Wasabi/Backblaze/etc.) in later phases.</li>
+</ul>
+<p><strong>Why SeaweedFS (design reasoning):</strong></p>
+<ul>
+<li><strong>S3 compatibility for external tools</strong> without bundling MinIO (and its licensing/packaging concerns).</li>
+<li><strong>User transparency</strong> over where bucket data lives on disk.</li>
+<li><strong>Lightweight local services model</strong> appropriate for a self-hosted desktop-managed bundle.</li>
+</ul>
+<h3 id="64-network-and-security-defaults">6.4 Network and Security Defaults</h3>
+<ul>
+<li>Core binds to <strong>127.0.0.1</strong> by default (not LAN-accessible unless the user opts in).</li>
+<li>Sensitive endpoints require a <strong>per-install token</strong> (stored in the config in the user data directory).</li>
+<li>The system exposes <strong>one localhost port</strong> by default (API + UI served together).</li>
+</ul>
+<h3 id="65-key-constraints">6.5 Key Constraints</h3>
+<ul>
+<li>Runs locally on one machine.</li>
+<li>Supports GPU-first plugin workflows, but the Core runs without a GPU.</li>
+<li>Windows-friendly setup is mandatory, while still keeping the architecture cross-platform.</li>
+</ul>
+<h2 id="7-data-model-core-owned-plugin-friendly">7. Data model (Core-owned, plugin-friendly)</h2>
+<p>This section defines the <em>conceptual</em> model. The physical schema is implementation work, but the invariants must hold.</p>
+<h3 id="71-entities">7.1 Entities</h3>
+<p>Entities are the primary identity objects in the system (humans, characters, creatures, etc.).</p>
+<ul>
+<li><code>entity_id</code>: SHA-256 hex string (64 chars), immutable</li>
+<li><code>display_name</code>: string</li>
+<li><code>aliases</code>: string[]</li>
+<li><code>fields</code>: JSON object for admin-defined fields (validated by field definitions)</li>
+<li><code>primary_thumbnail_asset_id</code>: asset reference (optional)</li>
+<li><code>tags</code>: string[]</li>
+<li><code>created_at</code>, <code>updated_at</code>: timestamps</li>
+<li><code>plugin_data</code>: JSON object keyed by plugin id (namespaced)</li>
+</ul>
+<h3 id="72-assets-attachments">7.2 Assets (Attachments)</h3>
+<p>Universal attachment model (files, models, documents, etc.).</p>
+<ul>
+<li><code>asset_id</code>: SHA-256 hex string (64 chars), immutable</li>
+<li><code>owner</code>: <code>{ &quot;type&quot;: &quot;entity&quot; | &quot;system&quot; | &quot;plugin&quot;, &quot;id&quot;: &quot;...&quot; }</code></li>
+<li><code>linked_entity_ids</code>: <code>entity_id[]</code> (many-to-many)</li>
+<li><code>kind</code>: string (examples: <code>image.original</code>, <code>image.thumbnail</code>, <code>model.lora</code>, <code>doc.pdf</code>, <code>audio.clip</code>)</li>
+<li><code>mime_type</code>, <code>size_bytes</code></li>
+<li><code>content_hash</code>: sha256 of file bytes (dedupe/integrity)</li>
+<li><code>storage</code>: provider + bucket + key</li>
+<li><code>derived_from_asset_id</code>: optional provenance link</li>
+<li><code>extracted_metadata</code>: JSON (Core-generated at ingest time)</li>
+<li><code>user_metadata</code>: JSON (optional)</li>
+<li><code>plugin_data</code>: JSON (namespaced)</li>
+</ul>
+<h3 id="73-descriptors-and-field-definitions">7.3 Descriptors and Field Definitions</h3>
+<p>Two complementary concepts:</p>
+<ul>
+<li><strong>Field definitions</strong>: admin-declared keys that control validation and UX (type, options, regex, etc.).</li>
+<li><strong>Descriptors</strong>: facts/attributes that may be time-bound or historical (addresses, phone numbers, notes, external IDs, etc.).</li>
+</ul>
+<p>Design intent:</p>
+<ul>
+<li>The system must support <em>new</em> descriptor keys being defined at any time.</li>
+<li>Historic records are not required to have those keys.</li>
+<li>Historic records may be updated later, without migrations or schema changes.</li>
+</ul>
+<h3 id="74-jobs-events-relationships">7.4 Jobs, Events, Relationships</h3>
+<ul>
+<li><strong>Jobs</strong> track long-running operations and their logs.</li>
+<li><strong>Events</strong> optionally provide an append-only integration surface.</li>
+<li><strong>Relationships</strong> store metadata relationships (visualization belongs outside Core).</li>
+</ul>
+<h2 id="8-plugin-model-contract-level">8. Plugin Model (Contract-Level)</h2>
+<h3 id="81-plugin-types">8.1 Plugin Types</h3>
+<p>A plugin may provide any combination of:</p>
+<ul>
+<li>API plugins (routes)</li>
+<li>Worker/process plugins (job types and an out-of-process runner)</li>
+<li>UI plugins (pages, panels, nav items, settings forms)</li>
+<li>Asset processors (derive thumbnails, transcode, generate model artifacts)</li>
+<li>Integrations with third party applications (ComfyUI, StashApp, etc.)</li>
+</ul>
+<h3 id="82-plugin-manifest-concept">8.2 Plugin Manifest (Concept)</h3>
+<p>Each plugin ships with a manifest (example: <code>plugin.json</code>) containing:</p>
+<ul>
+<li><code>id</code>, <code>name</code>, <code>version</code></li>
+<li><code>core_compat</code>: semver range</li>
+<li><code>capabilities</code>: <code>[&quot;api&quot;, &quot;runner&quot;, &quot;ui&quot;, ...]</code></li>
+<li><code>config_schema</code>: JSON Schema (for UI-rendered settings)</li>
+<li><code>permissions</code>: declared needs (read entities, write assets, create jobs, filesystem scopes, network, GPU access, etc.)</li>
+<li><code>routes_prefix</code>: e.g. <code>/v1/plugins/&lt;id&gt;</code></li>
+<li><code>job_types</code>: list (namespaced)</li>
+<li><code>entrypoints</code>:
+<ul>
+<li><code>runner</code>: how to start the plugin process</li>
+<li><code>ui</code>: route(s) exposed in the Core UI shell</li>
+</ul>
+</li>
+</ul>
+<h3 id="83-execution-model-out-of-process-first">8.3 Execution Model (Out-of-Process First)</h3>
+<p><strong>Phase 1 (MVP):</strong></p>
+<ul>
+<li>plugins installed as folders inside a local install dir</li>
+<li>Core loads manifests and exposes plugin metadata via API</li>
+<li>Desktop shell starts/stops plugin runner processes as needed</li>
+<li>Plugins communicate with Core via <strong>HTTP</strong>:
+<ul>
+<li>create jobs</li>
+<li>stream logs/progress</li>
+<li>upload artifacts (assets) and link them to entities</li>
+</ul>
+</li>
+<li>UI renders navigation based on manifest + enabled status</li>
+</ul>
+<p><strong>Phase 2 (later):</strong></p>
+<ul>
+<li>install from URL/local <code>.whl</code>/<code>.zip</code></li>
+<li>per-plugin virtualenvs (and potentially per-plugin Python versions)</li>
+<li>signed bundles + marketplace</li>
+</ul>
+<blockquote>
+<p>TO-DO: Bundle signing, distribution, sandboxing strategy, and permission enforcement depth need a separate design doc when in scope.</p>
+</blockquote>
+<h2 id="9-api-contract-core--plugin-friendly">9. API Contract (Core + Plugin Friendly)</h2>
+<h3 id="91-versioning">9.1 Versioning</h3>
+<ul>
+<li>Core API version prefix: <code>/v1/...</code></li>
+<li>Avoid breaking changes. Prefer adding fields rather than removing.</li>
+</ul>
+<h3 id="92-core-endpoints-minimum">9.2 Core Endpoints (Minimum)</h3>
+<p><strong>9.2.1 Entities</strong></p>
+<ul>
+<li><code>GET /v1/entities</code></li>
+<li><code>POST /v1/entities</code></li>
+<li><code>GET /v1/entities/{entity_id}</code></li>
+<li><code>PATCH /v1/entities/{entity_id}</code></li>
+<li><code>DELETE /v1/entities/{entity_id}</code> (soft delete recommended)</li>
+</ul>
+<p><strong>9.2.2 Descriptors</strong></p>
+<ul>
+<li><code>GET /v1/entities/{entity_id}/descriptors</code></li>
+<li><code>POST /v1/entities/{entity_id}/descriptors</code></li>
+<li><code>PATCH /v1/descriptors/{descriptor_id}</code></li>
+<li><code>DELETE /v1/descriptors/{descriptor_id}</code></li>
+</ul>
+<p><strong>9.2.3 Field Definitions (Admin)</strong></p>
+<ul>
+<li><code>GET /v1/admin/field-defs</code></li>
+<li><code>POST /v1/admin/field-defs</code></li>
+<li><code>PATCH /v1/admin/field-defs/{field_key}</code></li>
+<li><code>DELETE /v1/admin/field-defs/{field_key}</code></li>
+</ul>
+<p><strong>9.2.4 Assets / Attachments</strong></p>
+<ul>
+<li><code>POST /v1/assets/upload</code> (multipart; supports companion <code>_meta.json</code>)</li>
+<li><code>POST /v1/assets/bulk-import</code> (directory import job; reads <code>*_meta.json</code> sidecars)</li>
+<li><code>GET /v1/assets/{asset_id}</code></li>
+<li><code>GET /v1/assets/{asset_id}/download</code> (stream; must support HTTP range)</li>
+<li><code>POST /v1/entities/{entity_id}/assets/{asset_id}/link</code></li>
+<li><code>POST /v1/entities/{entity_id}/assets/{asset_id}/unlink</code></li>
+</ul>
+<p><strong>9.2.5 Relationships</strong></p>
+<ul>
+<li><code>GET /v1/relationships?entity_id=...</code></li>
+<li><code>POST /v1/relationships</code></li>
+<li><code>DELETE /v1/relationships/{relationship_id}</code></li>
+<li><code>GET /v1/relation-types?query=sp</code></li>
+</ul>
+<p><strong>9.2.6 Jobs</strong></p>
+<ul>
+<li><code>POST /v1/jobs</code></li>
+<li><code>GET /v1/jobs/{job_id}</code></li>
+<li><code>GET /v1/jobs/{job_id}/log</code></li>
+<li><code>POST /v1/jobs/{job_id}/cancel</code></li>
+</ul>
+<p><strong>9.2.7 Plugins</strong></p>
+<ul>
+<li><code>GET /v1/plugins</code></li>
+<li><code>POST /v1/plugins/{id}/enable</code></li>
+<li><code>POST /v1/plugins/{id}/disable</code></li>
+<li><code>GET /v1/plugins/{id}/config</code></li>
+<li><code>PUT /v1/plugins/{id}/config</code></li>
+</ul>
+<h3 id="93-integration-driven-core-requirements">9.3 Integration-Driven Core Requirements</h3>
+<p><strong>Stable asset listing &amp; download</strong></p>
+<ul>
+<li><code>GET /v1/entities/{entity_id}/assets?kind=model.lora</code></li>
+<li><code>GET /v1/assets/{asset_id}/download</code> supports large files and resumable downloads (HTTP range).</li>
+</ul>
+<p><strong>Bulk operations</strong></p>
+<ul>
+<li><code>POST /v1/entities/bulk-upsert</code> (idempotent; external IDs supported)</li>
+<li><code>POST /v1/jobs</code> must support large inputs via stored &quot;job input assets&quot; (avoid giant JSON payloads)</li>
+</ul>
+<blockquote>
+<p>TO-DO: The exact shape of external IDs and bulk-upsert conflict resolution rules require specification.</p>
+</blockquote>
+<h2 id="10-storage--path-configuration">10. Storage &amp; Path Configuration</h2>
+<p>All persistent data is stored in one or more user-controlled, user-defined directories.</p>
+<p>A system-wide environment variable controls where the application lives. The primary location where the application binary (FaceForge.exe) and required static assets reside is designated by <code>FACEFORGE_HOME</code>:</p>
+<ul>
+<li><code>$env:FACEFORGE_HOME = 'C:\FaceForge'</code> (Windows example)</li>
+<li><code>FACEFORGE_HOME=/media/faceforge</code> (Linux example)</li>
+</ul>
+<p>Inside that directory, FaceForge maintains several subdirectories.</p>
+<ul>
+<li><code>${FACEFORGE_HOME}/db</code>: Metadata database (configurable)
+<ul>
+<li>The SQLite database file that lives here is named: <code>faceforge.db</code></li>
+</ul>
+</li>
+<li><code>${FACEFORGE_HOME}/s3</code>: S3 Object Storage (configurable)
+<ul>
+<li>SeaweedFS volume data lives here</li>
+<li>This can be bypassed by configuring a remote S3 endpoint in the application config</li>
+</ul>
+</li>
+<li><code>${FACEFORGE_HOME}/logs</code>: System Logs (configurable)</li>
+<li><code>${FACEFORGE_HOME}/backups</code>: Backups (configurable)</li>
+<li><code>${FACEFORGE_HOME}/run</code>: Application runtime dependencies (NOT configurable)
+<ul>
+<li>Temporary files, PID files, port files</li>
+<li>Python venv (if applicable)</li>
+<li>Additional required binaries, etc.</li>
+</ul>
+</li>
+<li><code>${FACEFORGE_HOME}/config</code>: Core configuration files (NOT configurable)
+<ul>
+<li>Core config files (YAML/JSON)</li>
+</ul>
+</li>
+<li><code>${FACEFORGE_HOME}/plugins</code>: Plugins (configurable)</li>
+</ul>
+<p>The items marked &quot;configurable&quot; can be relocated by the user via the application settings UI or by editing the configuration files directly while the application is not running.</p>
+<blockquote>
+<p>TO-DO: Define the config file's internal structure, format (JSON suggested), and name.</p>
+</blockquote>
+<h2 id="11-frontend-requirements-core-ui--plugin-ui">11. Frontend Requirements (Core UI + plugin UI)</h2>
+<h3 id="111-core-ui-coverage">11.1 Core UI Coverage</h3>
+<p>The Core UI covers all Core features:</p>
+<ul>
+<li>manage entities and descriptor fields</li>
+<li>upload/link/download attachments</li>
+<li>browse/search/filter entities and assets</li>
+<li>view job status and logs</li>
+<li>manage plugins (enable/disable/config)</li>
+</ul>
+<h3 id="112-ui-delivery-model-aligned-with-desktop--local-services">11.2 UI Delivery Model (Aligned with Desktop + Local Services)</h3>
+<ul>
+<li>The Core service serves the web UI as static assets.</li>
+<li>Users can open it in a browser at <code>http://127.0.0.1:&lt;port&gt;</code> <em>or</em> view it inside the desktop shell window.</li>
+</ul>
+<p>Minimum UX expectations:</p>
+<ul>
+<li><strong>Entities</strong> page with list + gallery view</li>
+<li><strong>Entity detail</strong> page with tabs:
+<ul>
+<li>Overview</li>
+<li>Descriptors</li>
+<li>Attachments</li>
+<li>Relationships (metadata)</li>
+<li>Plugin panels (rendered per plugin)</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>TO-DO: SPA vs server-rendered UI is an implementation choice. The hard requirement is that the UI is served by the Core service and does not require NodeJS at runtime.</p>
+</blockquote>
+<h2 id="12-packaging-and-%22double-click-to-run%22">12. Packaging and &quot;Double-Click to Run&quot;</h2>
+<p>This section defines the desired end-user experience for running FaceForge Core locally and the specific design decisions intended to reduce friction in that process as much as possible.</p>
+<h3 id="121-network-ports">12.1 Network Ports</h3>
+<ul>
+<li>Core exposes two localhost ports which are configurable via the application config files:
+<ul>
+<li>Core port (API + UI) (default port: 43210)</li>
+<li>SeaweedFS S3-compatible port (default port: 43211)</li>
+</ul>
+</li>
+<li>Launcher supports auto-picking a free port and writing the chosen port to: <code>${FACEFORGE_HOME}/runtime/ports.json</code></li>
+</ul>
+<h3 id="122-desktop-launcher-experience-cross-platform">12.2 Desktop Launcher Experience (Cross-Platform)</h3>
+<p>A desktop launcher is a first-class deliverable.</p>
+<p><strong>Release UX requirements:</strong></p>
+<ul>
+<li>ship a <strong>FaceForge Desktop</strong> app (Tauri) that behaves like a real app:
+<ul>
+<li>first-run wizard for choosing <code>FACEFORGE_HOME</code> and Core port</li>
+<li>starts/monitors required components (Core API service, SeaweedFS services, plugin runners)</li>
+<li>exposes only the UI/API port</li>
+<li>minimizes to system tray instead of exiting when the window is closed</li>
+<li>tray menu: <strong>Open UI</strong>, <strong>Status</strong>, <strong>Logs</strong>, <strong>Stop</strong>, <strong>Restart</strong>, <strong>Exit</strong></li>
+<li>on exit: prompt whether to stop services or leave them running</li>
+</ul>
+</li>
+</ul>
+<p>User-facing simplification goals:</p>
+<ul>
+<li>one installer per OS (or portable zip where appropriate)</li>
+<li>one desktop launcher app</li>
+<li>one user-chosen data directory</li>
+<li>no loose scripts</li>
+</ul>
+<p>Documentation is written for non-engineers first and includes screenshots of first-run and tray controls.</p>
+<h3 id="123-runtime-constraints">12.3 Runtime Constraints</h3>
+<ul>
+<li>NodeJS is not required at runtime.<br>
+Node may be used at build time to produce frontend assets bundled into the Core service.</li>
+<li>The desktop shell must be lightweight (reserve CPU/RAM/VRAM for the likely AI workloads managed by FaceForge plugins).</li>
+</ul>
+<h3 id="124-packaging-notes-implementation-direction">12.4 Packaging Notes (Implementation Direction)</h3>
+<ul>
+<li>Tauri packages the desktop app per-OS.</li>
+<li>Core Python service ships as a sidecar:
+<ul>
+<li>either a frozen binary (PyInstaller/Nuitka), or</li>
+<li>an embedded Python runtime + venv</li>
+</ul>
+</li>
+<li>SeaweedFS binaries live alongside the app (or are user-supplied) and are launched with explicit paths/config.</li>
+</ul>
+<blockquote>
+<p>TO-DO: Update strategy for the Core service, SeaweedFS, and plugin bundles.</p>
+</blockquote>
+<h2 id="13-relevant-links-informational-references">13. Relevant Links (Informational References)</h2>
+<ul>
+<li>FastAPI: https://fastapi.tiangolo.com/</li>
+<li>SeaweedFS: https://seaweedfs.com/</li>
+<li>SQLite: https://www.sqlite.org/</li>
+<li>StashApp: https://stashapp.cc/</li>
+<li>Tauri: https://tauri.app/</li>
+<li>Uvicorn: https://www.uvicorn.org/</li>
+</ul>
+
+</body>
+</html>
