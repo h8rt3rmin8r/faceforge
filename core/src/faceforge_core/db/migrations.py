@@ -123,5 +123,19 @@ CREATE TABLE IF NOT EXISTS plugin_registry (
 CREATE INDEX IF NOT EXISTS idx_plugin_registry_enabled ON plugin_registry(enabled);
 CREATE INDEX IF NOT EXISTS idx_plugin_registry_deleted_at ON plugin_registry(deleted_at);
 """,
-    )
+    ),
+    (
+        "0002_assets_storage",
+        """
+PRAGMA foreign_keys = ON;
+
+-- Track where the asset bytes live (filesystem now; S3 later).
+ALTER TABLE assets ADD COLUMN storage_provider TEXT NOT NULL DEFAULT 'fs';
+ALTER TABLE assets ADD COLUMN storage_key TEXT NOT NULL DEFAULT '';
+
+-- Support post-ingest metadata updates (e.g., exiftool background extraction).
+ALTER TABLE assets ADD COLUMN updated_at TEXT NOT NULL
+    DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
+""",
+    ),
 ]

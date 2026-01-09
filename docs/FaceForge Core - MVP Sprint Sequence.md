@@ -160,6 +160,7 @@ If you want to run this like a true sprint board, the cleanest next move is to t
           * `_(meta|directorymeta)\.json$`
           * `\.(cover|thumb|thumb(s|db|index|nail))$`
           * `^(thumb|thumb(s|db|index|nail))\.db$`
+          * `\.(csv|html?|json|tsv|xml)$`
       * Send parameters to exiftool via parameter file: `exiftool -@ "$ArgsFile" 2> $null` (in PowerShell, for example)
       * Use these exact parameters in the `$ArgsFile`:
         ```

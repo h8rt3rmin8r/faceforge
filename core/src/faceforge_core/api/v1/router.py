@@ -5,11 +5,13 @@ from pydantic import BaseModel
 
 from faceforge_core import __version__
 from faceforge_core.api.models import ApiResponse, ok
+from faceforge_core.api.v1.assets import router as assets_router
 from faceforge_core.api.v1.entities import router as entities_router
 
 router = APIRouter(prefix="/v1", tags=["v1"])
 
 router.include_router(entities_router)
+router.include_router(assets_router)
 
 
 class SystemInfo(BaseModel):
@@ -36,6 +38,7 @@ async def system_info(request: Request) -> ApiResponse[SystemInfo]:
         paths={
             "db_dir": str(paths.db_dir) if paths is not None else "",
             "s3_dir": str(paths.s3_dir) if paths is not None else "",
+            "assets_dir": str(paths.assets_dir) if paths is not None else "",
             "logs_dir": str(paths.logs_dir) if paths is not None else "",
             "run_dir": str(paths.run_dir) if paths is not None else "",
             "config_dir": str(paths.config_dir) if paths is not None else "",

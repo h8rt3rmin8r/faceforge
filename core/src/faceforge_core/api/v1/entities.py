@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from faceforge_core.api.models import ApiResponse, ok
+from faceforge_core.db.assets import get_asset, link_asset_to_entity, unlink_asset_from_entity
 from faceforge_core.db.entities import (
     EntityRow,
     create_entity,
@@ -166,3 +167,62 @@ async def entities_delete(request: Request, entity_id: str) -> ApiResponse[Delet
         raise HTTPException(status_code=404, detail="Entity not found")
 
     return ok(DeleteResponse(deleted=True))
+
+
+class EntityAssetLinkRequest(BaseModel):
+    role: str | None = None
+
+
+class EntityAssetLinkResponse(BaseModel):
+    linked: bool
+
+
+@router.post(
+    "/entities/{entity_id}/assets/{asset_id}",
+    response_model=ApiResponse[EntityAssetLinkResponse],
+)
+async def entity_assets_link(
+    request: Request,
+    entity_id: str,
+    asset_id: str,
+    payload: EntityAssetLinkRequest,
+) -> ApiResponse[EntityAssetLinkResponse]:
+    db_path = getattr(request.app.state, "db_path", None)
+    if db_path is None:
+        raise HTTPException(status_code=500, detail="DB not initialized")
+
+    entity = get_entity(db_path, entity_id=entity_id, include_deleted=False)
+    if entity is None:
+        raise HTTPException(status_code=404, detail="Entity not found")
+
+    asset = get_asset(db_path, asset_id=asset_id, include_deleted=False)
+    if asset is None:
+        raise HTTPException(status_code=404, detail="Asset not found")
+
+    link_asset_to_entity(db_path, entity_id=entity_id, asset_id=asset_id, role=payload.role)
+    return ok(EntityAssetLinkResponse(linked=True))
+
+
+@router.delete(
+    "/entities/{entity_id}/assets/{asset_id}",
+    response_model=ApiResponse[EntityAssetLinkResponse],
+)
+async def entity_assets_unlink(
+    request: Request,
+    entity_id: str,
+    asset_id: str,
+) -> ApiResponse[EntityAssetLinkResponse]:
+    db_path = getattr(request.app.state, "db_path", None)
+    if db_path is None:
+        raise HTTPException(status_code=500, detail="DB not initialized")
+
+    entity = get_entity(db_path, entity_id=entity_id, include_deleted=False)
+    if entity is None:
+        raise HTTPException(status_code=404, detail="Entity not found")
+
+    asset = get_asset(db_path, asset_id=asset_id, include_deleted=False)
+    if asset is None:
+        raise HTTPException(status_code=404, detail="Asset not found")
+
+    removed = unlink_asset_from_entity(db_path, entity_id=entity_id, asset_id=asset_id)
+    return ok(EntityAssetLinkResponse(linked=removed))

@@ -10,6 +10,7 @@ class FaceForgePaths:
     home: Path
     db_dir: Path
     s3_dir: Path
+    assets_dir: Path
     logs_dir: Path
     run_dir: Path
     config_dir: Path
@@ -41,18 +42,20 @@ def ensure_faceforge_layout(home: Path) -> FaceForgePaths:
 
     db_dir = home / "db"
     s3_dir = home / "s3"
+    assets_dir = home / "assets"
     logs_dir = home / "logs"
     run_dir = home / "run"
     config_dir = home / "config"
     plugins_dir = home / "plugins"
 
-    for path in (db_dir, s3_dir, logs_dir, run_dir, config_dir, plugins_dir):
+    for path in (db_dir, s3_dir, assets_dir, logs_dir, run_dir, config_dir, plugins_dir):
         path.mkdir(parents=True, exist_ok=True)
 
     return FaceForgePaths(
         home=home,
         db_dir=db_dir,
         s3_dir=s3_dir,
+        assets_dir=assets_dir,
         logs_dir=logs_dir,
         run_dir=run_dir,
         config_dir=config_dir,

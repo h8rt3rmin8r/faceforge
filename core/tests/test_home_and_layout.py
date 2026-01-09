@@ -16,6 +16,7 @@ def test_ensure_faceforge_layout_creates_required_dirs(tmp_path: Path) -> None:
     assert paths.home.exists()
     assert paths.db_dir.is_dir()
     assert paths.s3_dir.is_dir()
+    assert paths.assets_dir.is_dir()
     assert paths.logs_dir.is_dir()
     assert paths.run_dir.is_dir()
     assert paths.config_dir.is_dir()

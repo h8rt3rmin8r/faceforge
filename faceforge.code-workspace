@@ -98,6 +98,14 @@
             "/^powershell -NoProfile -Command \"Set-Location 'a:\\\\Code\\\\faceforge'; \\.\\\\\\.venv\\\\Scripts\\\\ruff\\.exe format core\\\\src\\\\faceforge_core\\\\db\\\\entities\\.py\"$/": {
                 "approve": true,
                 "matchCommandLine": true
+            },
+            "/^pwsh -File \\.\\\\scripts\\\\check-core\\.ps1$/": {
+                "approve": true,
+                "matchCommandLine": true
+            },
+            "/^pwsh -File \\.\\\\scripts\\\\_ensure-venv\\.ps1; \\.\\\\\\.venv\\\\Scripts\\\\ruff format core\\\\src\\\\faceforge_core core\\\\tests$/": {
+                "approve": true,
+                "matchCommandLine": true
             }
         }
     }

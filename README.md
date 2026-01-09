@@ -51,7 +51,7 @@ When implementation starts, the repo will follow these conventions:
 
 - Network defaults: bind to `127.0.0.1`; require a per-install token for non-health endpoints.
 - API routing: versioned under `/v1/...` with OpenAPI always kept accurate.
-- Local-first storage contract: `FACEFORGE_HOME` is the root data directory; Core creates subfolders under it (e.g. `db/`, `logs/`, `config/`, `plugins/`).
+- Local-first storage contract: `FACEFORGE_HOME` is the root data directory; Core creates subfolders under it (e.g. `db/`, `assets/`, `logs/`, `config/`, `plugins/`).
 - Asset downloads: streaming-first, HTTP range support (resume-friendly), no opaque container volumes.
 
 ## Repository layout
@@ -78,11 +78,17 @@ Then open:
 - `http://127.0.0.1:8787/healthz`
 - `http://127.0.0.1:8787/docs`
 
-Core now exposes initial Entities CRUD endpoints (token required):
+Core now exposes initial Entities + Assets v1 endpoints (token required):
 
 - `GET /v1/entities`
 - `POST /v1/entities`
 - `GET/PATCH/DELETE /v1/entities/{entity_id}`
+
+- `POST /v1/assets/upload` (multipart)
+- `GET /v1/assets/{asset_id}`
+- `GET /v1/assets/{asset_id}/download` (streaming + HTTP Range)
+- `POST /v1/entities/{entity_id}/assets/{asset_id}` (link)
+- `DELETE /v1/entities/{entity_id}/assets/{asset_id}` (unlink)
 
 ### Auth (Sprint 3)
 

@@ -27,11 +27,20 @@ class AuthConfig(BaseModel):
     install_token: str | None = Field(default=None)
 
 
+class ToolsConfig(BaseModel):
+    exiftool_enabled: bool = Field(default=True)
+    exiftool_path: str | None = Field(
+        default=None,
+        description="Optional path to the exiftool binary (used for ingest metadata extraction)",
+    )
+
+
 class CoreConfig(BaseModel):
     version: str = Field(default="1")
     network: NetworkConfig = Field(default_factory=NetworkConfig)
     paths: PathOverrides = Field(default_factory=PathOverrides)
     auth: AuthConfig = Field(default_factory=AuthConfig)
+    tools: ToolsConfig = Field(default_factory=ToolsConfig)
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -108,6 +117,7 @@ def resolve_configured_paths(paths: FaceForgePaths, config: CoreConfig) -> FaceF
         home=paths.home,
         db_dir=db_dir,
         s3_dir=s3_dir,
+        assets_dir=paths.assets_dir,
         logs_dir=logs_dir,
         run_dir=paths.run_dir,
         config_dir=paths.config_dir,

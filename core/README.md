@@ -17,6 +17,7 @@ On startup, Core ensures these directories exist:
 
 - `${FACEFORGE_HOME}/db`
 - `${FACEFORGE_HOME}/s3`
+- `${FACEFORGE_HOME}/assets`
 - `${FACEFORGE_HOME}/logs`
 - `${FACEFORGE_HOME}/run`
 - `${FACEFORGE_HOME}/config`
@@ -48,6 +49,10 @@ Current config shape (v1, subject to change):
 		"s3_dir": null,
 		"logs_dir": null,
 		"plugins_dir": null
+	},
+	"tools": {
+		"exiftool_enabled": true,
+		"exiftool_path": null
 	}
 }
 ```
@@ -98,6 +103,12 @@ The service should come up on `http://127.0.0.1:8787` and expose:
 - `POST /v1/entities` (requires token)
 - `GET/PATCH/DELETE /v1/entities/{entity_id}` (requires token)
 
+- `POST /v1/assets/upload` (requires token; multipart)
+- `GET /v1/assets/{asset_id}` (requires token)
+- `GET /v1/assets/{asset_id}/download` (requires token; streaming + Range)
+- `POST /v1/entities/{entity_id}/assets/{asset_id}` (requires token; link)
+- `DELETE /v1/entities/{entity_id}/assets/{asset_id}` (requires token; unlink)
+
 ### Auth (Sprint 3)
 
 Core requires a per-install token for non-health endpoints.
@@ -139,3 +150,44 @@ List query params (minimal primitives):
 - `sort_order`: `asc` | `desc`
 - `q`: substring match (basic)
 - `tag`: filter by exact tag string
+
+## Sprint 5: Assets v1 (filesystem provider)
+
+### Upload
+
+- `POST /v1/assets/upload`
+	- Multipart field `file` (required)
+	- Multipart field `meta` (optional): companion JSON sidecar (commonly `_meta.json`)
+
+Example (PowerShell):
+
+- `Invoke-WebRequest -Headers @{ Authorization = "Bearer <token>" } -Form @{ file = Get-Item .\myfile.bin; meta = Get-Item .\_meta.json } http://127.0.0.1:8787/v1/assets/upload`
+
+### Metadata
+
+- `GET /v1/assets/{asset_id}`
+
+### Download (streaming + resume)
+
+- `GET /v1/assets/{asset_id}/download`
+- Supports `Range: bytes=...` (single range)
+
+Example (curl):
+
+- `curl -H "Authorization: Bearer <token>" -H "Range: bytes=0-1048575" -o first-1mb.bin http://127.0.0.1:8787/v1/assets/<asset_id>/download`
+
+### Link/unlink to entities
+
+- `POST /v1/entities/{entity_id}/assets/{asset_id}` (optional JSON body: `{ "role": "..." }`)
+- `DELETE /v1/entities/{entity_id}/assets/{asset_id}`
+
+### ExifTool metadata extraction (best-effort)
+
+On upload, Core will attempt to run `exiftool` in the background (if available) and store extracted JSON under the asset `meta.metadata[]` list.
+
+Configuration:
+
+- `${FACEFORGE_HOME}/config/core.json` → `tools.exiftool_enabled` (default `true`)
+- `${FACEFORGE_HOME}/config/core.json` → `tools.exiftool_path` (optional; otherwise Core tries to locate `exiftool` on `PATH`)
+
+Core skips ExifTool processing for filenames matching the exclusions defined in core/src/faceforge_core/ingest/exiftool.py.
