@@ -5,8 +5,11 @@ from pydantic import BaseModel
 
 from faceforge_core import __version__
 from faceforge_core.api.models import ApiResponse, ok
+from faceforge_core.api.v1.entities import router as entities_router
 
 router = APIRouter(prefix="/v1", tags=["v1"])
+
+router.include_router(entities_router)
 
 
 class SystemInfo(BaseModel):

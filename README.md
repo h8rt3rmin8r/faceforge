@@ -11,9 +11,9 @@ FaceForge is designed to be a stable, integration-friendly “boring core” for
 
 ## Status
 
-This repository is currently **docs-first scaffolding** with an initial runnable Core skeleton:
+This repository is currently **docs-first scaffolding** with an initial runnable Core implementation:
 
-- `core/` contains a minimal FastAPI app with versioned routing (`/v1/...`), token auth defaults, and dev/CI wiring.
+- `core/` contains a FastAPI app with versioned routing (`/v1/...`), token auth defaults, SQLite migrations, and initial real endpoints (starting with Entities CRUD).
 - `desktop/` is still a placeholder.
 - The “what it is / how it should work” is defined in the spec and the MVP sprint plan.
 
@@ -77,6 +77,12 @@ Then open:
 
 - `http://127.0.0.1:8787/healthz`
 - `http://127.0.0.1:8787/docs`
+
+Core now exposes initial Entities CRUD endpoints (token required):
+
+- `GET /v1/entities`
+- `POST /v1/entities`
+- `GET/PATCH/DELETE /v1/entities/{entity_id}`
 
 ### Auth (Sprint 3)
 

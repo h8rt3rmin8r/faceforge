@@ -90,6 +90,14 @@
             "/^\\.\\\\\\.venv\\\\Scripts\\\\python\\.exe -m ruff format core\\\\src core\\\\tests$/": {
                 "approve": true,
                 "matchCommandLine": true
+            },
+            "/^powershell -NoProfile -ExecutionPolicy Bypass -File \"a:\\\\Code\\\\faceforge\\\\scripts\\\\check-core\\.ps1\"$/": {
+                "approve": true,
+                "matchCommandLine": true
+            },
+            "/^powershell -NoProfile -Command \"Set-Location 'a:\\\\Code\\\\faceforge'; \\.\\\\\\.venv\\\\Scripts\\\\ruff\\.exe format core\\\\src\\\\faceforge_core\\\\db\\\\entities\\.py\"$/": {
+                "approve": true,
+                "matchCommandLine": true
             }
         }
     }

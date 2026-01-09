@@ -94,6 +94,9 @@ The service should come up on `http://127.0.0.1:8787` and expose:
 - `GET /docs` (public)
 - `GET /v1/ping` (requires token)
 - `GET /v1/system/info` (requires token)
+- `GET /v1/entities` (requires token)
+- `POST /v1/entities` (requires token)
+- `GET/PATCH/DELETE /v1/entities/{entity_id}` (requires token)
 
 ### Auth (Sprint 3)
 
@@ -110,8 +113,29 @@ Core stores metadata in a SQLite DB under:
 
 - `${FACEFORGE_HOME}/db/core.sqlite3`
 
+On Core startup, schema migrations are applied automatically (idempotent).
+
 Apply migrations and create sample records without using the API:
 
 - `python -m faceforge_core.internal.bootstrap_db --home <PATH> --migrate`
 - `python -m faceforge_core.internal.bootstrap_db --home <PATH> --create-entity "Ada Lovelace"`
 - `python -m faceforge_core.internal.bootstrap_db --home <PATH> --create-asset <FILEPATH>`
+
+## Sprint 4: Entities CRUD (v1)
+
+Endpoints:
+
+- `GET /v1/entities`
+- `POST /v1/entities`
+- `GET /v1/entities/{entity_id}`
+- `PATCH /v1/entities/{entity_id}`
+- `DELETE /v1/entities/{entity_id}` (soft delete)
+
+List query params (minimal primitives):
+
+- `limit` (default 50, max 200)
+- `offset` (default 0)
+- `sort_by`: `created_at` | `updated_at` | `display_name`
+- `sort_order`: `asc` | `desc`
+- `q`: substring match (basic)
+- `tag`: filter by exact tag string

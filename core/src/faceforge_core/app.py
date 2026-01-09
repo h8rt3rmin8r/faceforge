@@ -13,6 +13,8 @@ from faceforge_core.api.models import fail
 from faceforge_core.api.v1.router import router as v1_router
 from faceforge_core.auth import extract_token_from_request, is_exempt_path, require_install_token
 from faceforge_core.config import ensure_install_token, load_core_config, resolve_configured_paths
+from faceforge_core.db import resolve_db_path
+from faceforge_core.db.migrate import apply_migrations
 from faceforge_core.home import ensure_faceforge_layout, resolve_faceforge_home
 
 
@@ -25,9 +27,13 @@ def create_app() -> FastAPI:
         paths = resolve_configured_paths(paths, config)
         config = ensure_install_token(paths, config)
 
+        db_path = resolve_db_path(paths)
+        apply_migrations(db_path)
+
         app.state.faceforge_home = home
         app.state.faceforge_paths = paths
         app.state.faceforge_config = config
+        app.state.db_path = db_path
 
         yield
 
