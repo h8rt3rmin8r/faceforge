@@ -21,6 +21,8 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": ["../../brand/favicon/favicon.ico"]
+    "icon": ["../../brand/favicon/favicon.ico"],
+    "resources": ["resources/**/*"],
+    "externalBin": ["binaries/faceforge-core"]
   }
 }

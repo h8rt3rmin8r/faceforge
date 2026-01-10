@@ -71,6 +71,40 @@ fn save_bootstrap(app: &tauri::AppHandle, b: &DesktopBootstrap) -> anyhow::Resul
     Ok(())
 }
 
+fn ensure_bundled_tools(app: &tauri::AppHandle, faceforge_home: &str) {
+    let home = PathBuf::from(faceforge_home);
+    let tools_dir = home.join("tools");
+    
+    if !tools_dir.exists() {
+        let _ = fs::create_dir_all(&tools_dir);
+    }
+    
+    // Tools that should be present
+    let tools = ["exiftool.exe", "weed.exe"];
+
+    // In dev: src-tauri/resources/tools
+    // In prod: resource_dir/tools
+    // tauri::path::PathResolver logic handles this usually?
+    // In v2, app.path().resource_dir() gives the correct location.
+    
+    if let Ok(res_dir) = app.path().resource_dir() {
+        let src_tools_dir = res_dir.join("tools");
+        
+        for tool in tools {
+            let src = src_tools_dir.join(tool);
+            let dst = tools_dir.join(tool);
+            
+            // Simple logic: Copy if missing using std::fs
+            // For robust updates, one might compare hashes or versions, but for MVP check existence.
+            if !dst.exists() {
+                if src.exists() {
+                    let _ = fs::copy(&src, &dst);
+                }
+            }
+        }
+    }
+}
+
 fn ui_state_from_guard(app: &tauri::AppHandle, guard: &mut AppState) -> UiState {
     if guard.bootstrap.is_none() {
         guard.bootstrap = load_bootstrap(app);
@@ -87,6 +121,9 @@ fn ui_state_from_guard(app: &tauri::AppHandle, guard: &mut AppState) -> UiState 
     // Load settings/token lazily.
     if configured && guard.settings.is_none() {
         if let Some(b) = guard.bootstrap.clone() {
+            // MVP: Ensure tools are in place before we rely on them.
+            ensure_bundled_tools(app, &b.faceforge_home);
+
             match settings::read_desktop_json(&b.faceforge_home) {
                 Ok(s) => {
                     guard.install_token = settings::read_install_token(&b.faceforge_home).ok();

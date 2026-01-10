@@ -163,18 +163,38 @@ impl Orchestrator {
             },
         )?;
 
-        let python = self
-            .find_venv_python()
-            .context("Missing repo-local .venv python (run scripts/dev-core.ps1 once to bootstrap .venv)")?;
+        // Strategy: prefer venv python (dev mode), fallback to bundled executable sidecar (prod mode).
+        let (bin_path, args, work_dir) = if let Some(python) = self.find_venv_python() {
+            // Dev mode
+            (
+                python,
+                vec!["-m".to_string(), "faceforge_core".to_string()],
+                Some(self.repo_root.clone()),
+            )
+        } else {
+            // Prod mode: expect `faceforge-core.exe` sidecar adjacent to this executable.
+            let exe = std::env::current_exe()?;
+            let dir = exe.parent().context("Cannot resolve parent of current executable")?;
+            let sidecar = dir.join("faceforge-core.exe");
+            if !sidecar.exists() {
+                anyhow::bail!("Core executable not found at {:?} (and .venv missing)", sidecar);
+            }
+            (sidecar, vec![], None)
+        };
 
-        let mut cmd = Command::new(python);
-        cmd.current_dir(&self.repo_root)
-            .arg("-m")
-            .arg("faceforge_core")
+        let mut cmd = Command::new(&bin_path);
+        
+        if let Some(wd) = work_dir {
+            cmd.current_dir(wd)
+                // Avoid relying on editable install in dev: point PYTHONPATH at core/src.
+                .env("PYTHONPATH", self.repo_root.join("core").join("src"));
+        } else {
+            // In prod, just execute.
+        }
+
+        cmd.args(args)
             .env("FACEFORGE_HOME", &settings.faceforge_home)
             .env("FACEFORGE_BIND", "127.0.0.1")
-            // Avoid relying on editable install: point PYTHONPATH at core/src.
-            .env("PYTHONPATH", self.repo_root.join("core").join("src"))
             .stdout(Stdio::null())
             .stderr(Stdio::null());
 
@@ -184,7 +204,7 @@ impl Orchestrator {
             cmd.creation_flags(0x00000200); // CREATE_NEW_PROCESS_GROUP
         }
 
-        self.core_child = Some(cmd.spawn().context("Failed to start Core")?);
+        self.core_child = Some(cmd.spawn().context(format!("Failed to start Core: {:?}", bin_path))?);
         self.last_core_start = Some(Instant::now());
         self.core_restart_attempts = 0;
         Ok(())

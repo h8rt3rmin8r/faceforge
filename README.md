@@ -251,6 +251,24 @@ To get productive right now:
 - For implementers using AI assistance (e.g. GitHub Copilot), follow these guidelines
   - Markdown doc via the repo UI: [copilot-instructions.md](https://github.com/h8rt3rmin8r/faceforge/blob/main/.github/copilot-instructions.md)
 
+## Building for Release
+
+To create a distributable installer:
+
+1.  **Build Core Executable**:
+    ```powershell
+    ./scripts/build-core.ps1
+    ```
+    This uses PyInstaller to freeze the Python service into `dist/faceforge-core.exe`.
+
+2.  **Build Desktop Bundle**:
+    ```bash
+    cd desktop
+    npm install
+    npm run tauri build
+    ```
+    This packages the Desktop shell, bundles the Core executable (as a sidecar), and includes necessary tools (ExifTool, etc.).
+
 ## Contributing
 
 Contributions are welcome, especially as the repo moves from docs → scaffolding → MVP.
