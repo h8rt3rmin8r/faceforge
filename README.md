@@ -148,6 +148,44 @@ Core also exposes initial Relationships endpoints (Sprint 8):
 - `DELETE /v1/relationships/{relationship_id}`
 - `GET /v1/relation-types?query=...`
 
+Core also exposes initial Plugins endpoints (Sprint 10):
+
+- `GET /v1/plugins`
+- `POST /v1/plugins/{plugin_id}/enable`
+- `POST /v1/plugins/{plugin_id}/disable`
+- `GET /v1/plugins/{plugin_id}/config`
+- `PUT /v1/plugins/{plugin_id}/config`
+
+### Plugins (Sprint 10)
+
+Core discovers plugin manifests from:
+
+- `${FACEFORGE_HOME}/plugins/*/plugin.json`
+
+Minimal `plugin.json` example:
+
+```json
+{
+  "id": "demo.plugin",
+  "name": "Demo Plugin",
+  "version": "0.1.0",
+  "capabilities": ["ui"],
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "example_flag": { "type": "boolean" }
+    },
+    "additionalProperties": true
+  }
+}
+```
+
+Notes:
+
+- Plugin enable/disable and config are persisted in Core's SQLite DB.
+- If a `config_schema` is provided, `PUT /v1/plugins/{plugin_id}/config` validates the config using JSON Schema.
+- The namespace `/v1/plugins/{plugin_id}/...` is reserved for future plugin-provided HTTP surfaces.
+
 For optional SeaweedFS/S3 storage configuration (Sprint 6), see:
 
 - [core/README.md](core/README.md)

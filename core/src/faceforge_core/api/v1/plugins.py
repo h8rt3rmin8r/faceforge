@@ -177,8 +177,23 @@ class PluginConfigResponse(BaseModel):
 @router.get("/plugins/{plugin_id}/config", response_model=ApiResponse[PluginConfigResponse])
 async def plugins_get_config(request: Request, plugin_id: str) -> ApiResponse[PluginConfigResponse]:
     db_path = getattr(request.app.state, "db_path", None)
+    paths = getattr(request.app.state, "faceforge_paths", None)
     if db_path is None:
         raise HTTPException(status_code=500, detail="DB not initialized")
+
+    if paths is None:
+        raise HTTPException(status_code=500, detail="Server not initialized")
+
+    discovered = {p.manifest.id: p for p in discover_plugins(plugins_dir=paths.plugins_dir)}
+    if plugin_id not in discovered:
+        raise HTTPException(status_code=404, detail="Plugin not discovered")
+
+    # Ensure registry row exists even if /v1/plugins has not been called yet.
+    upsert_plugin_discovery(
+        db_path,
+        plugin_id=plugin_id,
+        version=discovered[plugin_id].manifest.version,
+    )
 
     row = get_plugin_registry(db_path, plugin_id=plugin_id, include_deleted=False)
     if row is None:
@@ -210,6 +225,13 @@ async def plugins_put_config(
     discovered = {p.manifest.id: p for p in discover_plugins(plugins_dir=paths.plugins_dir)}
     if plugin_id not in discovered:
         raise HTTPException(status_code=404, detail="Plugin not discovered")
+
+    # Ensure registry row exists even if /v1/plugins has not been called yet.
+    upsert_plugin_discovery(
+        db_path,
+        plugin_id=plugin_id,
+        version=discovered[plugin_id].manifest.version,
+    )
 
     schema = discovered[plugin_id].manifest.config_schema
     if isinstance(schema, dict):

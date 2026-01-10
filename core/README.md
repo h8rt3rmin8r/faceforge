@@ -223,6 +223,38 @@ Core discovers plugin manifests under `${FACEFORGE_HOME}/plugins/*/plugin.json` 
 
 The v1 endpoints under `/v1/plugins` expose discovery results, enable/disable state, and a JSON Schema-validated config document.
 
+### Manifest format (`plugin.json`)
+
+Minimal example:
+
+```json
+{
+	"id": "demo.plugin",
+	"name": "Demo Plugin",
+	"version": "0.1.0",
+	"capabilities": ["ui"],
+	"config_schema": {
+		"type": "object",
+		"properties": {
+			"example_flag": {"type": "boolean", "description": "Example option"}
+		}
+	}
+}
+```
+
+Supported fields today (best-effort discovery):
+
+- `id` (required): stable plugin identifier.
+- `name` (required)
+- `version` (optional)
+- `capabilities` (optional list)
+- `config_schema` (optional object): JSON Schema used to validate `PUT /v1/plugins/{plugin_id}/config`.
+
+Notes:
+
+- Discovery is best-effort: invalid manifests are ignored.
+- `/v1/plugins/{plugin_id}/...` is reserved for future plugin routes (plugin compute is not implemented in Core).
+
 ## Sprint 2: SQLite schema + migrations (internal)
 
 Core stores metadata in a SQLite DB under:
