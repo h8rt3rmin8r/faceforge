@@ -127,6 +127,22 @@ Core also supports a legacy location for compatibility with the design spec:
 
 - `${FACEFORGE_HOME}/runtime/ports.json`
 
+## Desktop integration (Sprint 12)
+
+FaceForge Desktop (Tauri) is responsible for the first-run wizard and process orchestration.
+
+Desktop writes (or updates):
+
+- `${FACEFORGE_HOME}/run/ports.json` (selected ports)
+- `${FACEFORGE_HOME}/config/core.json` (network + auth token; optional S3 config)
+
+Desktop then starts Core with:
+
+- `FACEFORGE_HOME` set to the chosen directory
+- `FACEFORGE_BIND=127.0.0.1` (localhost-only by default)
+
+For browser usage, the Core UI requires logging in once at `/ui/login` (pastes the install token and stores it in an HttpOnly cookie).
+
 ## Dev run
 
 From the repo root (Windows PowerShell):

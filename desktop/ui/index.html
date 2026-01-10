@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FaceForge</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="title">FaceForge</div>
+        <div class="subtitle">Desktop Orchestrator</div>
+      </div>
+      <div class="actions">
+        <button id="btn-open-ui" class="primary">Open UI</button>
+        <button id="btn-start">Start</button>
+        <button id="btn-stop">Stop</button>
+        <button id="btn-restart">Restart</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section id="wizard" class="card hidden">
+        <h2>First-run setup</h2>
+        <p class="muted">Choose where FaceForge stores data and which localhost ports to use.</p>
+
+        <div class="grid">
+          <label>
+            <span>FACEFORGE_HOME</span>
+            <div class="row">
+              <input id="home" type="text" placeholder="C:\\FaceForge" />
+              <button id="btn-browse">Browse…</button>
+            </div>
+          </label>
+
+          <label>
+            <span>Core port</span>
+            <input id="core_port" type="number" min="1" max="65535" />
+          </label>
+
+          <label class="checkbox">
+            <input id="seaweed_enabled" type="checkbox" />
+            <span>Enable SeaweedFS (optional, requires a `weed` binary under <code>FACEFORGE_HOME/tools</code>)</span>
+          </label>
+
+          <label>
+            <span>SeaweedFS S3 port</span>
+            <input id="seaweed_port" type="number" min="1" max="65535" />
+          </label>
+        </div>
+
+        <div class="footer">
+          <button id="btn-suggest">Suggest ports</button>
+          <button id="btn-save" class="primary">Save</button>
+        </div>
+      </section>
+
+      <section id="status" class="card hidden">
+        <h2>Status</h2>
+        <div id="status-body" class="kv"></div>
+
+        <h3>Install token</h3>
+        <p class="muted">Core requires this token for API + UI login (stored in <code>FACEFORGE_HOME/config/core.json</code>).</p>
+        <div class="row">
+          <input id="token" type="text" readonly />
+          <button id="btn-copy">Copy</button>
+        </div>
+
+        <h3>Exit</h3>
+        <p class="muted">Closing this window hides it to the tray. Use the tray menu to Exit.</p>
+      </section>
+
+      <section id="logs" class="card hidden">
+        <h2>Logs</h2>
+        <p class="muted">For now this view is minimal; Core writes logs under <code>FACEFORGE_HOME/logs</code>.</p>
+      </section>
+
+      <section id="exit-modal" class="modal hidden">
+        <div class="modal-card">
+          <h2>Exit FaceForge Desktop</h2>
+          <p>What should happen to the managed services?</p>
+          <div class="footer">
+            <button id="btn-exit-stop" class="danger">Stop services and exit</button>
+            <button id="btn-exit-leave">Leave services running</button>
+            <button id="btn-exit-cancel">Cancel</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

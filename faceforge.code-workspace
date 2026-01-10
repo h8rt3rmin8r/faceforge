@@ -114,7 +114,8 @@
             "/^Set-Location 'a:\\\\Code\\\\faceforge\\\\core'; A:/Code/faceforge/\\.venv/Scripts/python\\.exe -m pytest -q$/": {
                 "approve": true,
                 "matchCommandLine": true
-            }
+            },
+            "cargo check": true
         }
     }
 }

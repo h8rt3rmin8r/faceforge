@@ -14,7 +14,7 @@ FaceForge is designed to be a stable, integration-friendly “boring core” for
 This repository is currently **docs-first scaffolding** with an initial runnable Core implementation:
 
 - `core/` contains a FastAPI app with versioned routing (`/v1/...`), token auth defaults, SQLite migrations, and initial real endpoints (starting with Entities CRUD).
-- `desktop/` is still a placeholder.
+- `desktop/` contains a Tauri v2 Desktop shell MVP (wizard + tray + local process orchestration).
 - The “what it is / how it should work” is defined in the spec and the MVP sprint plan.
 
 If you’re arriving here to understand the project, start with:
@@ -58,7 +58,7 @@ When implementation starts, the repo will follow these conventions:
 
 Quick map of what lives where:
 
-```
+  desktop/      # Tauri desktop shell (Sprint 12 MVP)
 faceforge/
   core/         # FastAPI Core service (runnable today)
   desktop/      # Tauri desktop shell (placeholder for now)
@@ -87,7 +87,26 @@ If you’re new and wondering “where do I add a route?”, start at:
 
 ## Getting started (today)
 
-FaceForge Desktop isn’t implemented yet, but **FaceForge Core has an initial dev scaffold** you can run locally.
+FaceForge Core is runnable in dev today, and FaceForge Desktop can orchestrate it.
+
+### Run Desktop (dev)
+
+Prereq: Rust toolchain (stable).
+
+From the repo root:
+
+- `cargo tauri dev --manifest-path .\desktop\src-tauri\Cargo.toml`
+
+What it does:
+
+- First-run wizard to choose `FACEFORGE_HOME` + localhost ports
+- Starts/stops Core (and optional SeaweedFS if you provide a `weed` binary under `${FACEFORGE_HOME}/tools`)
+- Runs in the tray (closing the window hides it)
+
+Notes:
+
+- Desktop launches Core using the repo-local `.venv` if present. If you haven’t bootstrapped `.venv` yet, run `./scripts/dev-core.ps1` once.
+- “Open UI” opens `/ui/login` (paste token once; it becomes a cookie).
 
 ### Run Core (dev)
 
