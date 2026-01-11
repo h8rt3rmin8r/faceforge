@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 from faceforge_core.home import FaceForgePaths
@@ -28,20 +27,26 @@ def read_ports_file(
 ) -> RuntimePorts | None:
     """Read ${FACEFORGE_HOME}/config/ports.json."""
 
-    if not paths.ports_path.exists():
+    ports_path = paths.ports_path
+    if not ports_path.exists() and allow_legacy_runtime_dir:
+        legacy = paths.home / "runtime" / "ports.json"
+        if legacy.exists():
+            ports_path = legacy
+
+    if not ports_path.exists():
         return None
 
-    with paths.ports_path.open("r", encoding="utf-8") as f:
+    with ports_path.open("r", encoding="utf-8") as f:
         data = json.load(f)
 
     if not isinstance(data, dict):
-        raise ValueError(f"Invalid ports.json format at {paths.ports_path}")
+        raise ValueError(f"Invalid ports.json format at {ports_path}")
 
     return _parse_ports(data)
 
 
 def write_ports_file(paths: FaceForgePaths, ports: RuntimePorts) -> None:
-    paths.run_dir.mkdir(parents=True, exist_ok=True)
+    paths.ports_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "core": ports.core_port,
         "seaweed_s3": ports.seaweed_s3_port,

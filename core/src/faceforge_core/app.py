@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
-from logging.handlers import RotatingFileHandler
 from contextlib import asynccontextmanager
+from logging.handlers import RotatingFileHandler
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
