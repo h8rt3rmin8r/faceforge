@@ -26,6 +26,23 @@ jobs:
         run: |
           ./scripts/build-core.ps1
 
+      - name: Collect build output
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path 'core' -Directory -Filter 'dist*' |
+            Sort-Object LastWriteTime -Descending |
+            ForEach-Object {
+              $candidate = Join-Path $_.FullName 'faceforge-core.exe'
+              if (Test-Path $candidate) { $candidate; break }
+            }
+
+          if (-not $exe) {
+            throw 'Missing faceforge-core.exe under core/dist*/'
+          }
+
+          New-Item -ItemType Directory -Path 'core/dist' -Force | Out-Null
+          Copy-Item -Force $exe 'core/dist/faceforge-core.exe'
+
       - name: Hash
         shell: pwsh
         run: |

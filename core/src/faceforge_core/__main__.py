@@ -15,16 +15,16 @@ from faceforge_core.ports import read_ports_file
 def main() -> None:
     home = resolve_faceforge_home()
     paths = ensure_faceforge_layout(home)
-    
+
     # Configure logging
     log_file = paths.logs_dir / "core.log"
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[
-            RotatingFileHandler(log_file, maxBytes=10*1024*1024, backupCount=5),
-            logging.StreamHandler()
-        ]
+            RotatingFileHandler(log_file, maxBytes=10 * 1024 * 1024, backupCount=5),
+            logging.StreamHandler(),
+        ],
     )
 
     config = load_core_config(paths)
