@@ -34,6 +34,11 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Install Tauri CLI
+        shell: pwsh
+        run: |
+          cargo install tauri-cli --locked
+
       - name: Install WiX toolset (for MSI)
         shell: pwsh
         run: |
