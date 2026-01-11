@@ -18,6 +18,10 @@ function toMessage(err) {
   if (!err) return "Unknown error";
   if (typeof err === "string") return err;
   if (err instanceof Error) return err.message || String(err);
+  try {
+    const json = JSON.stringify(err);
+    if (json && json !== "{}") return json;
+  } catch (_) {}
   return String(err);
 }
 
@@ -218,6 +222,7 @@ async function wireTrayEvents() {
     try { await restart(); } catch (_) {}
   });
   await listen("tray-exit", async () => {
+    console.log("tray-exit event received");
     showExitModal(true);
     try {
       const win = window.__TAURI__?.window?.getCurrentWindow;
