@@ -58,6 +58,7 @@ When implementation starts, the repo will follow these conventions:
 
 Quick map of what lives where:
 
+```
   desktop/      # Tauri desktop shell (Sprint 12 MVP)
 faceforge/
   core/         # FastAPI Core service (runnable today)

@@ -373,9 +373,10 @@ code {
 <p>A local-first, self-hosted <strong>Asset Management System (AMS)</strong> focused on <strong>entities</strong> (real or fictional, human or non-human) and the <strong>assets</strong> attached to them.</p>
 <p>FaceForge is designed to be a stable, integration-friendly “boring core” for storing metadata + files, while advanced features (recognition, graph visualization, training, third-party integrations) live in optional plugins.</p>
 <h2 id="status">Status</h2>
-<p>This repository is currently <strong>docs-first scaffolding</strong>:</p>
+<p>This repository is currently <strong>docs-first scaffolding</strong> with an initial runnable Core implementation:</p>
 <ul>
-<li><code>core/</code> and <code>desktop/</code> are placeholders today.</li>
+<li><code>core/</code> contains a FastAPI app with versioned routing (<code>/v1/...</code>), token auth defaults, SQLite migrations, and initial real endpoints (starting with Entities CRUD).</li>
+<li><code>desktop/</code> contains a Tauri v2 Desktop shell MVP (wizard + tray + local process orchestration).</li>
 <li>The “what it is / how it should work” is defined in the spec and the MVP sprint plan.</li>
 </ul>
 <p>If you’re arriving here to understand the project, start with:</p>
@@ -401,7 +402,7 @@ code {
 <ul>
 <li><strong>FaceForge Desktop</strong> (Tauri v2): orchestrates local components (Core server, optional sidecars like object storage, plugin runners), manages lifecycle, and opens the UI.</li>
 <li><strong>FaceForge Core</strong> (planned: Python 3.11/3.12 + FastAPI + Uvicorn): serves a versioned API under <code>/v1/...</code>, plus <code>/docs</code> and <code>/redoc</code>, and hosts the web UI.</li>
-<li><strong>Storage</strong>: transparent, user-controlled storage paths. Default object storage is intended to be an S3-compatible local endpoint (SeaweedFS), but Core must also work in filesystem-only mode.</li>
+<li><strong>Storage</strong>: transparent, user-controlled storage paths. Core supports filesystem-only mode and an optional S3-compatible provider (intended: SeaweedFS S3 endpoint) with upload-time routing + automatic fallback.</li>
 <li><strong>Metadata DB</strong>: SQLite, using a “relational spine + JSON fields” approach (entities/assets/relationships/jobs + flexible descriptors).</li>
 </ul>
 <h2 id="core-conventions-from-the-spec">Core conventions (from the spec)</h2>
@@ -409,18 +410,208 @@ code {
 <ul>
 <li>Network defaults: bind to <code>127.0.0.1</code>; require a per-install token for non-health endpoints.</li>
 <li>API routing: versioned under <code>/v1/...</code> with OpenAPI always kept accurate.</li>
-<li>Local-first storage contract: <code>FACEFORGE_HOME</code> is the root data directory; Core creates subfolders under it (e.g. <code>db/</code>, <code>logs/</code>, <code>config/</code>, <code>plugins/</code>).</li>
+<li>Local-first storage contract: <code>FACEFORGE_HOME</code> is the root data directory; Core creates subfolders under it (e.g. <code>db/</code>, <code>assets/</code>, <code>logs/</code>, <code>config/</code>, <code>plugins/</code>).</li>
 <li>Asset downloads: streaming-first, HTTP range support (resume-friendly), no opaque container volumes.</li>
 </ul>
 <h2 id="repository-layout">Repository layout</h2>
+<p>Quick map of what lives where:</p>
+<pre class="hljs"><code><div>  desktop/      # Tauri desktop shell (Sprint 12 MVP)
+faceforge/
+  core/         # FastAPI Core service (runnable today)
+  desktop/      # Tauri desktop shell (placeholder for now)
+  docs/         # Project spec + MVP sprint plan (source of truth)
+  scripts/      # Dev scripts (PowerShell) to run/check Core using .venv
+  brand/        # Logos, favicon, fonts (UI branding assets)
+</div></code></pre>
+<p>Core service code is a standard Python package under:</p>
+<pre class="hljs"><code><div>core/
+  src/faceforge_core/       # app entrypoint + API + DB + storage
+    app.py                  # FastAPI app factory / wiring
+    api/v1/                 # versioned HTTP routes
+    db/                     # SQLite schema + migrations + queries
+    internal/               # internal CLIs/utilities (dev/admin)
+  tests/                    # pytest tests for Core
+  pyproject.toml            # Core packaging/deps
+</div></code></pre>
+<p>If you’re new and wondering “where do I add a route?”, start at:</p>
 <ul>
-<li><code>core/</code> — planned Core API service (currently placeholder)</li>
-<li><code>desktop/</code> — planned Tauri desktop orchestrator (currently placeholder)</li>
-<li><code>docs/</code> — design spec + MVP sprint sequence (current source of truth)</li>
-<li><code>brand/</code> — logos, favicon assets, and fonts used for UI branding</li>
+<li><code>core/src/faceforge_core/api/v1/router.py</code> (v1 router)</li>
+<li><code>core/src/faceforge_core/app.py</code> (app wiring)</li>
 </ul>
 <h2 id="getting-started-today">Getting started (today)</h2>
-<p>There isn’t runnable Core/Desktop code in this repo yet.</p>
+<p>FaceForge Core is runnable in dev today, and FaceForge Desktop can orchestrate it.</p>
+<h3 id="run-desktop-dev">Run Desktop (dev)</h3>
+<p>Prereq: Rust toolchain (stable).</p>
+<p>From the repo root:</p>
+<ul>
+<li><code>cargo tauri dev --manifest-path .\desktop\src-tauri\Cargo.toml</code></li>
+</ul>
+<p>What it does:</p>
+<ul>
+<li>First-run wizard to choose <code>FACEFORGE_HOME</code> + localhost ports</li>
+<li>Starts/stops Core (and optional SeaweedFS if you provide a <code>weed</code> binary under <code>${FACEFORGE_HOME}/tools</code>)</li>
+<li>Runs in the tray (closing the window hides it)</li>
+</ul>
+<p>Notes:</p>
+<ul>
+<li>Desktop launches Core using the repo-local <code>.venv</code> if present. If you haven’t bootstrapped <code>.venv</code> yet, run <code>./scripts/dev-core.ps1</code> once.</li>
+<li>“Open UI” opens <code>/ui/login</code> (paste token once; it becomes a cookie).</li>
+</ul>
+<h3 id="run-core-dev">Run Core (dev)</h3>
+<p>From the repo root (Windows PowerShell):</p>
+<p>Prereq: Python 3.12.x installed (used only to bootstrap the repo-local <code>.venv</code>).</p>
+<ul>
+<li><code>./scripts/dev-core.ps1</code></li>
+</ul>
+<p>Then open:</p>
+<ul>
+<li><code>http://127.0.0.1:8787/healthz</code></li>
+<li><code>http://127.0.0.1:8787/docs</code></li>
+</ul>
+<p>Core also serves a lightweight <strong>Web UI</strong> (no runtime Node dependency):</p>
+<ul>
+<li><code>http://127.0.0.1:8787/</code> (redirects to the UI)</li>
+<li><code>http://127.0.0.1:8787/ui/login</code></li>
+</ul>
+<p>Core now exposes initial Entities + Assets v1 endpoints (token required):</p>
+<ul>
+<li>
+<p><code>GET /v1/entities</code></p>
+</li>
+<li>
+<p><code>POST /v1/entities</code></p>
+</li>
+<li>
+<p><code>GET/PATCH/DELETE /v1/entities/{entity_id}</code></p>
+</li>
+<li>
+<p><code>POST /v1/assets/upload</code> (multipart)</p>
+</li>
+<li>
+<p><code>GET /v1/assets/{asset_id}</code></p>
+</li>
+<li>
+<p><code>GET /v1/assets/{asset_id}/download</code> (streaming + HTTP Range)</p>
+</li>
+<li>
+<p><code>POST /v1/assets/bulk-import</code> (starts a durable job)</p>
+</li>
+<li>
+<p><code>POST /v1/entities/{entity_id}/assets/{asset_id}</code> (link)</p>
+</li>
+<li>
+<p><code>DELETE /v1/entities/{entity_id}/assets/{asset_id}</code> (unlink)</p>
+</li>
+</ul>
+<p>Core also exposes initial Jobs endpoints (Sprint 9):</p>
+<ul>
+<li><code>POST /v1/jobs</code></li>
+<li><code>GET /v1/jobs</code></li>
+<li><code>GET /v1/jobs/{job_id}</code></li>
+<li><code>GET /v1/jobs/{job_id}/log</code> (append-only, pollable)</li>
+<li><code>POST /v1/jobs/{job_id}/cancel</code> (cooperative cancellation)</li>
+</ul>
+<p>Core also exposes initial Descriptor + Field Definition endpoints (Sprint 7):</p>
+<ul>
+<li>
+<p><code>GET /v1/admin/field-defs</code> (admin)</p>
+</li>
+<li>
+<p><code>POST /v1/admin/field-defs</code> (admin)</p>
+</li>
+<li>
+<p><code>GET /v1/admin/field-defs/{field_def_id}</code> (admin)</p>
+</li>
+<li>
+<p><code>PATCH /v1/admin/field-defs/{field_def_id}</code> (admin)</p>
+</li>
+<li>
+<p><code>DELETE /v1/admin/field-defs/{field_def_id}</code> (admin)</p>
+</li>
+<li>
+<p><code>GET /v1/entities/{entity_id}/descriptors</code></p>
+</li>
+<li>
+<p><code>POST /v1/entities/{entity_id}/descriptors</code></p>
+</li>
+<li>
+<p><code>PATCH /v1/descriptors/{descriptor_id}</code></p>
+</li>
+<li>
+<p><code>DELETE /v1/descriptors/{descriptor_id}</code></p>
+</li>
+</ul>
+<p>Core also exposes initial Relationships endpoints (Sprint 8):</p>
+<ul>
+<li><code>POST /v1/relationships</code></li>
+<li><code>GET /v1/relationships?entity_id=...</code></li>
+<li><code>DELETE /v1/relationships/{relationship_id}</code></li>
+<li><code>GET /v1/relation-types?query=...</code></li>
+</ul>
+<p>Core also exposes initial Plugins endpoints (Sprint 10):</p>
+<ul>
+<li><code>GET /v1/plugins</code></li>
+<li><code>POST /v1/plugins/{plugin_id}/enable</code></li>
+<li><code>POST /v1/plugins/{plugin_id}/disable</code></li>
+<li><code>GET /v1/plugins/{plugin_id}/config</code></li>
+<li><code>PUT /v1/plugins/{plugin_id}/config</code></li>
+</ul>
+<h3 id="plugins-sprint-10">Plugins (Sprint 10)</h3>
+<p>Core discovers plugin manifests from:</p>
+<ul>
+<li><code>${FACEFORGE_HOME}/plugins/*/plugin.json</code></li>
+</ul>
+<p>Minimal <code>plugin.json</code> example:</p>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"demo.plugin"</span>,
+  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"Demo Plugin"</span>,
+  <span class="hljs-attr">"version"</span>: <span class="hljs-string">"0.1.0"</span>,
+  <span class="hljs-attr">"capabilities"</span>: [<span class="hljs-string">"ui"</span>],
+  <span class="hljs-attr">"config_schema"</span>: {
+    <span class="hljs-attr">"type"</span>: <span class="hljs-string">"object"</span>,
+    <span class="hljs-attr">"properties"</span>: {
+      <span class="hljs-attr">"example_flag"</span>: { <span class="hljs-attr">"type"</span>: <span class="hljs-string">"boolean"</span> }
+    },
+    <span class="hljs-attr">"additionalProperties"</span>: <span class="hljs-literal">true</span>
+  }
+}
+</div></code></pre>
+<p>Notes:</p>
+<ul>
+<li>Plugin enable/disable and config are persisted in Core's SQLite DB.</li>
+<li>If a <code>config_schema</code> is provided, <code>PUT /v1/plugins/{plugin_id}/config</code> validates the config using JSON Schema.</li>
+<li>The namespace <code>/v1/plugins/{plugin_id}/...</code> is reserved for future plugin-provided HTTP surfaces.</li>
+</ul>
+<p>For optional SeaweedFS/S3 storage configuration (Sprint 6), see:</p>
+<ul>
+<li><a href="core/README.md">core/README.md</a></li>
+</ul>
+<h3 id="auth-sprint-3">Auth (Sprint 3)</h3>
+<p>Core binds to localhost by default and requires a <strong>per-install token</strong> for non-health endpoints.</p>
+<ul>
+<li>Health endpoint (no token): <code>GET /healthz</code></li>
+<li>Example protected endpoint: <code>GET /v1/ping</code></li>
+<li>System identity endpoint (protected): <code>GET /v1/system/info</code></li>
+</ul>
+<p>The token is generated on first start (if missing) and stored in:</p>
+<ul>
+<li><code>${FACEFORGE_HOME}/config/core.json</code> → <code>auth.install_token</code></li>
+</ul>
+<p>Send it using either header:</p>
+<ul>
+<li><code>Authorization: Bearer &lt;token&gt;</code></li>
+<li><code>X-FaceForge-Token: &lt;token&gt;</code></li>
+</ul>
+<p>For the Web UI in a browser, you can also log in at <code>/ui/login</code>, which stores the token in an HttpOnly cookie.</p>
+<p>Example (PowerShell):</p>
+<ul>
+<li><code>Invoke-RestMethod -Headers @{ Authorization = &quot;Bearer &lt;token&gt;&quot; } http://127.0.0.1:8787/v1/ping</code></li>
+</ul>
+<h3 id="checks-format--lint--tests">Checks (format + lint + tests)</h3>
+<ul>
+<li><code>./scripts/check-core.ps1</code></li>
+</ul>
+<p>These scripts create/use the repo-local <code>.venv</code> and always run commands through it.</p>
 <p>To get productive right now:</p>
 <ul>
 <li>Read the Project Design Specification:
@@ -439,10 +630,28 @@ code {
 </li>
 <li>For implementers using AI assistance (e.g. GitHub Copilot), follow these guidelines
 <ul>
-<li>Markdown: <a href=".github/copilot-instructions.md">.github/copilot-instructions.md</a></li>
+<li>Markdown doc via the repo UI: <a href="https://github.com/h8rt3rmin8r/faceforge/blob/main/.github/copilot-instructions.md">copilot-instructions.md</a></li>
 </ul>
 </li>
 </ul>
+<h2 id="building-for-release">Building for Release</h2>
+<p>To create a distributable installer:</p>
+<ol>
+<li>
+<p><strong>Build Core Executable</strong>:</p>
+<pre class="hljs"><code><div>./scripts/build<span class="hljs-literal">-core</span>.ps1
+</div></code></pre>
+<p>This uses PyInstaller to freeze the Python service into <code>dist/faceforge-core.exe</code>.</p>
+</li>
+<li>
+<p><strong>Build Desktop Bundle</strong>:</p>
+<pre class="hljs"><code><div><span class="hljs-built_in">cd</span> desktop
+npm install
+npm run tauri build
+</div></code></pre>
+<p>This packages the Desktop shell, bundles the Core executable (as a sidecar), and includes necessary tools (ExifTool, etc.).</p>
+</li>
+</ol>
 <h2 id="contributing">Contributing</h2>
 <p>Contributions are welcome, especially as the repo moves from docs → scaffolding → MVP.</p>
 <ul>
