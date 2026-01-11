@@ -20,11 +20,31 @@ jobs:
 
     env:
       TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'main' }}
 
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.TAG }}
+
+      - name: Ensure PyInstaller spec exists (legacy tags)
+        shell: pwsh
+        run: |
+          if (Test-Path 'core/pyinstaller.spec') {
+            Write-Host 'core/pyinstaller.spec present'
+            exit 0
+          }
+
+          Write-Warning "core/pyinstaller.spec missing in $env:TAG; fetching from origin/$env:DEFAULT_BRANCH"
+          git fetch --no-tags --depth 1 origin $env:DEFAULT_BRANCH
+
+          $spec = git show "origin/$env:DEFAULT_BRANCH:core/pyinstaller.spec" 2>$null
+          if (-not $spec) {
+            throw "Unable to load core/pyinstaller.spec from origin/$env:DEFAULT_BRANCH"
+          }
+
+          $spec | Out-File -Encoding utf8 -NoNewline 'core/pyinstaller.spec'
+          if (-not (Test-Path 'core/pyinstaller.spec')) { throw 'Failed to write core/pyinstaller.spec' }
 
       - name: Set up Python
         uses: actions/setup-python@v5
