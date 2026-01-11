@@ -230,15 +230,24 @@ Output:
 
 ## GitHub Releases
 
-This repo includes a GitHub Actions workflow that builds and attaches the Windows Core executable to Releases.
+This repo includes a GitHub Actions workflow that builds and attaches release assets automatically.
 
 - Workflow: `.github/workflows/release-core.yml`
-- Trigger: push a tag like `v0.1.0`
+- Trigger: publish a GitHub Release for a tag like `v0.1.0` (or run the workflow manually with a tag input)
+
+How to cut a release (GitHub UI):
+
+1. Go to **Releases** → **Draft a new release**.
+2. Pick an existing tag or create a new one (recommended tag format: `v0.1.0`).
+3. Fill in title/notes and click **Publish release**.
+4. Wait for the **release-core** workflow to finish; it will upload assets onto the Release.
 
 After the workflow completes, the Release will contain:
 
-- `faceforge-core.exe`
-- `faceforge-core.sha256`
+- `faceforge-core.exe` (Windows)
+- `faceforge-core.sha256` (Windows)
+- `faceforge-core-*.whl` (Python wheel)
+- `faceforge-core-*.tar.gz` (Python sdist)
 
 The token is generated on first start (if missing) and stored in:
 
@@ -282,7 +291,7 @@ To create a distributable installer:
     ```powershell
     ./scripts/build-core.ps1
     ```
-    This uses PyInstaller to freeze the Python service into `dist/faceforge-core.exe`.
+    This uses PyInstaller to freeze the Python service into `core/dist/faceforge-core.exe`.
 
 2.  **Build Desktop Bundle**:
     ```bash
