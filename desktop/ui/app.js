@@ -1,256 +1,275 @@
-function setError(title, detail) {
-  const banner = document.getElementById("error-banner");
-  if (!banner) return;
-  document.getElementById("error-title").textContent = title || "";
-  document.getElementById("error-detail").textContent = detail || "";
-  banner.classList.remove("hidden");
-}
-
-function clearError() {
-  const banner = document.getElementById("error-banner");
-  if (!banner) return;
-  banner.classList.add("hidden");
-  document.getElementById("error-title").textContent = "";
-  document.getElementById("error-detail").textContent = "";
-}
-
-function toMessage(err) {
-  if (!err) return "Unknown error";
-  if (typeof err === "string") return err;
-  if (err instanceof Error) return err.message || String(err);
-  try {
-    const json = JSON.stringify(err);
-    if (json && json !== "{}") return json;
-  } catch (_) {}
-  return String(err);
-}
-
-const invoke = async (cmd, args) => {
-  const core = window.__TAURI__?.core;
-  if (!core?.invoke) {
-    throw new Error(
-      "Desktop integration is unavailable. This usually means the app is not running inside the Tauri shell or was packaged incorrectly."
-    );
-  }
-  return await core.invoke(cmd, args);
-};
-
-const listen = async (event, handler) => {
-  const eventApi = window.__TAURI__?.event;
-  if (!eventApi?.listen) {
-    throw new Error(
-      "Desktop events are unavailable. Please reinstall or run the packaged Desktop app (not a browser tab)."
-    );
-  }
-  return await eventApi.listen(event, handler);
-};
+const { invoke } = window.__TAURI__.core;
+const { listen } = window.__TAURI__.event;
+const { open } = window.__TAURI__.opener;
 
 const $ = (id) => document.getElementById(id);
 
-function show(sectionId) {
-  for (const id of ["wizard", "status", "logs"]) {
-    $(id).classList.toggle("hidden", id !== sectionId);
-  }
+let state = {
+    configured: false,
+    core_running: false,
+    activeView: 'status', // status, settings
+    logsOpen: false,
+    install_dir: '', // Need to fetch this
+    install_token: ''
+};
+
+// Utils
+function show(id) {
+    $(id).classList.remove('hidden');
 }
-
-function showExitModal(visible) {
-  $("exit-modal").classList.toggle("hidden", !visible);
+function hide(id) {
+    $(id).classList.add('hidden');
 }
-
-function renderStatus(state) {
-  const s = state.status;
-  const rows = [];
-  if (!s) {
-    rows.push(["Core", "Not started"]);
-  } else {
-    rows.push(["FACEFORGE_HOME", state.faceforge_home || "-"]);
-    rows.push(["Core URL", s.core_url]);
-    rows.push(["Core running", s.core_running ? "Yes" : "No"]);
-    rows.push(["Core healthy", s.core_healthy ? "Yes" : "No"]);
-    rows.push(["Seaweed enabled", s.seaweed_enabled ? "Yes" : "No"]);
-    rows.push(["Seaweed running", s.seaweed_running ? "Yes" : "No"]);
-    rows.push(["Seaweed S3 port", s.seaweed_s3_port || "-"]);
-  }
-  $("status-body").innerHTML = rows
-    .map(([k, v]) => `<div class="k">${k}</div><div>${v}</div>`)
-    .join("");
-  $("token").value = state.install_token || "";
-}
-
-async function refresh() {
-  const state = await invoke("get_state");
-  if (!state.configured) {
-    show("wizard");
-  } else {
-    show("status");
-  }
-
-  if (state.core_port) $("core_port").value = state.core_port;
-  if (state.seaweed_s3_port) $("seaweed_port").value = state.seaweed_s3_port;
-  $("seaweed_enabled").checked = !!state.seaweed_enabled;
-  if (state.faceforge_home) $("home").value = state.faceforge_home;
-
-  renderStatus(state);
-}
-
-async function suggestPorts() {
-  const p = await invoke("suggest_ports");
-  $("core_port").value = p.core_port;
-  $("seaweed_port").value = p.seaweed_s3_port;
-}
-
-async function browseHome() {
-  const picked = await invoke("pick_faceforge_home");
-  if (picked) $("home").value = picked;
-}
-
-async function saveWizard() {
-  const home = $("home").value.trim();
-  if (!home) {
-    setError("Setup needed", "Please choose FACEFORGE_HOME to continue.");
-    return;
-  }
-  const corePort = parseInt($("core_port").value, 10);
-  const seaweedEnabled = $("seaweed_enabled").checked;
-  const seaweedPort = parseInt($("seaweed_port").value, 10);
-
-  const payload = {
-    faceforge_home: home,
-    core_port: corePort,
-    seaweed_enabled: seaweedEnabled,
-    seaweed_s3_port: seaweedEnabled ? seaweedPort : null,
-    seaweed_weed_path: null
-  };
-
-  await invoke("save_wizard_settings", { payload });
-  await refresh();
-}
-
-async function start() {
-  await invoke("start_services");
-  await refresh();
-}
-
-async function stop() {
-  await invoke("stop_services");
-  await refresh();
-}
-
-async function restart() {
-  await invoke("restart_services");
-  await refresh();
-}
-
-async function openUi() {
-  await invoke("open_ui");
-}
-
-async function copyToken() {
-  const state = await invoke("get_state");
-  const token = state.install_token || "";
-  if (!token) return;
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(token);
-  } else {
-    // Fallback: select and copy.
-    const input = $("token");
-    input.focus();
-    input.select();
-    document.execCommand("copy");
-  }
-}
-
-function wireUi() {
-  const wrap = (fn) => async (...args) => {
-    try {
-      clearError();
-      await fn(...args);
-    } catch (e) {
-      console.error(e);
-      setError("Something went wrong", toMessage(e));
+function setView(viewId) {
+    if (!state.configured && viewId !== 'settings') {
+        // Gating
+        return;
     }
-  };
-
-  $("btn-error-dismiss")?.addEventListener("click", () => clearError());
-
-  $("btn-suggest").addEventListener("click", wrap(suggestPorts));
-  $("btn-browse").addEventListener("click", wrap(browseHome));
-  $("btn-save").addEventListener("click", wrap(saveWizard));
-
-  $("btn-start").addEventListener("click", wrap(start));
-  $("btn-stop").addEventListener("click", wrap(stop));
-  $("btn-restart").addEventListener("click", wrap(restart));
-  $("btn-open-ui").addEventListener("click", wrap(openUi));
-  $("btn-status").addEventListener("click", () => { show("status"); clearError(); });
-  $("btn-logs").addEventListener("click", () => { show("logs"); clearError(); });
-  $("btn-copy").addEventListener("click", wrap(copyToken));
-
-  // Initialize Home default if empty
-  const homeInput = $("home");
-  if (!homeInput.value) {
-    homeInput.value = "C:\\FaceForge";
-  }
-
-  $("btn-exit-stop").addEventListener(
-    "click",
-    wrap(async () => {
-      await stop();
-      showExitModal(false);
-      await invoke("request_exit");
-    })
-  );
-  $("btn-exit-leave").addEventListener(
-    "click",
-    wrap(async () => {
-      showExitModal(false);
-      await invoke("request_exit");
-    })
-  );
-  $("btn-exit-cancel").addEventListener("click", () => showExitModal(false));
+    state.activeView = viewId;
+    hide('view-status');
+    hide('view-settings');
+    show(`view-${viewId}`);
+    
+    // Breadcrumbs
+    $('crumb-text').textContent = `Home > ${viewId.charAt(0).toUpperCase() + viewId.slice(1)}`;
+    
+    // Menu active state
+    ['status', 'settings', 'webui'].forEach(k => {
+        const el = $(`menu-${k}`);
+        if(el) el.classList.toggle('active', k === viewId);
+    });
 }
 
-async function wireTrayEvents() {
-  await listen("tray-open-ui", async () => {
-    try { await openUi(); } catch (_) {}
-  });
-  await listen("tray-show", async (e) => {
-    const which = e.payload;
-    if (which === "logs") show("logs");
-    else show("status");
-    await refresh();
+async function copyText(text) {
+    if (!text) return;
     try {
-      const win = window.__TAURI__?.window?.getCurrentWindow;
-      if (win) await win().show();
-    } catch (_) {}
-  });
-  await listen("tray-stop", async () => {
-    try { await stop(); } catch (_) {}
-  });
-  await listen("tray-restart", async () => {
-    try { await restart(); } catch (_) {}
-  });
-  await listen("tray-exit", async () => {
-    console.log("tray-exit event received");
-    showExitModal(true);
+        await navigator.clipboard.writeText(text);
+        // maybe show toast?
+    } catch (e) { console.error(e); }
+}
+
+async function openPath(path) {
+    if (!path || path === '-') return;
     try {
-      const win = window.__TAURI__?.window?.getCurrentWindow;
-      if (win) await win().show();
-    } catch (_) {}
-  });
+        // Use opener for URLs, need check if it's URL or Path.
+        // For paths, we might need a specific command if opener doesn't handle paths seamlessly on all OS.
+        // Assuming open() handles both.
+        await open(path);
+    } catch (e) { console.error(e); }
 }
 
-async function main() {
-  wireUi();
-  await wireTrayEvents();
-  await suggestPorts();
-  await refresh();
-  setInterval(refresh, 2000);
+// Commands
+async function refreshState() {
+    try {
+        const s = await invoke("get_state");
+        state.configured = s.configured;
+        state.status = s.status;
+        state.faceforge_home = s.faceforge_home;
+        state.install_token = s.install_token;
+        state.core_port = s.core_port;
+        
+        // Update Gating
+        ['menu-status', 'menu-logs', 'menu-webui'].forEach(id => {
+            const el = $(id);
+            if (!state.configured) {
+                el.classList.add('disabled');
+                el.title = "Configure settings first";
+            } else {
+                el.classList.remove('disabled');
+                el.title = "";
+            }
+        });
+        
+        // Update Controls logic (Start/Stop/Restart)
+        updateControls(s.status);
+        
+        // Update View Content
+        if (state.activeView === 'status') renderStatus(s);
+        if (state.activeView === 'settings') populateSettings(s); // Only populate if empty?
+        
+        if (!state.configured && state.activeView !== 'settings') {
+            setView('settings');
+        }
+    } catch (e) {
+        console.error(e);
+        // setError("Connection Lost", "Could not talk to desktop backend.");
+    }
 }
 
-main().catch((e) => {
-  console.error(e);
-  setError(
-    "FaceForge Desktop couldn't start",
-    `${toMessage(e)}\n\nIf you just installed FaceForge and are seeing this, please reinstall using the latest installer.`
-  );
+function updateControls(status) {
+    const running = status && status.core_running;
+    $('btn-start').disabled = running;
+    $('btn-stop').disabled = !running;
+    $('btn-restart').disabled = !running;
+}
+
+function renderStatus(s) {
+    // Fill KV table
+    const running = s.status && s.status.core_running;
+    const coreUrl = s.status ? s.status.core_url : '-';
+    
+    const rows = [
+        ['Core Service', running ? 'Running' : 'Stopped'],
+        ['Core Health', s.status && s.status.core_healthy ? 'Healthy' : 'Unknown'],
+        ['SeaweedFS', s.status && s.status.seaweed_running ? 'Running' : 'Stopped']
+    ];
+    
+    const html = rows.map(([k, v]) => `
+        <div class="kv-key">${k}</div>
+        <div class="kv-val">${v}</div>
+        <div class="kv-actions"></div>
+    `).join('');
+    $('status-body').innerHTML = html;
+    
+    // Links
+    const links = [];
+    if (running && coreUrl) {
+        links.push(['Core API', coreUrl]);
+        links.push(['API Docs', `${coreUrl}/docs`]);
+        links.push(['Web UI', `${coreUrl}/ui`]); // Assuming /ui redirect
+    }
+    
+    $('links-body').innerHTML = links.map(([label, url]) => `
+        <div class="kv-key">${label}</div>
+        <div class="kv-val"><a href="#" onclick="openPath('${url}')">${url}</a></div>
+        <div class="kv-actions">
+            <button class="icon-btn" onclick="copyText('${url}')">Copy</button>
+            <button class="icon-btn" onclick="openPath('${url}')">Open</button>
+        </div>
+    `).join('');
+
+    // Directories
+    // We don't have install_dir in UiState yet, assuming we can get it or just leave placeholder.
+    // MVP: The new layout in index.html relies on separate fields. 
+    $('val-data-dir').innerText = s.faceforge_home || '-';
+    // $('val-install-dir') -> Not sent by backend yet. Ignore for now or fetch if command added.
+    
+    $('token').value = s.install_token || '';
+}
+
+async function populateSettings(s) {
+    // Check if dirty? For now just overwrite
+    if (s.faceforge_home) $('setting-home').value = s.faceforge_home;
+    if (s.core_port) $('setting-core-port').value = s.core_port;
+    if (s.seaweed_s3_port) $('setting-seaweed-port').value = s.seaweed_s3_port;
+    $('setting-seaweed-enabled').checked = !!s.seaweed_enabled;
+    // log size not yet persisted in settings struct, might default to 10
+}
+
+// Log Polling
+let logInterval;
+async function fetchLogs() {
+    if (!state.logsOpen) return;
+    try {
+        const lines = await invoke('read_core_log', { lines: 50 });
+        const viewer = $('logs-viewer');
+        viewer.textContent = lines.join('\n');
+        if ($('logs-auto-scroll').checked) {
+            viewer.scrollTop = viewer.scrollHeight;
+        }
+    } catch(e) {
+        $('logs-viewer').textContent = "Error reading logs: " + e;
+    }
+}
+
+// Global Events
+window.addEventListener('DOMContentLoaded', () => {
+    refreshState();
+    
+    // Menu Clicks
+    $('menu-status').onclick = () => setView('status');
+    $('menu-settings').onclick = () => setView('settings');
+    $('menu-logs').onclick = () => {
+        state.logsOpen = !state.logsOpen;
+        const drawer = $('logs-drawer');
+        drawer.classList.toggle('collapsed', !state.logsOpen);
+        if (state.logsOpen) {
+            fetchLogs();
+            if(!logInterval) logInterval = setInterval(fetchLogs, 2000);
+        } else {
+            if(logInterval) clearInterval(logInterval);
+            logInterval = null;
+        }
+    };
+    
+    $('btn-close-logs').onclick = $('menu-logs').onclick;
+    
+    $('menu-webui').onclick = async () => {
+        if (!state.configured) return;
+        try {
+            await invoke('open_ui'); 
+        } catch(e) { alert(e); }
+    };
+    
+    // Settings Actions
+    $('btn-browse').onclick = async () => {
+        const path = await invoke("pick_faceforge_home");
+        if (path) $('setting-home').value = path;
+    };
+    
+    $('btn-suggest').onclick = async () => {
+        const p = await invoke("suggest_ports");
+        $('setting-core-port').value = p.core_port;
+        $('setting-seaweed-port').value = p.seaweed_s3_port;
+    };
+    
+    $('btn-save').onclick = async () => {
+        // Collect data
+        const home = $('setting-home').value;
+        const corePort = parseInt($('setting-core-port').value);
+        const seaweedEnabled = $('setting-seaweed-enabled').checked;
+        const seaweedPort = parseInt($('setting-seaweed-port').value);
+        
+        // Show confirmation if running
+        if (state.status && state.status.core_running) {
+             show('modal-confirm');
+             return; // Wait for modal
+        }
+        
+        await doSave(home, corePort, seaweedEnabled, seaweedPort);
+    };
+    
+    $('btn-modal-cancel').onclick = () => hide('modal-confirm');
+    $('btn-modal-confirm').onclick = async () => {
+        hide('modal-confirm');
+        // Save
+        const home = $('setting-home').value;
+        const corePort = parseInt($('setting-core-port').value);
+        const seaweedEnabled = $('setting-seaweed-enabled').checked;
+        const seaweedPort = parseInt($('setting-seaweed-port').value);
+        
+        await doSave(home, corePort, seaweedEnabled, seaweedPort);
+        await invoke('restart_services');
+    };
+    
+    async function doSave(home, corePort, seaweedEnabled, seaweedPort) {
+        try {
+            await invoke('save_wizard_settings', {
+                home, corePort, seaweedEnabled, seaweedPort,
+                seaweedWeedPath: null // not exposed in UI yet
+            });
+            await refreshState();
+            setView('status');
+        } catch(e) {
+            alert("Error saving: " + e);
+        }
+    }
+    
+    // Controls
+    $('btn-start').onclick = () => invoke('start_services').then(refreshState);
+    $('btn-stop').onclick = () => invoke('stop_services').then(refreshState);
+    $('btn-restart').onclick = () => invoke('restart_services').then(refreshState);
+    
+    $('btn-exit').onclick = () => invoke('request_exit');
+    
+    // Copy/Open helpers
+    $('btn-copy-token').onclick = () => copyText($('token').value);
+    
+    // Periodically refresh state
+    setInterval(refreshState, 3000);
 });
+
+// Tray listeners
+listen('tray-open-ui', () => $('menu-webui').click());
+listen('tray-show', () => { /* bring window to front handled by rust? here just refresh */ refreshState(); });
+listen('tray-exit', () => invoke('request_exit')); // Fallback

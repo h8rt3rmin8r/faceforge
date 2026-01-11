@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from logging.handlers import RotatingFileHandler
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, Request
@@ -35,6 +36,29 @@ def create_app() -> FastAPI:
         paths = resolve_configured_paths(paths, config)
         config = ensure_install_token(paths, config)
 
+        # Configure Logging
+        log_path = paths.logs_dir / "core.log"
+        file_handler = RotatingFileHandler(
+            log_path,
+            maxBytes=config.logging.max_size_mb * 1024 * 1024,
+            backupCount=config.logging.backup_count,
+            encoding="utf-8",
+        )
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        file_handler.setFormatter(formatter)
+
+        # Configure root logger to capture all module logs
+        root = logging.getLogger()
+        root.setLevel(logging.INFO)
+        # Avoid adding duplicate handlers if reloaded
+        if not any(isinstance(h, RotatingFileHandler) for h in root.handlers):
+            root.addHandler(file_handler)
+
+        logger.info("FaceForge Core starting up")
+        logger.info(f"Logs directory: {paths.logs_dir}")
+
         db_path = resolve_db_path(paths)
         apply_migrations(db_path)
 
@@ -55,6 +79,14 @@ def create_app() -> FastAPI:
             stop_managed_seaweed(getattr(app.state, "seaweed_process", None))
 
     app = FastAPI(title="FaceForge Core", version="0.0.0", lifespan=_lifespan)
+
+    @app.middleware("http")
+    async def log_requests(request: Request, call_next):
+        response = await call_next(request)
+        # Log after response to get status code
+        # We can add more details here if needed
+        logger.info(f"{request.method} {request.url.path} - {response.status_code}")
+        return response
 
     class _TokenAuthMiddleware(BaseHTTPMiddleware):
         async def dispatch(self, request: Request, call_next) -> Response:

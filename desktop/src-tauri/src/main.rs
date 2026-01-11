@@ -32,6 +32,7 @@ struct UiState {
     install_token: Option<String>,
     status: Option<ServiceStatus>,
     error: Option<String>,
+    install_dir: Option<PathBuf>,
 }
 
 fn repo_root_from_exe() -> PathBuf {
@@ -73,36 +74,9 @@ fn save_bootstrap(app: &tauri::AppHandle, b: &DesktopBootstrap) -> anyhow::Resul
 }
 
 fn ensure_bundled_tools(app: &tauri::AppHandle, faceforge_home: &std::path::Path) {
-    let tools_dir = faceforge_home.join("tools");
-    
-    if !tools_dir.exists() {
-        let _ = fs::create_dir_all(&tools_dir);
-    }
-    
-    // Tools that should be present
-    let tools = ["exiftool.exe", "weed.exe"];
-
-    // In dev: src-tauri/resources/tools
-    // In prod: resource_dir/tools
-    // tauri::path::PathResolver logic handles this usually?
-    // In v2, app.path().resource_dir() gives the correct location.
-    
-    if let Ok(res_dir) = app.path().resource_dir() {
-        let src_tools_dir = res_dir.join("tools");
-        
-        for tool in tools {
-            let src = src_tools_dir.join(tool);
-            let dst = tools_dir.join(tool);
-            
-            // Simple logic: Copy if missing using std::fs
-            // For robust updates, one might compare hashes or versions, but for MVP check existence.
-            if !dst.exists() {
-                if src.exists() {
-                    let _ = fs::copy(&src, &dst);
-                }
-            }
-        }
-    }
+    // Legacy: we used to copy tools to FACEFORGE_HOME/tools. 
+    // New (v0.2.10): Tools stay in the install dir. 
+    // We do nothing here, avoiding duplication.
 }
 
 fn ui_state_from_guard(app: &tauri::AppHandle, guard: &mut AppState) -> UiState {
@@ -161,6 +135,7 @@ fn ui_state_from_guard(app: &tauri::AppHandle, guard: &mut AppState) -> UiState 
         install_token: guard.install_token.clone(),
         status,
         error,
+        install_dir: Some(repo_root_from_exe()),
     }
 }
 
@@ -282,6 +257,31 @@ async fn request_exit(app: tauri::AppHandle) {
     app.exit(0);
 }
 
+#[tauri::command]
+fn read_core_log(app: tauri::AppHandle, lines: usize) -> Result<Vec<String>, String> {
+    let state = app.state::<Mutex<AppState>>();
+    let guard = state.lock().unwrap();
+    if let Some(s) = &guard.settings {
+        let log_path = s.faceforge_home.join("logs").join("core.log");
+        if !log_path.exists() {
+             return Ok(vec![format!("Log file not found at {:?}", log_path)]);
+        }
+        
+        // Simple tail implementation
+        // For large logs, this is inefficient (reading whole file), but sufficient for MVP rolling logs (10MB).
+        match std::fs::read_to_string(&log_path) {
+            Ok(content) => {
+                let all_lines: Vec<&str> = content.lines().collect();
+                let start = all_lines.len().saturating_sub(lines);
+                Ok(all_lines[start..].iter().map(|s| s.to_string()).collect())
+            }
+            Err(e) => Ok(vec![format!("Error reading log: {}", e)])
+        }
+    } else {
+        Ok(vec!["Settings not loaded - cannot resolve log path.".into()])
+    }
+}
+
 fn build_tray(app: &tauri::AppHandle) -> anyhow::Result<()> {
     use tauri::menu::{Menu, MenuItem};
     use tauri::tray::TrayIconBuilder;
@@ -300,8 +300,8 @@ fn build_tray(app: &tauri::AppHandle) -> anyhow::Result<()> {
     // For now, let's assume default_window_icon is available if configured in tauri.conf.json.
     // If not, we might need to load from bytes.
 
-    let open_ui = MenuItem::with_id(app, "open_ui", "Open UI", true, None::<&str>)?;
-    let status = MenuItem::with_id(app, "show_status", "Status", true, None::<&str>)?;
+    let open_ui = MenuItem::with_id(app, "open_ui", "Web UI", true, None::<&str>)?;
+    let status = MenuItem::with_id(app, "show_status", "Open Desktop App", true, None::<&str>)?;
     let exit = MenuItem::with_id(app, "exit", "Exit", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&open_ui, &status, &exit])?;
 
@@ -317,8 +317,16 @@ fn build_tray(app: &tauri::AppHandle) -> anyhow::Result<()> {
                     let _ = app.emit("tray-show", "status");
                 }
                 "exit" => {
-                    // Let the UI prompt the user (stop vs leave running).
-                    let _ = app.emit("tray-exit", ());
+                    {
+                        let state = app.state::<Mutex<AppState>>();
+                        if let Ok(mut guard) = state.lock() {
+                            if let Some(orch) = guard.orchestrator.as_mut() {
+                                orch.stop_core();
+                                orch.stop_seaweed();
+                            }
+                        }
+                    }
+                    app.exit(0);
                 }
                 _ => {}
             }
@@ -377,6 +385,7 @@ fn main() {
             restart_services,
             open_ui,
             request_exit,
+            read_core_log,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

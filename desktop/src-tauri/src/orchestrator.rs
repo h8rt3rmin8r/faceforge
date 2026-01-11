@@ -84,20 +84,36 @@ impl Orchestrator {
                 return Some(p.clone());
             }
         }
-        let tools_dir = settings.faceforge_home.join("tools");
-        let candidates = [
-            tools_dir.join("weed.exe"),
-            tools_dir.join("seaweedfs").join("weed.exe"),
-            tools_dir.join("seaweed").join("weed.exe"),
-            tools_dir.join("weed"),
-            tools_dir.join("seaweedfs").join("weed"),
-            tools_dir.join("seaweed").join("weed"),
+
+        // Check install directory (bundled tools)
+        // In dev, repo_root is the root. In prod, repo_root might be where the executable is.
+        // We expect `tools/weed.exe` adjacent to or inside the install info.
+        
+        // 1. "tools" dir relative to repo_root (dev style or portable)
+        let tools_dirs = [
+            self.repo_root.join("tools"),
+            // In dev environment structure:
+            self.repo_root.join("desktop").join("src-tauri").join("resources").join("tools"),
+            // In prod structure (often adjacent to executable):
+            self.repo_root.join("..").join("resources").join("tools"),
         ];
-        for c in candidates {
-            if c.exists() {
-                return Some(c);
+
+        for t_dir in tools_dirs {
+            let user_home_dupe = settings.faceforge_home.join("tools"); // Fallback if user actually put it there
+            
+            let candidates = [
+                t_dir.join("weed.exe"),
+                t_dir.join("weed"),
+                user_home_dupe.join("weed.exe"), // Allow user override if they manually put it there
+            ];
+
+            for c in candidates {
+                if c.exists() {
+                    return Some(c);
+                }
             }
         }
+        
         None
     }
 

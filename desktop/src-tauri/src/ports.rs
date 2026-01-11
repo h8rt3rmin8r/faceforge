@@ -9,12 +9,12 @@ pub struct RuntimePorts {
 }
 
 pub fn ports_path(faceforge_home: &Path) -> PathBuf {
-    faceforge_home.join("run").join("ports.json")
+    faceforge_home.join("config").join("ports.json")
 }
 
 pub fn write_ports(faceforge_home: &Path, ports: &RuntimePorts) -> anyhow::Result<()> {
-    let run_dir = faceforge_home.join("run");
-    fs::create_dir_all(&run_dir)?;
+    let config_dir = faceforge_home.join("config");
+    fs::create_dir_all(&config_dir)?;
     let payload = serde_json::json!({
         "core": ports.core,
         "seaweed_s3": ports.seaweed_s3

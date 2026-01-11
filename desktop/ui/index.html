@@ -12,28 +12,40 @@
         <div class="title">FaceForge</div>
         <div class="subtitle">Desktop Orchestrator</div>
       </div>
-      <div class="actions">
-        <button id="btn-open-ui" class="primary">Open UI</button>
-        <button id="btn-status">Status</button>
-        <button id="btn-logs">Logs</button>
+      
+      <nav class="main-menu">
+         <div id="menu-status" class="menu-item active">Status</div>
+         <div id="menu-settings" class="menu-item">Settings</div>
+         <div id="menu-logs" class="menu-item">Logs</div>
+         <div class="separator" style="width: 1px; background: rgba(255,255,255,0.1); height: 20px; margin: 0 8px;"></div>
+         <div id="menu-webui" class="menu-item">Web UI</div>
+      </nav>
+
+      <div class="controls">
         <button id="btn-start">Start</button>
         <button id="btn-stop">Stop</button>
         <button id="btn-restart">Restart</button>
+        <button id="btn-exit" class="danger">Exit</button>
       </div>
     </header>
 
-    <section id="error-banner" class="banner hidden" role="status" aria-live="polite">
+    <div id="breadcrumbs" class="breadcrumbs">
+       <span id="crumb-text">Home &gt; Status</span>
+    </div>
+
+    <section id="error-banner" class="banner hidden">
       <div class="banner-text">
         <div id="error-title" class="banner-title"></div>
         <div id="error-detail" class="banner-detail"></div>
       </div>
-      <button id="btn-error-dismiss" class="banner-dismiss" title="Dismiss">Dismiss</button>
+      <button id="btn-error-dismiss" class="banner-dismiss">Dismiss</button>
     </section>
 
-    <main class="main">
-      <section id="wizard" class="card hidden">
+    <main class="main-content">
+      <!-- SETTINGS / WIZARD -->
+      <section id="view-settings" class="card hidden">
         <h2>System Settings</h2>
-        <p class="muted">Configure the local data location and service ports.</p>
+        <p class="muted">Configure local data location and service ports.</p>
 
         <div class="settings-group">
           <label>
@@ -42,7 +54,7 @@
               <span class="help-text">Where FaceForge stores database, files, and logs.</span>
             </div>
             <div class="row">
-              <input id="home" type="text" placeholder="C:\FaceForge" />
+              <input id="setting-home" type="text" placeholder="C:\FaceForge" />
               <button id="btn-browse">Browse…</button>
             </div>
           </label>
@@ -50,25 +62,34 @@
           <label>
             <div class="label-row">
               <span>Core Service Port</span>
-              <span class="help-text">Localhost port for the API and Web UI.</span>
+              <span class="help-text">Localhost port for API and Web UI.</span>
             </div>
-            <input id="core_port" type="number" min="1" max="65535" />
+            <input id="setting-core-port" type="number" min="1" max="65535" />
+          </label>
+           
+          <!-- Added Log Size Setting -->
+          <label>
+             <div class="label-row">
+                <span>Max Log Size (MB)</span>
+                <span class="help-text">Rotate logs after this size.</span>
+             </div>
+             <input id="setting-log-size" type="number" min="1" value="10" />
           </label>
         </div>
 
         <h3>S3 Storage Configuration</h3>
         <div class="settings-group">
           <label class="checkbox">
-            <input id="seaweed_enabled" type="checkbox" checked />
+            <input id="setting-seaweed-enabled" type="checkbox" checked />
             <span>Enable S3 Storage</span>
           </label>
 
           <label>
             <div class="label-row">
               <span>Provider</span>
-              <span class="help-text">Select the S3 compatible storage provider.</span>
+              <span class="help-text">Select S3 compatible storage provider.</span>
             </div>
-            <select id="s3_provider">
+            <select id="setting-s3-provider">
               <option value="seaweedfs">SeaweedFS (Bundled)</option>
             </select>
           </label>
@@ -76,9 +97,9 @@
           <label>
             <div class="label-row">
               <span>S3 Port</span>
-              <span class="help-text">Localhost port for the S3 gateway.</span>
+              <span class="help-text">Localhost port for S3 gateway.</span>
             </div>
-            <input id="seaweed_port" type="number" min="1" max="65535" />
+            <input id="setting-seaweed-port" type="number" min="1" max="65535" />
           </label>
         </div>
 
@@ -88,39 +109,72 @@
         </div>
       </section>
 
-      <section id="status" class="card hidden">
-        <h2>Status</h2>
-        <div id="status-body" class="kv"></div>
+      <!-- STATUS -->
+      <section id="view-status" class="card hidden">
+        <h2>System Status</h2>
+        <div id="status-body" class="kv-table"></div>
 
-        <h3>Install token</h3>
-        <p class="muted">Core requires this token for API + UI login (stored in <code>FACEFORGE_HOME/config/core.json</code>).</p>
-        <div class="row">
-          <input id="token" type="text" readonly />
-          <button id="btn-copy">Copy</button>
+        <h3>Links</h3>
+        <div id="links-body" class="kv-table">
+            <!-- Dynamic -->
         </div>
 
-        <h3>Exit</h3>
-        <p class="muted">Closing this window hides it to the tray. Use the tray menu to Exit.</p>
-      </section>
+        <h3>Installation</h3>
+        <div class="kv-table">
+            <div class="kv-key">Install Directory</div>
+            <div class="kv-val" id="val-install-dir">-</div>
+            <div class="kv-actions">
+                <button class="icon-btn" onclick="copyText(document.getElementById('val-install-dir').innerText)">Copy</button>
+                <button class="icon-btn" onclick="openPath(document.getElementById('val-install-dir').innerText)">Open</button>
+            </div>
 
-      <section id="logs" class="card hidden">
-        <h2>Logs</h2>
-        <p class="muted">For now this view is minimal; Core writes logs under <code>FACEFORGE_HOME/logs</code>.</p>
-      </section>
-
-      <section id="exit-modal" class="modal hidden">
-        <div class="modal-card">
-          <h2>Exit FaceForge Desktop</h2>
-          <p>What should happen to the managed services?</p>
-          <div class="footer">
-            <button id="btn-exit-stop" class="danger">Stop services and exit</button>
-            <button id="btn-exit-leave">Leave services running</button>
-            <button id="btn-exit-cancel">Cancel</button>
-          </div>
+            <div class="kv-key">Data Directory</div>
+            <div class="kv-val" id="val-data-dir">-</div>
+             <div class="kv-actions">
+                <button class="icon-btn" onclick="copyText(document.getElementById('val-data-dir').innerText)">Copy</button>
+                <button class="icon-btn" onclick="openPath(document.getElementById('val-data-dir').innerText)">Open</button>
+            </div>
+            
+            <div class="kv-key">Install Token</div>
+            <div class="kv-val"><input id="token" type="text" readonly style="border:none; background:transparent; font-family:monospace; width:100%; color:inherit;" /></div>
+            <div class="kv-actions">
+                <button class="icon-btn" id="btn-copy-token">Copy</button>
+            </div>
         </div>
+        
+        <h3>Exit Preferences</h3>
+        <label class="checkbox">
+             <input id="setting-exit-kill" type="checkbox" checked />
+             <span>Exit terminates all services</span>
+        </label>
       </section>
     </main>
+    
+    <!-- LOGS DRAWER -->
+    <footer id="logs-drawer" class="logs-drawer collapsed">
+        <div class="logs-header">
+            <span style="font-weight:600">Core Logs (tail)</span>
+            <div style="display:flex; gap:10px; align-items:center;">
+               <label style="display:flex;gap:4px;cursor:pointer"><input type="checkbox" id="logs-auto-scroll" checked> Auto-scroll</label>
+               <button id="btn-refresh-logs" class="icon-btn">Refresh</button>
+               <button id="btn-close-logs" class="icon-btn">Close</button>
+            </div>
+        </div>
+        <div id="logs-viewer" class="logs-viewer">Waiting for logs...</div>
+    </footer>
 
+    <!-- MODALS -->
+    <div id="modal-confirm" class="modal hidden">
+        <div class="modal-card">
+            <h3>Restart Required</h3>
+            <p>Saving these settings will restart the Core service. Continue?</p>
+            <div class="footer">
+                <button id="btn-modal-cancel">Cancel</button>
+                <button id="btn-modal-confirm" class="primary">Restart & Save</button>
+            </div>
+        </div>
+    </div>
+    
     <script src="app.js"></script>
   </body>
 </html>

@@ -100,6 +100,11 @@ class AuthConfig(BaseModel):
     install_token: str | None = Field(default=None)
 
 
+class LoggingConfig(BaseModel):
+    max_size_mb: int = Field(default=10, ge=1, description="Max size of a log file in MB before rolling.")
+    backup_count: int = Field(default=5, ge=1, description="Number of log archives to keep.")
+
+
 class ToolsConfig(BaseModel):
     exiftool_enabled: bool = Field(default=True)
     exiftool_path: str | None = Field(
@@ -113,6 +118,7 @@ class CoreConfig(BaseModel):
     network: NetworkConfig = Field(default_factory=NetworkConfig)
     paths: PathOverrides = Field(default_factory=PathOverrides)
     auth: AuthConfig = Field(default_factory=AuthConfig)
+    logging: LoggingConfig = Field(default_factory=LoggingConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
     storage: StorageConfig = Field(default_factory=StorageConfig)
     seaweed: SeaweedManagedConfig = Field(default_factory=SeaweedManagedConfig)
@@ -194,8 +200,7 @@ def resolve_configured_paths(paths: FaceForgePaths, config: CoreConfig) -> FaceF
         s3_dir=s3_dir,
         assets_dir=paths.assets_dir,
         logs_dir=logs_dir,
-        run_dir=paths.run_dir,
         config_dir=paths.config_dir,
-        tools_dir=paths.tools_dir,
         plugins_dir=plugins_dir,
+        tmp_dir=paths.tmp_dir,
     )

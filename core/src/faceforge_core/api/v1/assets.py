@@ -256,7 +256,7 @@ async def assets_upload(
     if not file.filename:
         raise HTTPException(status_code=422, detail="Missing filename")
 
-    temp_path = (paths.run_dir / f"upload-{uuid.uuid4().hex}.tmp").resolve()
+    temp_path = (paths.tmp_dir / f"upload-{uuid.uuid4().hex}.tmp").resolve()
 
     h = hashlib.sha256()
     byte_size = 0

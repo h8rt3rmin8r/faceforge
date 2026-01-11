@@ -12,10 +12,9 @@ class FaceForgePaths:
     s3_dir: Path
     assets_dir: Path
     logs_dir: Path
-    run_dir: Path
     config_dir: Path
-    tools_dir: Path
     plugins_dir: Path
+    tmp_dir: Path
 
     @property
     def core_config_path(self) -> Path:
@@ -23,7 +22,7 @@ class FaceForgePaths:
 
     @property
     def ports_path(self) -> Path:
-        return self.run_dir / "ports.json"
+        return self.config_dir / "ports.json"
 
 
 def resolve_faceforge_home(environ: dict[str, str] | None = None) -> Path:
@@ -45,12 +44,11 @@ def ensure_faceforge_layout(home: Path) -> FaceForgePaths:
     s3_dir = home / "s3"
     assets_dir = home / "assets"
     logs_dir = home / "logs"
-    run_dir = home / "run"
     config_dir = home / "config"
-    tools_dir = home / "tools"
     plugins_dir = home / "plugins"
+    tmp_dir = home / "tmp"
 
-    for path in (db_dir, s3_dir, assets_dir, logs_dir, run_dir, config_dir, tools_dir, plugins_dir):
+    for path in (db_dir, s3_dir, assets_dir, logs_dir, config_dir, plugins_dir, tmp_dir):
         path.mkdir(parents=True, exist_ok=True)
 
     return FaceForgePaths(
@@ -59,8 +57,7 @@ def ensure_faceforge_layout(home: Path) -> FaceForgePaths:
         s3_dir=s3_dir,
         assets_dir=assets_dir,
         logs_dir=logs_dir,
-        run_dir=run_dir,
         config_dir=config_dir,
-        tools_dir=tools_dir,
         plugins_dir=plugins_dir,
+        tmp_dir=tmp_dir,
     )
