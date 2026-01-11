@@ -27,16 +27,16 @@ def read_ports_file(
     paths: FaceForgePaths, *, allow_legacy_runtime_dir: bool = False
 ) -> RuntimePorts | None:
     """Read ${FACEFORGE_HOME}/config/ports.json."""
-    
+
     if not paths.ports_path.exists():
         return None
 
     with paths.ports_path.open("r", encoding="utf-8") as f:
         data = json.load(f)
-    
+
     if not isinstance(data, dict):
         raise ValueError(f"Invalid ports.json format at {paths.ports_path}")
-    
+
     return _parse_ports(data)
 
 

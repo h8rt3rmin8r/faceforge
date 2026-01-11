@@ -44,9 +44,7 @@ def create_app() -> FastAPI:
             backupCount=config.logging.backup_count,
             encoding="utf-8",
         )
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         file_handler.setFormatter(formatter)
 
         # Configure root logger to capture all module logs

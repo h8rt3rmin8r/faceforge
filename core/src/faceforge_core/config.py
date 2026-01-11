@@ -101,7 +101,9 @@ class AuthConfig(BaseModel):
 
 
 class LoggingConfig(BaseModel):
-    max_size_mb: int = Field(default=10, ge=1, description="Max size of a log file in MB before rolling.")
+    max_size_mb: int = Field(
+        default=10, ge=1, description="Max size of a log file in MB before rolling."
+    )
     backup_count: int = Field(default=5, ge=1, description="Number of log archives to keep.")
 
 
