@@ -3,7 +3,7 @@ from faceforge_core.db import resolve_db_path
 from faceforge_core.home import FaceForgePaths, ensure_faceforge_layout, resolve_faceforge_home
 from faceforge_core.ports import RuntimePorts, read_ports_file, write_ports_file
 
-__version__ = "0.0.0"
+__version__ = "0.1.4"
 
 __all__ = [
     "CoreConfig",

@@ -1,6 +1,6 @@
 [package]
 name = "faceforge_desktop"
-version = "0.1.0"
+version = "0.1.4"
 description = "FaceForge Desktop (Tauri orchestrator)"
 authors = ["FaceForge"]
 edition = "2021"

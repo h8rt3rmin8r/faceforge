@@ -47,7 +47,9 @@ Those capabilities are intended to ship as plugins that talk to Core over its pu
 
 FaceForge is a self-hosted application designed to run locally on your machine. You do not need to write code or run commands to use it.
 
-1.  **Download**: Get the latest Windows installer (`.exe`) from [GitHub Releases](../../releases).
+1.  **Download**: Go to [GitHub Releases](../../releases). You will see two main assets:
+    - **FaceForge Desktop Installer (`.exe` or `.msi`)**: This is the **recommended** download for most users. It includes the full Desktop App, the Core API server, and everything you need to run FaceForge.
+    - **FaceForge Core API (`.zip`)**: This is an **advanced** package containing only the Python API server (Core). Use this only if you intend to run the API headlessly or integrate it into a custom setup without the Desktop UI.
 2.  **Install & Setup**: Follow the [User Guide](docs/FaceForge%20User%20Guide.md).
     - On first launch, the **System Settings** screen will ask you to select a **Data Directory** (default: `C:\FaceForge`).
     - The Desktop app manages the background services (database, API, storage) for you.
