@@ -129,13 +129,15 @@ impl Orchestrator {
             .arg("-filer.port=8888")
             .arg("-s3")
             .arg(format!("-s3.port={}", s3_port))
+            .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::null());
 
         #[cfg(windows)]
         {
             use std::os::windows::process::CommandExt;
-            cmd.creation_flags(0x00000200); // CREATE_NEW_PROCESS_GROUP
+            // CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW
+            cmd.creation_flags(0x00000200 | 0x08000000);
         }
 
         self.seaweed_child = Some(cmd.spawn().context("Failed to start SeaweedFS")?);
@@ -195,13 +197,15 @@ impl Orchestrator {
         cmd.args(args)
             .env("FACEFORGE_HOME", &settings.faceforge_home)
             .env("FACEFORGE_BIND", "127.0.0.1")
+            .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::null());
 
         #[cfg(windows)]
         {
             use std::os::windows::process::CommandExt;
-            cmd.creation_flags(0x00000200); // CREATE_NEW_PROCESS_GROUP
+            // CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW
+            cmd.creation_flags(0x00000200 | 0x08000000);
         }
 
         self.core_child = Some(cmd.spawn().context(format!("Failed to start Core: {:?}", bin_path))?);

@@ -1,12 +1,43 @@
+function setError(title, detail) {
+  const banner = document.getElementById("error-banner");
+  if (!banner) return;
+  document.getElementById("error-title").textContent = title || "";
+  document.getElementById("error-detail").textContent = detail || "";
+  banner.classList.remove("hidden");
+}
+
+function clearError() {
+  const banner = document.getElementById("error-banner");
+  if (!banner) return;
+  banner.classList.add("hidden");
+  document.getElementById("error-title").textContent = "";
+  document.getElementById("error-detail").textContent = "";
+}
+
+function toMessage(err) {
+  if (!err) return "Unknown error";
+  if (typeof err === "string") return err;
+  if (err instanceof Error) return err.message || String(err);
+  return String(err);
+}
+
 const invoke = async (cmd, args) => {
   const core = window.__TAURI__?.core;
-  if (!core?.invoke) throw new Error("Tauri invoke not available");
+  if (!core?.invoke) {
+    throw new Error(
+      "Desktop integration is unavailable. This usually means the app is not running inside the Tauri shell or was packaged incorrectly."
+    );
+  }
   return await core.invoke(cmd, args);
 };
 
 const listen = async (event, handler) => {
   const eventApi = window.__TAURI__?.event;
-  if (!eventApi?.listen) throw new Error("Tauri event API not available");
+  if (!eventApi?.listen) {
+    throw new Error(
+      "Desktop events are unavailable. Please reinstall or run the packaged Desktop app (not a browser tab)."
+    );
+  }
   return await eventApi.listen(event, handler);
 };
 
@@ -72,7 +103,7 @@ async function browseHome() {
 async function saveWizard() {
   const home = $("home").value.trim();
   if (!home) {
-    alert("Please choose FACEFORGE_HOME");
+    setError("Setup needed", "Please choose FACEFORGE_HOME to continue.");
     return;
   }
   const corePort = parseInt($("core_port").value, 10);
@@ -126,25 +157,43 @@ async function copyToken() {
 }
 
 function wireUi() {
-  $("btn-suggest").addEventListener("click", suggestPorts);
-  $("btn-browse").addEventListener("click", browseHome);
-  $("btn-save").addEventListener("click", saveWizard);
+  const wrap = (fn) => async (...args) => {
+    try {
+      clearError();
+      await fn(...args);
+    } catch (e) {
+      console.error(e);
+      setError("Something went wrong", toMessage(e));
+    }
+  };
 
-  $("btn-start").addEventListener("click", start);
-  $("btn-stop").addEventListener("click", stop);
-  $("btn-restart").addEventListener("click", restart);
-  $("btn-open-ui").addEventListener("click", openUi);
-  $("btn-copy").addEventListener("click", copyToken);
+  $("btn-error-dismiss")?.addEventListener("click", () => clearError());
 
-  $("btn-exit-stop").addEventListener("click", async () => {
-    await stop();
-    showExitModal(false);
-    await invoke("request_exit");
-  });
-  $("btn-exit-leave").addEventListener("click", async () => {
-    showExitModal(false);
-    await invoke("request_exit");
-  });
+  $("btn-suggest").addEventListener("click", wrap(suggestPorts));
+  $("btn-browse").addEventListener("click", wrap(browseHome));
+  $("btn-save").addEventListener("click", wrap(saveWizard));
+
+  $("btn-start").addEventListener("click", wrap(start));
+  $("btn-stop").addEventListener("click", wrap(stop));
+  $("btn-restart").addEventListener("click", wrap(restart));
+  $("btn-open-ui").addEventListener("click", wrap(openUi));
+  $("btn-copy").addEventListener("click", wrap(copyToken));
+
+  $("btn-exit-stop").addEventListener(
+    "click",
+    wrap(async () => {
+      await stop();
+      showExitModal(false);
+      await invoke("request_exit");
+    })
+  );
+  $("btn-exit-leave").addEventListener(
+    "click",
+    wrap(async () => {
+      showExitModal(false);
+      await invoke("request_exit");
+    })
+  );
   $("btn-exit-cancel").addEventListener("click", () => showExitModal(false));
 }
 
@@ -187,5 +236,8 @@ async function main() {
 
 main().catch((e) => {
   console.error(e);
-  alert(String(e));
+  setError(
+    "FaceForge Desktop couldn't start",
+    `${toMessage(e)}\n\nIf you just installed FaceForge and are seeing this, please reinstall using the latest installer.`
+  );
 });

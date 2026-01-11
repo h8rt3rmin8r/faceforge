@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 mod orchestrator;
 mod ports;
 mod settings;
@@ -18,7 +20,6 @@ struct AppState {
     settings: Option<WizardSettings>,
     install_token: Option<String>,
     orchestrator: Option<Orchestrator>,
-    quitting: bool,
 }
 
 #[derive(Serialize)]

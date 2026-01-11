@@ -16,7 +16,8 @@
         "resizable": true,
         "fullscreen": false
       }
-    ]
+    ],
+    "withGlobalTauri": true
   },
   "bundle": {
     "active": true,

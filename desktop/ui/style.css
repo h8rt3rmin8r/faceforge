@@ -95,6 +95,39 @@ input {
 
 .hidden { display: none; }
 
+.banner {
+  max-width: 980px;
+  margin: 14px auto 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,107,107,0.28);
+  background: rgba(255,107,107,0.10);
+  color: var(--text);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.banner-title {
+  font-weight: 650;
+  margin-bottom: 4px;
+}
+
+.banner-detail {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
+.banner-dismiss {
+  border-color: rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.14);
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+
 .modal {
   position: fixed;
   inset: 0;

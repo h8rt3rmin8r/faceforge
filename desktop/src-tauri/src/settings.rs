@@ -174,14 +174,8 @@ pub fn read_desktop_json(faceforge_home: &Path) -> anyhow::Result<WizardSettings
 
 pub fn read_install_token(faceforge_home: &Path) -> anyhow::Result<String> {
     let raw = fs::read_to_string(core_json_path(faceforge_home))?;
-    let v: serde_json::Value = serde_json::from_str(&raw)?;
-    let token = v
-        .get("auth")
-        .and_then(|a| a.get("install_token"))
-        .and_then(|t| t.as_str())
-        .unwrap_or("")
-        .trim()
-        .to_string();
+    let cfg: CoreJsonConfig = serde_json::from_str(&raw)?;
+    let token = cfg.auth.install_token.trim().to_string();
     if token.is_empty() {
         anyhow::bail!("install_token missing in core.json")
     }
