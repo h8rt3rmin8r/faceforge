@@ -150,8 +150,29 @@ try {
     } 'PyInstaller build failed'
 
     # Verify + normalize output location for callers (e.g., GitHub Actions expects core/dist/faceforge-core.exe)
+    # PyInstaller may emit either:
+    #  - onefile: dist/faceforge-core.exe
+    #  - onedir:  dist/faceforge-core/faceforge-core.exe
     $exePath = Join-Path $distPath 'faceforge-core.exe'
     if (-not (Test-Path $exePath)) {
+        $oneDirExePath = Join-Path (Join-Path $distPath 'faceforge-core') 'faceforge-core.exe'
+        if (Test-Path $oneDirExePath) {
+            try {
+                Copy-Item -Force $oneDirExePath $exePath
+            }
+            catch {
+                throw "Build produced core/$oneDirExePath but could not copy to core/$exePath. Details: $($_.Exception.Message)"
+            }
+        }
+    }
+
+    if (-not (Test-Path $exePath)) {
+        $candidates = Get-ChildItem -Path $distPath -Recurse -Filter 'faceforge-core.exe' -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty FullName
+        if ($candidates) {
+            throw "Build failed: core/$exePath not found. Found candidates under core/${distPath}: $($candidates -join ', ')"
+        }
+
         throw "Build failed: core/$exePath not found"
     }
 
