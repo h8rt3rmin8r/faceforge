@@ -286,6 +286,20 @@ fn build_tray(app: &tauri::AppHandle) -> anyhow::Result<()> {
     use tauri::menu::{Menu, MenuItem};
     use tauri::tray::TrayIconBuilder;
 
+    // Load the icon for the tray
+    // Note: in a bundle "resources" works differently, but for tray icon standard path resolution
+    // via `app.default_window_icon()` usually works if window icon is set.
+    // Or we can load explicitly if we want a dedicated tray icon.
+    // Let's try to get the app icon first.
+    let icon = app.default_window_icon().cloned().or_else(|| {
+        // Fallback: try loading from resources or built-in
+        // Ideally the bundle icon is used.
+        None
+    });
+    
+    // For now, let's assume default_window_icon is available if configured in tauri.conf.json.
+    // If not, we might need to load from bytes.
+
     let open_ui = MenuItem::with_id(app, "open_ui", "Open UI", true, None::<&str>)?;
     let status = MenuItem::with_id(app, "show_status", "Status", true, None::<&str>)?;
     let logs = MenuItem::with_id(app, "show_logs", "Logs", true, None::<&str>)?;
@@ -294,7 +308,7 @@ fn build_tray(app: &tauri::AppHandle) -> anyhow::Result<()> {
     let exit = MenuItem::with_id(app, "exit", "Exit", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&open_ui, &status, &logs, &stop, &restart, &exit])?;
 
-    TrayIconBuilder::new()
+    let builder = TrayIconBuilder::new()
         .menu(&menu)
         .on_menu_event(move |app, event| {
             let id = event.id().as_ref();
@@ -320,8 +334,15 @@ fn build_tray(app: &tauri::AppHandle) -> anyhow::Result<()> {
                 }
                 _ => {}
             }
-        })
-        .build(app)?;
+        });
+    
+    // Set icon if available
+    if let Some(i) = icon {
+        builder.icon(i).build(app)?;
+    } else {
+        // Fallback or just build (warning: unchecked)
+        builder.build(app)?; 
+    }
 
     Ok(())
 }
