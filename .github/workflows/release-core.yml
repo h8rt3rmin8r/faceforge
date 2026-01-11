@@ -47,6 +47,38 @@ jobs:
           $spec | Out-File -Encoding utf8 -NoNewline 'core/pyinstaller.spec'
           if (-not (Test-Path 'core/pyinstaller.spec')) { throw 'Failed to write core/pyinstaller.spec' }
 
+      - name: Sync version from Tag
+        shell: pwsh
+        run: |
+          if ($env:TAG -match '^v?(\d+\.\d+\.\d+.*)$') {
+            $version = $matches[1]
+            Write-Host "Syncing version to $version"
+
+            # Update core/pyproject.toml (regex for robustness)
+            $pyProject = Get-Content 'core/pyproject.toml'
+            $pyProject -replace '^version = ".*"', "version = `"$version`"" | Set-Content 'core/pyproject.toml'
+
+            # Update desktop/src-tauri/Cargo.toml (only replace first occurrence under [package])
+            $cargo = Get-Content 'desktop/src-tauri/Cargo.toml'
+            # Naive match for the first 'version =' since [package] is usually at top
+            $replaced = $false
+            $cargo | ForEach-Object {
+                if (-not $replaced -and $_ -match '^version = ".*"') {
+                    "version = `"$version`""
+                    $replaced = $true
+                } else {
+                    $_
+                }
+            } | Set-Content 'desktop/src-tauri/Cargo.toml'
+
+            # Update desktop/src-tauri/tauri.conf.json
+            $jsonContent = Get-Content 'desktop/src-tauri/tauri.conf.json' -Raw | ConvertFrom-Json
+            $jsonContent.version = $version
+            $jsonContent | ConvertTo-Json -Depth 20 | Set-Content 'desktop/src-tauri/tauri.conf.json'
+          } else {
+             Write-Warning "Tag $env:TAG does not look like a version number (vX.Y.Z). Skipping version sync."
+          }
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
