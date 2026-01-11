@@ -90,6 +90,24 @@ If you’re new and wondering “where do I add a route?”, start at:
 
 FaceForge Core is runnable in dev today, and FaceForge Desktop can orchestrate it.
 
+### Prerequisites
+
+Before you start, make sure these tools are installed.
+
+- Rust toolchain (`rustc`, `cargo`)
+  - Verify: `rustc --version` and `cargo --version`
+  - Install (recommended): Rustup from https://rustup.rs
+    - Or via WinGet: `winget install --id Rustlang.Rustup -e`
+- Tauri CLI (`cargo tauri`)
+  - Verify: `cargo tauri --version`
+  - Install: `cargo install tauri-cli`
+- Python 3.12.x
+  - Verify: `python --version`
+  - Install: https://www.python.org/downloads/ (make sure “Add Python to PATH” is enabled)
+    - Or via WinGet: `winget install --id Python.Python.3.12 -e`
+
+If you have multiple Pythons installed, ensure `python` resolves to 3.12.x in the same terminal where you run `./scripts/*.ps1`.
+
 ### Run Desktop (dev)
 
 Prereq: Rust toolchain (stable).
@@ -168,7 +186,7 @@ Core also exposes initial Relationships endpoints (Sprint 8):
 - `DELETE /v1/relationships/{relationship_id}`
 - `GET /v1/relation-types?query=...`
 
-Core also exposes initial Plugins endpoints (Sprint 10):
+Core also exposes initial Plugins endpoints:
 
 - `GET /v1/plugins`
 - `POST /v1/plugins/{plugin_id}/enable`
@@ -176,7 +194,7 @@ Core also exposes initial Plugins endpoints (Sprint 10):
 - `GET /v1/plugins/{plugin_id}/config`
 - `PUT /v1/plugins/{plugin_id}/config`
 
-### Plugins (Sprint 10)
+### Plugins
 
 Core discovers plugin manifests from:
 
@@ -210,7 +228,7 @@ For optional SeaweedFS/S3 storage configuration (Sprint 6), see:
 
 - [core/README.md](core/README.md)
 
-### Auth (Sprint 3)
+### Auth
 
 Core binds to localhost by default and requires a **per-install token** for non-health endpoints.
 
@@ -222,11 +240,30 @@ Core binds to localhost by default and requires a **per-install token** for non-
 
 To produce a standalone `faceforge-core.exe` (PyInstaller one-file build):
 
-- `./scripts/build-core.ps1`
+1. Verify Python is available (3.12.x):
+   - `python --version`
+2. Build the executable from the repo root:
+   - `./scripts/build-core.ps1`
+   - This script creates/updates the repo-local `.venv`, installs build dependencies, and runs PyInstaller.
+   - If it fails to delete `core/dist` or `core/build`, close any terminals/Explorer windows using those folders and re-run.
+     - Optional: `./scripts/build-core.ps1 -AllowTimestampFallback`
 
-Output:
+Outputs:
 
 - `core/dist/faceforge-core.exe`
+
+Run the built executable (example):
+
+- `./core/dist/faceforge-core.exe --help`
+
+Notes:
+
+- Core still uses `FACEFORGE_HOME` as its data root; if it’s not set, Core will use the default behavior described in the spec.
+- On first start, Core generates the install token (if missing) and writes it under `${FACEFORGE_HOME}/config/core.json`.
+
+If you want to run Core in dev instead of building an exe:
+
+- `./scripts/dev-core.ps1`
 
 ## GitHub Releases
 
