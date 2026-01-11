@@ -26,7 +26,8 @@ function Invoke-Checked {
     }
 }
 
-function Remove-OldPyInstallerOutputs {
+function Invoke-OldPyInstallerOutputCleanup {
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param(
         [Parameter(Mandatory = $true)]
         [string]$CoreDir,
@@ -55,7 +56,9 @@ function Remove-OldPyInstallerOutputs {
         }
 
         try {
-            Remove-Item -Recurse -Force $dir.FullName
+            if ($PSCmdlet.ShouldProcess($dir.FullName, 'Remove old PyInstaller output directory')) {
+                Remove-Item -Recurse -Force $dir.FullName
+            }
         }
         catch {
             Write-Warning "Could not remove $($dir.FullName). $($_.Exception.Message)"
@@ -63,7 +66,8 @@ function Remove-OldPyInstallerOutputs {
     }
 }
 
-function Remove-DirectoryWithRetries {
+function Invoke-DirectoryRemovalWithRetries {
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param(
         [Parameter(Mandatory = $true)]
         [string]$Path,
@@ -72,6 +76,10 @@ function Remove-DirectoryWithRetries {
     )
 
     if (-not (Test-Path $Path)) {
+        return
+    }
+
+    if (-not $PSCmdlet.ShouldProcess($Path, 'Remove directory')) {
         return
     }
 
@@ -107,7 +115,7 @@ try {
 
     # Keep the repo tidy: prune old timestamped outputs from previous locked builds.
     if (-not $KeepBuildHistory) {
-        Remove-OldPyInstallerOutputs -CoreDir (Join-Path $repoRoot 'core')
+        Invoke-OldPyInstallerOutputCleanup -CoreDir (Join-Path $repoRoot 'core')
     }
 
     $distPath = 'dist'
@@ -116,7 +124,7 @@ try {
     # Clean previous builds (but don't fail if dist is locked by another process)
     if (Test-Path $workPath) {
         try {
-            Remove-DirectoryWithRetries -Path $workPath
+            Invoke-DirectoryRemovalWithRetries -Path $workPath
         }
         catch {
             if ($AllowTimestampFallback) {
@@ -130,7 +138,7 @@ try {
     }
     if (Test-Path $distPath) {
         try {
-            Remove-DirectoryWithRetries -Path $distPath
+            Invoke-DirectoryRemovalWithRetries -Path $distPath
         }
         catch {
             if ($AllowTimestampFallback) {
@@ -150,31 +158,73 @@ try {
     } 'PyInstaller build failed'
 
     # Verify + normalize output location for callers (e.g., GitHub Actions expects core/dist/faceforge-core.exe)
-    # PyInstaller may emit either:
-    #  - onefile: dist/faceforge-core.exe
-    #  - onedir:  dist/faceforge-core/faceforge-core.exe
-    $exePath = Join-Path $distPath 'faceforge-core.exe'
-    if (-not (Test-Path $exePath)) {
-        $oneDirExePath = Join-Path (Join-Path $distPath 'faceforge-core') 'faceforge-core.exe'
-        if (Test-Path $oneDirExePath) {
-            try {
-                Copy-Item -Force $oneDirExePath $exePath
-            }
-            catch {
-                throw "Build produced core/$oneDirExePath but could not copy to core/$exePath. Details: $($_.Exception.Message)"
-            }
+    # PyInstaller output shape can vary across versions/configs:
+    #  - onefile: dist/<name>.exe
+    #  - onedir:  dist/<name>/<name>.exe
+    #  - name normalization: some builds may emit faceforge_core.exe instead of faceforge-core.exe
+    $coreDir = (Join-Path $repoRoot 'core')
+    $expectedExeName = 'faceforge-core.exe'
+    $normalizedExePath = Join-Path $distPath $expectedExeName
+    $normalizedExeFullPath = Join-Path $coreDir $normalizedExePath
+
+    $knownCandidateRelPaths = @(
+        (Join-Path $distPath 'faceforge-core.exe'),
+        (Join-Path $distPath 'faceforge_core.exe'),
+        (Join-Path (Join-Path $distPath 'faceforge-core') 'faceforge-core.exe'),
+        (Join-Path (Join-Path $distPath 'faceforge_core') 'faceforge_core.exe')
+    )
+
+    $foundExePath = $null
+    foreach ($candidate in $knownCandidateRelPaths) {
+        if (Test-Path $candidate) {
+            $foundExePath = $candidate
+            break
         }
     }
 
-    if (-not (Test-Path $exePath)) {
-        $candidates = Get-ChildItem -Path $distPath -Recurse -Filter 'faceforge-core.exe' -ErrorAction SilentlyContinue |
-            Select-Object -ExpandProperty FullName
-        if ($candidates) {
-            throw "Build failed: core/$exePath not found. Found candidates under core/${distPath}: $($candidates -join ', ')"
+    if ($null -eq $foundExePath) {
+        $nameCandidates = @(
+            Get-ChildItem -Path $distPath -Recurse -File -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -in @('faceforge-core.exe', 'faceforge_core.exe') } |
+                Select-Object -ExpandProperty FullName
+        )
+        if ($nameCandidates.Count -ge 1) {
+            $foundExePath = $nameCandidates[0]
         }
-
-        throw "Build failed: core/$exePath not found"
     }
+
+    if ($null -eq $foundExePath) {
+        # Last-resort: if exactly one .exe exists in dist/, use it.
+        $exeCandidates = @(
+            Get-ChildItem -Path $distPath -Recurse -File -Filter '*.exe' -ErrorAction SilentlyContinue |
+                Select-Object -ExpandProperty FullName
+        )
+        if ($exeCandidates.Count -eq 1) {
+            $foundExePath = $exeCandidates[0]
+        }
+    }
+
+    if ($null -eq $foundExePath) {
+        $distListing = Get-ChildItem -Path $distPath -Force -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty Name
+        if ($distListing) {
+            throw "Build failed: $normalizedExeFullPath not found. dist/ contains: $($distListing -join ', ')"
+        }
+        throw "Build failed: $normalizedExeFullPath not found"
+    }
+
+    # Always provide a stable path/name for downstream scripts and CI artifacts.
+    if ($foundExePath -ne $normalizedExePath) {
+        $foundExeFullPath = if ([System.IO.Path]::IsPathRooted($foundExePath)) { $foundExePath } else { (Join-Path $coreDir $foundExePath) }
+        try {
+            Copy-Item -Force $foundExePath $normalizedExePath
+        }
+        catch {
+            throw "Build produced $foundExeFullPath but could not copy to $normalizedExeFullPath. Details: $($_.Exception.Message)"
+        }
+    }
+
+    $exePath = $normalizedExePath
 
     $stableDist = 'dist'
     $stableExePath = Join-Path $stableDist 'faceforge-core.exe'
@@ -200,7 +250,7 @@ try {
     # Post-build tidy-up: if we had to fall back to timestamped folders, delete older ones.
     if (-not $KeepBuildHistory) {
         $exclude = @($distPath, $workPath)
-        Remove-OldPyInstallerOutputs -CoreDir (Join-Path $repoRoot 'core') -ExcludeNames $exclude
+        Invoke-OldPyInstallerOutputCleanup -CoreDir (Join-Path $repoRoot 'core') -ExcludeNames $exclude
     }
 }
 finally {
