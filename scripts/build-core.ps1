@@ -1,3 +1,14 @@
+param(
+    # By default we prune old timestamped build/dist folders under core/ to keep the repo tidy.
+    # Use -KeepBuildHistory to preserve build-* and dist-* folders.
+    [switch]$KeepBuildHistory,
+
+    # If dist/ or build/ cannot be deleted (e.g., another process is holding a handle),
+    # the default behavior is to FAIL with a helpful message instead of creating timestamped folders.
+    # Use -AllowTimestampFallback to opt into the old behavior.
+    [switch]$AllowTimestampFallback
+)
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
@@ -15,6 +26,72 @@ function Invoke-Checked {
     }
 }
 
+function Remove-OldPyInstallerOutputs {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$CoreDir,
+        [string[]]$ExcludeNames = @()
+    )
+
+    if (-not (Test-Path $CoreDir)) {
+        return
+    }
+
+    $exclude = @{}
+    foreach ($name in $ExcludeNames) {
+        if ($null -ne $name -and $name.Trim().Length -gt 0) {
+            $exclude[$name] = $true
+        }
+    }
+
+    $candidates = Get-ChildItem -Path $CoreDir -Directory -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.Name -like 'build-*' -or $_.Name -like 'dist-*'
+        }
+
+    foreach ($dir in $candidates) {
+        if ($exclude.ContainsKey($dir.Name)) {
+            continue
+        }
+
+        try {
+            Remove-Item -Recurse -Force $dir.FullName
+        }
+        catch {
+            Write-Warning "Could not remove $($dir.FullName). $($_.Exception.Message)"
+        }
+    }
+}
+
+function Remove-DirectoryWithRetries {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+        [int]$MaxAttempts = 5,
+        [int]$DelayMs = 250
+    )
+
+    if (-not (Test-Path $Path)) {
+        return
+    }
+
+    $lastError = $null
+    for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+        try {
+            Remove-Item -Recurse -Force $Path
+            return
+        }
+        catch {
+            $lastError = $_
+            Start-Sleep -Milliseconds ($DelayMs * $attempt)
+        }
+    }
+
+    if ($null -ne $lastError) {
+        throw $lastError
+    }
+}
+
 Write-Host 'Building FaceForge Core executable...' -ForegroundColor Cyan
 
 $repoRoot = Get-RepoRoot
@@ -28,29 +105,42 @@ try {
 
     Set-Location (Join-Path $repoRoot 'core')
 
+    # Keep the repo tidy: prune old timestamped outputs from previous locked builds.
+    if (-not $KeepBuildHistory) {
+        Remove-OldPyInstallerOutputs -CoreDir (Join-Path $repoRoot 'core')
+    }
+
     $distPath = 'dist'
     $workPath = 'build'
 
     # Clean previous builds (but don't fail if dist is locked by another process)
     if (Test-Path $workPath) {
         try {
-            Remove-Item -Recurse -Force $workPath
+            Remove-DirectoryWithRetries -Path $workPath
         }
         catch {
-            $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-            $workPath = "build-$stamp"
-            Write-Warning "Could not remove existing build/ (likely in use). Building into $workPath instead."
+            if ($AllowTimestampFallback) {
+                $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+                $workPath = "build-$stamp"
+                Write-Warning "Could not remove existing build/ (likely in use). Building into $workPath instead."
+            } else {
+                throw "Could not remove core/build (likely a handle is open, e.g. a terminal with CWD in build/). Close any shells/Explorer windows using core/build and re-run. Details: $($_.Exception.Message)"
+            }
         }
     }
     if (Test-Path $distPath) {
         try {
-            Remove-Item -Recurse -Force $distPath
+            Remove-DirectoryWithRetries -Path $distPath
         }
         catch {
-            $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-            $distPath = "dist-$stamp"
-            $workPath = "build-$stamp"
-            Write-Warning "Could not remove existing dist/ (likely in use). Building into $distPath instead."
+            if ($AllowTimestampFallback) {
+                $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+                $distPath = "dist-$stamp"
+                $workPath = "build-$stamp"
+                Write-Warning "Could not remove existing dist/ (likely in use). Building into $distPath instead."
+            } else {
+                throw "Could not remove core/dist (likely a handle is open, e.g. a terminal with CWD in dist/). Close any shells/Explorer windows using core/dist and re-run. Details: $($_.Exception.Message)"
+            }
         }
     }
 
@@ -84,6 +174,12 @@ try {
         Write-Host "Build success: core/$stableExePath" -ForegroundColor Green
     } else {
         Write-Host "Build success: core/$exePath" -ForegroundColor Green
+    }
+
+    # Post-build tidy-up: if we had to fall back to timestamped folders, delete older ones.
+    if (-not $KeepBuildHistory) {
+        $exclude = @($distPath, $workPath)
+        Remove-OldPyInstallerOutputs -CoreDir (Join-Path $repoRoot 'core') -ExcludeNames $exclude
     }
 }
 finally {

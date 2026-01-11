@@ -149,6 +149,13 @@ From the repo root (Windows PowerShell):
 
 - `./scripts/dev-core.ps1`
 - `./scripts/check-core.ps1` (format + lint + tests)
+- `./scripts/build-core.ps1` (builds a local `core/dist/faceforge-core.exe`)
+
+Build outputs note:
+
+- `./scripts/build-core.ps1` will automatically prune old timestamped `core/build-*` and `core/dist-*` folders left behind by prior locked builds.
+- If you want to keep build history for debugging, run: `./scripts/build-core.ps1 -KeepBuildHistory`
+- If `core/build` or `core/dist` cannot be deleted (e.g. you have a terminal opened inside those folders), the build now fails with a clear message instead of creating timestamped folders. To opt into the old fallback behavior, run: `./scripts/build-core.ps1 -AllowTimestampFallback`
 
 This repo is set up to avoid relying on a global Python for running commands.
 The scripts create/use the repo-local `.venv` and always run via `.venv\\Scripts\\python.exe`.
