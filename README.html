@@ -440,6 +440,37 @@ faceforge/
 </ul>
 <h2 id="getting-started-today">Getting started (today)</h2>
 <p>FaceForge Core is runnable in dev today, and FaceForge Desktop can orchestrate it.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>Before you start, make sure these tools are installed.</p>
+<ul>
+<li>Rust toolchain (<code>rustc</code>, <code>cargo</code>)
+<ul>
+<li>Verify: <code>rustc --version</code> and <code>cargo --version</code></li>
+<li>Install (recommended): Rustup from https://rustup.rs
+<ul>
+<li>Or via WinGet: <code>winget install --id Rustlang.Rustup -e</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Tauri CLI (<code>cargo tauri</code>)
+<ul>
+<li>Verify: <code>cargo tauri --version</code></li>
+<li>Install: <code>cargo install tauri-cli</code></li>
+</ul>
+</li>
+<li>Python 3.12.x
+<ul>
+<li>Verify: <code>python --version</code></li>
+<li>Install: https://www.python.org/downloads/ (make sure “Add Python to PATH” is enabled)
+<ul>
+<li>Or via WinGet: <code>winget install --id Python.Python.3.12 -e</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>If you have multiple Pythons installed, ensure <code>python</code> resolves to 3.12.x in the same terminal where you run <code>./scripts/*.ps1</code>.</p>
 <h3 id="run-desktop-dev">Run Desktop (dev)</h3>
 <p>Prereq: Rust toolchain (stable).</p>
 <p>From the repo root:</p>
@@ -548,7 +579,7 @@ faceforge/
 <li><code>DELETE /v1/relationships/{relationship_id}</code></li>
 <li><code>GET /v1/relation-types?query=...</code></li>
 </ul>
-<p>Core also exposes initial Plugins endpoints (Sprint 10):</p>
+<p>Core also exposes initial Plugins endpoints:</p>
 <ul>
 <li><code>GET /v1/plugins</code></li>
 <li><code>POST /v1/plugins/{plugin_id}/enable</code></li>
@@ -556,7 +587,7 @@ faceforge/
 <li><code>GET /v1/plugins/{plugin_id}/config</code></li>
 <li><code>PUT /v1/plugins/{plugin_id}/config</code></li>
 </ul>
-<h3 id="plugins-sprint-10">Plugins (Sprint 10)</h3>
+<h3 id="plugins">Plugins</h3>
 <p>Core discovers plugin manifests from:</p>
 <ul>
 <li><code>${FACEFORGE_HOME}/plugins/*/plugin.json</code></li>
@@ -586,12 +617,69 @@ faceforge/
 <ul>
 <li><a href="core/README.md">core/README.md</a></li>
 </ul>
-<h3 id="auth-sprint-3">Auth (Sprint 3)</h3>
+<h3 id="auth">Auth</h3>
 <p>Core binds to localhost by default and requires a <strong>per-install token</strong> for non-health endpoints.</p>
 <ul>
 <li>Health endpoint (no token): <code>GET /healthz</code></li>
 <li>Example protected endpoint: <code>GET /v1/ping</code></li>
 <li>System identity endpoint (protected): <code>GET /v1/system/info</code></li>
+</ul>
+<h2 id="build-a-windows-executable-core">Build a Windows executable (Core)</h2>
+<p>To produce a standalone <code>faceforge-core.exe</code> (PyInstaller one-file build):</p>
+<ol>
+<li>Verify Python is available (3.12.x):
+<ul>
+<li><code>python --version</code></li>
+</ul>
+</li>
+<li>Build the executable from the repo root:
+<ul>
+<li><code>./scripts/build-core.ps1</code></li>
+<li>This script creates/updates the repo-local <code>.venv</code>, installs build dependencies, and runs PyInstaller.</li>
+<li>If it fails to delete <code>core/dist</code> or <code>core/build</code>, close any terminals/Explorer windows using those folders and re-run.
+<ul>
+<li>Optional: <code>./scripts/build-core.ps1 -AllowTimestampFallback</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p>Outputs:</p>
+<ul>
+<li><code>core/dist/faceforge-core.exe</code></li>
+</ul>
+<p>Run the built executable (example):</p>
+<ul>
+<li><code>./core/dist/faceforge-core.exe --help</code></li>
+</ul>
+<p>Notes:</p>
+<ul>
+<li>Core still uses <code>FACEFORGE_HOME</code> as its data root; if it’s not set, Core will use the default behavior described in the spec.</li>
+<li>On first start, Core generates the install token (if missing) and writes it under <code>${FACEFORGE_HOME}/config/core.json</code>.</li>
+</ul>
+<p>If you want to run Core in dev instead of building an exe:</p>
+<ul>
+<li><code>./scripts/dev-core.ps1</code></li>
+</ul>
+<h2 id="github-releases">GitHub Releases</h2>
+<p>This repo includes a GitHub Actions workflow that builds and attaches release assets automatically.</p>
+<ul>
+<li>Workflow: <code>.github/workflows/release-core.yml</code></li>
+<li>Trigger: publish a GitHub Release for a tag like <code>v0.1.0</code> (or run the workflow manually with a tag input)</li>
+</ul>
+<p>How to cut a release (GitHub UI):</p>
+<ol>
+<li>Go to <strong>Releases</strong> → <strong>Draft a new release</strong>.</li>
+<li>Pick an existing tag or create a new one (recommended tag format: <code>v0.1.0</code>).</li>
+<li>Fill in title/notes and click <strong>Publish release</strong>.</li>
+<li>Wait for the <strong>release-core</strong> workflow to finish; it will upload assets onto the Release.</li>
+</ol>
+<p>After the workflow completes, the Release will contain:</p>
+<ul>
+<li><code>faceforge-core.exe</code> (Windows)</li>
+<li><code>faceforge-core.sha256</code> (Windows)</li>
+<li><code>faceforge-core-*.whl</code> (Python wheel)</li>
+<li><code>faceforge-core-*.tar.gz</code> (Python sdist)</li>
 </ul>
 <p>The token is generated on first start (if missing) and stored in:</p>
 <ul>
@@ -641,7 +729,7 @@ faceforge/
 <p><strong>Build Core Executable</strong>:</p>
 <pre class="hljs"><code><div>./scripts/build<span class="hljs-literal">-core</span>.ps1
 </div></code></pre>
-<p>This uses PyInstaller to freeze the Python service into <code>dist/faceforge-core.exe</code>.</p>
+<p>This uses PyInstaller to freeze the Python service into <code>core/dist/faceforge-core.exe</code>.</p>
 </li>
 <li>
 <p><strong>Build Desktop Bundle</strong>:</p>
