@@ -93,7 +93,7 @@ input {
 .kv { display: grid; grid-template-columns: 220px 1fr; gap: 8px 12px; margin-top: 10px; }
 .kv .k { color: var(--muted); font-size: 12px; }
 
-.hidden { display: none; }
+.hidden { display: none !important; }
 
 .banner {
   max-width: 980px;
