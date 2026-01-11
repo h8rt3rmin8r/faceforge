@@ -181,7 +181,15 @@ function wireUi() {
   $("btn-stop").addEventListener("click", wrap(stop));
   $("btn-restart").addEventListener("click", wrap(restart));
   $("btn-open-ui").addEventListener("click", wrap(openUi));
+  $("btn-status").addEventListener("click", () => { show("status"); clearError(); });
+  $("btn-logs").addEventListener("click", () => { show("logs"); clearError(); });
   $("btn-copy").addEventListener("click", wrap(copyToken));
+
+  // Initialize Home default if empty
+  const homeInput = $("home");
+  if (!homeInput.value) {
+    homeInput.value = "C:\\FaceForge";
+  }
 
   $("btn-exit-stop").addEventListener(
     "click",

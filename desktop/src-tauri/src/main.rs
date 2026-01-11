@@ -302,11 +302,8 @@ fn build_tray(app: &tauri::AppHandle) -> anyhow::Result<()> {
 
     let open_ui = MenuItem::with_id(app, "open_ui", "Open UI", true, None::<&str>)?;
     let status = MenuItem::with_id(app, "show_status", "Status", true, None::<&str>)?;
-    let logs = MenuItem::with_id(app, "show_logs", "Logs", true, None::<&str>)?;
-    let stop = MenuItem::with_id(app, "stop", "Stop", true, None::<&str>)?;
-    let restart = MenuItem::with_id(app, "restart", "Restart", true, None::<&str>)?;
     let exit = MenuItem::with_id(app, "exit", "Exit", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&open_ui, &status, &logs, &stop, &restart, &exit])?;
+    let menu = Menu::with_items(app, &[&open_ui, &status, &exit])?;
 
     let builder = TrayIconBuilder::new()
         .menu(&menu)
@@ -318,15 +315,6 @@ fn build_tray(app: &tauri::AppHandle) -> anyhow::Result<()> {
                 }
                 "show_status" => {
                     let _ = app.emit("tray-show", "status");
-                }
-                "show_logs" => {
-                    let _ = app.emit("tray-show", "logs");
-                }
-                "stop" => {
-                    let _ = app.emit("tray-stop", ());
-                }
-                "restart" => {
-                    let _ = app.emit("tray-restart", ());
                 }
                 "exit" => {
                     // Let the UI prompt the user (stop vs leave running).

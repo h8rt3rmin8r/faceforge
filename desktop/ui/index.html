@@ -14,6 +14,8 @@
       </div>
       <div class="actions">
         <button id="btn-open-ui" class="primary">Open UI</button>
+        <button id="btn-status">Status</button>
+        <button id="btn-logs">Logs</button>
         <button id="btn-start">Start</button>
         <button id="btn-stop">Stop</button>
         <button id="btn-restart">Restart</button>
@@ -30,37 +32,59 @@
 
     <main class="main">
       <section id="wizard" class="card hidden">
-        <h2>First-run setup</h2>
-        <p class="muted">Choose where FaceForge stores data and which localhost ports to use.</p>
+        <h2>System Settings</h2>
+        <p class="muted">Configure the local data location and service ports.</p>
 
-        <div class="grid">
+        <div class="settings-group">
           <label>
-            <span>FACEFORGE_HOME</span>
+            <div class="label-row">
+              <span>Data Directory</span>
+              <span class="help-text">Where FaceForge stores database, files, and logs.</span>
+            </div>
             <div class="row">
-              <input id="home" type="text" placeholder="C:\\FaceForge" />
+              <input id="home" type="text" placeholder="C:\FaceForge" />
               <button id="btn-browse">Browse…</button>
             </div>
           </label>
 
           <label>
-            <span>Core port</span>
+            <div class="label-row">
+              <span>Core Service Port</span>
+              <span class="help-text">Localhost port for the API and Web UI.</span>
+            </div>
             <input id="core_port" type="number" min="1" max="65535" />
           </label>
+        </div>
 
+        <h3>S3 Storage Configuration</h3>
+        <div class="settings-group">
           <label class="checkbox">
-            <input id="seaweed_enabled" type="checkbox" />
-            <span>Enable SeaweedFS (optional, requires a `weed` binary under <code>FACEFORGE_HOME/tools</code>)</span>
+            <input id="seaweed_enabled" type="checkbox" checked />
+            <span>Enable S3 Storage</span>
           </label>
 
           <label>
-            <span>SeaweedFS S3 port</span>
+            <div class="label-row">
+              <span>Provider</span>
+              <span class="help-text">Select the S3 compatible storage provider.</span>
+            </div>
+            <select id="s3_provider">
+              <option value="seaweedfs">SeaweedFS (Bundled)</option>
+            </select>
+          </label>
+
+          <label>
+            <div class="label-row">
+              <span>S3 Port</span>
+              <span class="help-text">Localhost port for the S3 gateway.</span>
+            </div>
             <input id="seaweed_port" type="number" min="1" max="65535" />
           </label>
         </div>
 
         <div class="footer">
           <button id="btn-suggest">Suggest ports</button>
-          <button id="btn-save" class="primary">Save</button>
+          <button id="btn-save" class="primary">Save Configuration</button>
         </div>
       </section>
 

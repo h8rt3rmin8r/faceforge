@@ -147,6 +147,50 @@ input {
   padding: 16px;
 }
 
+.settings-group {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: rgba(0,0,0,0.15);
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.label-row span:first-child {
+  font-weight: 500;
+  color: var(--text);
+  font-size: 13px;
+  margin: 0;
+}
+
+.help-text {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: normal;
+  opacity: 0.8;
+}
+
+select {
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.25);
+  color: var(--text);
+}
+select option {
+  background: var(--card);
+}
+
 @media (max-width: 720px) {
   .grid { grid-template-columns: 1fr; }
   .kv { grid-template-columns: 1fr; }
