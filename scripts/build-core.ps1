@@ -157,6 +157,14 @@ try {
         & $venvPython -m PyInstaller pyinstaller.spec --noconfirm --distpath $distPath --workpath $workPath
     } 'PyInstaller build failed'
 
+    # Debug: List generated files to diagnosing path issues in CI
+    Write-Host "Listing contents of $distPath..." -ForegroundColor Gray
+    if (Test-Path $distPath) {
+        Get-ChildItem -Path $distPath -Recurse | Select-Object -First 20 | ForEach-Object { Write-Host " - $($_.Name)" }
+    } else {
+        Write-Warning "dist/ directory was not found after PyInstaller ran."
+    }
+
     # Verify + normalize output location for callers (e.g., GitHub Actions expects core/dist/faceforge-core.exe)
     # PyInstaller output shape can vary across versions/configs:
     #  - onefile: dist/<name>.exe
