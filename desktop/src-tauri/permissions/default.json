@@ -1,0 +1,19 @@
+{
+    "$schema": "../gen/schemas/desktop-schema.json",
+    "identifier": "default",
+    "description": "Allow all app commands",
+    "commands": {
+        "allow": [
+            "suggest_ports",
+            "pick_faceforge_home",
+            "get_state",
+            "save_wizard_settings",
+            "start_services",
+            "stop_services",
+            "restart_services",
+            "open_ui",
+            "request_exit"
+        ],
+        "deny": []
+    }
+}
