@@ -38,14 +38,33 @@ If you’re arriving here to understand the project, start with:
 
 Those capabilities are intended to ship as plugins that talk to Core over its public APIs.
 
-## High-level architecture (intended)
+## Audience
+
+- **End Users**: See [For End Users](#for-end-users) below.
+- **Developers**: See [For Developers](#for-developers) to learn how to build and contribute.
+
+## For End Users
+
+FaceForge is a self-hosted application designed to run locally on your machine. You do not need to write code or run commands to use it.
+
+1.  **Download**: Get the latest Windows installer (`.exe`) from [GitHub Releases](../../releases).
+2.  **Install & Setup**: Follow the [User Guide](docs/FaceForge%20User%20Guide.md).
+    - On first launch, the **System Settings** screen will ask you to select a **Data Directory** (default: `C:\FaceForge`).
+    - The Desktop app manages the background services (database, API, storage) for you.
+3.  **Use**: Managing your assets happens in the Web UI, which you launch from the Desktop app.
+
+## For Developers
+
+This repository is a monorepo containing the Core service (Python) and the Desktop orchestrator (Rust/Tauri).
+
+### High-level architecture (intended)
 
 - **FaceForge Desktop** (Tauri v2): orchestrates local components (Core server, optional sidecars like object storage, plugin runners), manages lifecycle, and opens the UI.
 - **FaceForge Core** (planned: Python 3.11/3.12 + FastAPI + Uvicorn): serves a versioned API under `/v1/...`, plus `/docs` and `/redoc`, and hosts the web UI.
 - **Storage**: transparent, user-controlled storage paths. Core supports filesystem-only mode and an optional S3-compatible provider (intended: SeaweedFS S3 endpoint) with upload-time routing + automatic fallback.
 - **Metadata DB**: SQLite, using a “relational spine + JSON fields” approach (entities/assets/relationships/jobs + flexible descriptors).
 
-## Core conventions (from the spec)
+### Core conventions (from the spec)
 
 When implementation starts, the repo will follow these conventions:
 
@@ -54,7 +73,7 @@ When implementation starts, the repo will follow these conventions:
 - Local-first storage contract: `FACEFORGE_HOME` is the root data directory; Core creates subfolders under it (e.g. `db/`, `assets/`, `logs/`, `config/`, `plugins/`).
 - Asset downloads: streaming-first, HTTP range support (resume-friendly), no opaque container volumes.
 
-## Repository layout
+### Repository layout
 
 Quick map of what lives where:
 
@@ -62,7 +81,7 @@ Quick map of what lives where:
   desktop/      # Tauri desktop shell (Sprint 12 MVP)
 faceforge/
   core/         # FastAPI Core service (runnable today)
-  desktop/      # Tauri desktop shell (placeholder for now)
+  desktop/      # Tauri desktop shell
   docs/         # Project spec + MVP sprint plan (source of truth)
   scripts/      # Dev scripts (PowerShell) to run/check Core using .venv
   brand/        # Logos, favicon, fonts (UI branding assets)
@@ -86,11 +105,11 @@ If you’re new and wondering “where do I add a route?”, start at:
 - `core/src/faceforge_core/api/v1/router.py` (v1 router)
 - `core/src/faceforge_core/app.py` (app wiring)
 
-## Getting started (today)
+### Getting started (Development)
 
 FaceForge Core is runnable in dev today, and FaceForge Desktop can orchestrate it.
 
-### Prerequisites
+#### Prerequisites
 
 Before you start, make sure these tools are installed.
 
@@ -118,7 +137,7 @@ From the repo root:
 
 What it does:
 
-- First-run wizard to choose `FACEFORGE_HOME` + localhost ports
+- Launches the **System Settings** wizard (Data Directory configuration) on first run
 - Starts/stops Core (and optional SeaweedFS if you provide a `weed` binary under `${FACEFORGE_HOME}/tools`)
 - Runs in the tray (closing the window hides it)
 

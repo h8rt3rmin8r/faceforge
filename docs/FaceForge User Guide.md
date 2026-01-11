@@ -5,13 +5,25 @@
 1.  **Download and Install**: Run the `FaceForge_Setup_x64.exe` installer.
 2.  **First Run**:
     *   Launch FaceForge from the Start Menu or Desktop shortcut.
-    *   You will see a "Setup Wizard".
-    *   **Choose a Home Directory**: Select a folder where FaceForge will store your database and files (e.g., `Documents\FaceForge`).
-    *   **Finish**: Click "Finish Setup". The application will initialize.
+    *   You will see the **System Settings** screen.
+    *   **Data Directory**: Choose a folder where FaceForge will store your database and files (defaults to `C:\FaceForge`).
+    *   **S3 Storage**: Confirm storage settings (enabled by default).
+    *   **Save**: Click "Save Configuration". The services will start automatically.
 3.  **Open UI**:
-    *   The FaceForge icon will appear in your system tray (bottom right).
-    *   Double-click the tray icon or right-click and select "Open FaceForge".
-    *   The main interface will open in your browser or a window.
+    *   Click the **Open UI** button in the FaceForge Desktop window.
+    *   Alternatively, right-click the system tray icon (FaceForge logo) and select **Open UI**.
+    *   The main interface will open in your default browser.
+
+## The Desktop Application
+
+The FaceForge Desktop window acts as the command center:
+
+*   **Status**: View connection details and service health.
+*   **Logs**: Check internal logs if issues arise.
+*   **Start / Stop / Restart**: Manually control the background services.
+*   **Open UI**: Launch the web interface.
+
+*Note: Closing the Desktop window minimizes it to the system tray. To fully quit, right-click the tray icon and select **Exit**.*
 
 ## Features
 
@@ -21,5 +33,5 @@
 
 ## Troubleshooting
 
-*   **Logs**: If something goes wrong, check the `logs` folder inside your chosen Home Directory.
-*   **Restart**: Right-click the tray icon -> Restart Service.
+*   **Logs**: Click the **Logs** button in the Desktop app, or check the `logs` folder inside your Data Directory.
+*   **Restart Services**: Use the **Restart** button in the Desktop app if the services become unresponsive.
