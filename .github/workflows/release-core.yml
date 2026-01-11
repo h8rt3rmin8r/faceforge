@@ -38,9 +38,10 @@ jobs:
           Write-Warning "core/pyinstaller.spec missing in $env:TAG; fetching from origin/$env:DEFAULT_BRANCH"
           git fetch --no-tags --depth 1 origin $env:DEFAULT_BRANCH
 
-          $spec = git show "origin/$env:DEFAULT_BRANCH:core/pyinstaller.spec" 2>$null
+          $spec = git show "origin/${env:DEFAULT_BRANCH}:core/pyinstaller.spec" 2>$null
           if (-not $spec) {
-            throw "Unable to load core/pyinstaller.spec from origin/$env:DEFAULT_BRANCH"
+            git --no-pager log -1 --oneline "origin/$env:DEFAULT_BRANCH" | Out-Host
+            throw "Unable to load core/pyinstaller.spec from origin/$env:DEFAULT_BRANCH (file not present on that branch)"
           }
 
           $spec | Out-File -Encoding utf8 -NoNewline 'core/pyinstaller.spec'
