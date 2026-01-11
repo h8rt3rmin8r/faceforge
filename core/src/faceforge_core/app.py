@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, Request
@@ -21,6 +22,8 @@ from faceforge_core.seaweedfs import start_managed_seaweed, stop_managed_seaweed
 from faceforge_core.storage.manager import build_storage_manager
 from faceforge_core.ui.router import STATIC_DIR as UI_STATIC_DIR
 from faceforge_core.ui.router import router as ui_router
+
+logger = logging.getLogger(__name__)
 
 
 def create_app() -> FastAPI:
@@ -153,11 +156,17 @@ def create_app() -> FastAPI:
     app.include_router(v1_router, dependencies=[Depends(require_install_token)])
 
     # Server-rendered UI (served by Core; no runtime Node dependency).
-    app.mount(
-        "/ui/static",
-        StaticFiles(directory=str(UI_STATIC_DIR)),
-        name="ui-static",
-    )
+    if UI_STATIC_DIR.is_dir():
+        app.mount(
+            "/ui/static",
+            StaticFiles(directory=str(UI_STATIC_DIR)),
+            name="ui-static",
+        )
+    else:
+        logger.warning(
+            "UI static directory is missing (%s); /ui/static will not be served",
+            UI_STATIC_DIR,
+        )
     app.include_router(ui_router)
 
     @app.get("/")

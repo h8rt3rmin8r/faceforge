@@ -218,6 +218,28 @@ Core binds to localhost by default and requires a **per-install token** for non-
 - Example protected endpoint: `GET /v1/ping`
 - System identity endpoint (protected): `GET /v1/system/info`
 
+## Build a Windows executable (Core)
+
+To produce a standalone `faceforge-core.exe` (PyInstaller one-file build):
+
+- `./scripts/build-core.ps1`
+
+Output:
+
+- `core/dist/faceforge-core.exe`
+
+## GitHub Releases
+
+This repo includes a GitHub Actions workflow that builds and attaches the Windows Core executable to Releases.
+
+- Workflow: `.github/workflows/release-core.yml`
+- Trigger: push a tag like `v0.1.0`
+
+After the workflow completes, the Release will contain:
+
+- `faceforge-core.exe`
+- `faceforge-core.sha256`
+
 The token is generated on first start (if missing) and stored in:
 
 - `${FACEFORGE_HOME}/config/core.json` → `auth.install_token`

@@ -1,0 +1,50 @@
+name: release-core
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  windows-core-exe:
+    name: windows core exe
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build faceforge-core.exe
+        shell: pwsh
+        run: |
+          ./scripts/build-core.ps1
+
+      - name: Hash
+        shell: pwsh
+        run: |
+          $exe = 'core/dist/faceforge-core.exe'
+          if (-not (Test-Path $exe)) { throw "Missing $exe" }
+          (Get-FileHash $exe -Algorithm SHA256).Hash | Out-File -Encoding ascii 'core/dist/faceforge-core.sha256'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: faceforge-core-windows-exe
+          path: |
+            core/dist/faceforge-core.exe
+            core/dist/faceforge-core.sha256
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            core/dist/faceforge-core.exe
+            core/dist/faceforge-core.sha256

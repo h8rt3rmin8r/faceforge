@@ -61,6 +61,23 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# SQLite databases (general)
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+
+# FaceForge local runtime home (dev/test)
+.faceforge/
+
 # Flask stuff:
 instance/
 .webassets-cache
@@ -193,6 +210,10 @@ cython_debug/
 
 # Local build artifacts (created by CI/local packaging commands)
 artifacts/
+
+# Timestamped local build output (scripts/build-core.ps1 fallback)
+dist-*/
+build-*/
 
 # PyPI configuration file
 .pypirc

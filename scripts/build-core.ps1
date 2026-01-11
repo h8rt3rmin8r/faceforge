@@ -1,27 +1,51 @@
-$ErrorActionPreference = "Stop"
-Write-Host "Building FaceForge Core executable..."
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
 
-$RepoRoot = Resolve-Path "$PSScriptRoot/.."
-$PythonExe = Join-Path $RepoRoot ".venv/Scripts/python.exe"
+. (Join-Path $PSScriptRoot '_ensure-venv.ps1')
 
-if (-not (Test-Path $PythonExe)) {
-    Write-Error "Could not find python in .venv at $PythonExe. Please run scripts/dev-core.ps1 to bootstrap."
-    exit 1
+Write-Host 'Building FaceForge Core executable...' -ForegroundColor Cyan
+
+$repoRoot = Get-RepoRoot
+Push-Location $repoRoot
+try {
+    $venvPython = Ensure-Venv -RepoRoot $repoRoot
+
+    Write-Host 'Installing build dependencies into .venv' -ForegroundColor Cyan
+    & $venvPython -m pip install -e .\core | Out-Host
+    & $venvPython -m pip install pyinstaller | Out-Host
+
+    Set-Location (Join-Path $repoRoot 'core')
+
+    $distPath = 'dist'
+    $workPath = 'build'
+
+    # Clean previous builds (but don't fail if dist is locked by another process)
+    if (Test-Path $workPath) {
+        Remove-Item -Recurse -Force $workPath
+    }
+    if (Test-Path $distPath) {
+        try {
+            Remove-Item -Recurse -Force $distPath
+        }
+        catch {
+            $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+            $distPath = "dist-$stamp"
+            $workPath = "build-$stamp"
+            Write-Warning "Could not remove existing dist/ (likely in use). Building into $distPath instead."
+        }
+    }
+
+    # Run PyInstaller via Python module to ensure we use the venv
+    & $venvPython -m PyInstaller pyinstaller.spec --noconfirm --distpath $distPath --workpath $workPath
+
+    # Verify
+    $exePath = Join-Path $distPath 'faceforge-core.exe'
+    if (Test-Path $exePath) {
+        Write-Host "Build success: core/$exePath" -ForegroundColor Green
+    } else {
+        throw "Build failed: core/$exePath not found"
+    }
 }
-
-Set-Location "$RepoRoot/core"
-
-# Clean previous builds
-if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
-if (Test-Path "build") { Remove-Item -Recurse -Force "build" }
-
-# Run PyInstaller via Python module to ensure we use the venv
-& $PythonExe -m PyInstaller pyinstaller.spec --noconfirm
-
-# Verify
-if (Test-Path "dist/faceforge-core.exe") {
-    Write-Host "Build success: dist/faceforge-core.exe"
-} else {
-    Write-Error "Build failed."
-    exit 1
+finally {
+    Pop-Location
 }
