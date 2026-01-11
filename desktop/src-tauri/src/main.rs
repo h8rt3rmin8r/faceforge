@@ -73,7 +73,7 @@ fn save_bootstrap(app: &tauri::AppHandle, b: &DesktopBootstrap) -> anyhow::Resul
     Ok(())
 }
 
-fn ensure_bundled_tools(app: &tauri::AppHandle, faceforge_home: &std::path::Path) {
+fn ensure_bundled_tools(_app: &tauri::AppHandle, _faceforge_home: &std::path::Path) {
     // Legacy: we used to copy tools to FACEFORGE_HOME/tools. 
     // New (v0.2.10): Tools stay in the install dir. 
     // We do nothing here, avoiding duplication.
@@ -324,7 +324,7 @@ fn build_tray(app: &tauri::AppHandle) -> anyhow::Result<()> {
                                 orch.stop_core();
                                 orch.stop_seaweed();
                             }
-                        }
+                        };
                     }
                     app.exit(0);
                 }
