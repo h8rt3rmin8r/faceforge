@@ -12,8 +12,8 @@ on:
         type: string
 
 jobs:
-  windows-core-exe:
-    name: windows core exe
+  windows-release-assets:
+    name: windows release assets (desktop + core)
     runs-on: windows-latest
     permissions:
       contents: write
@@ -30,6 +30,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install WiX toolset (for MSI)
+        shell: pwsh
+        run: |
+          choco install wixtoolset -y
 
       - name: Build faceforge-core.exe
         shell: pwsh
@@ -53,52 +61,56 @@ jobs:
           New-Item -ItemType Directory -Path 'core/dist' -Force | Out-Null
           Copy-Item -Force $exe 'core/dist/faceforge-core.exe'
 
-      - name: Hash
+      - name: Stage core binary for Desktop bundling
         shell: pwsh
         run: |
-          $exe = 'core/dist/faceforge-core.exe'
-          if (-not (Test-Path $exe)) { throw "Missing $exe" }
-          (Get-FileHash $exe -Algorithm SHA256).Hash | Out-File -Encoding ascii 'core/dist/faceforge-core.sha256'
+          $src = 'core/dist/faceforge-core.exe'
+          if (-not (Test-Path $src)) { throw "Missing $src" }
 
-      - name: Upload assets to GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.TAG }}
-          files: |
-            core/dist/faceforge-core.exe
-            core/dist/faceforge-core.sha256
+          New-Item -ItemType Directory -Force -Path 'desktop/src-tauri/binaries' | Out-Null
+          Copy-Item -Force $src 'desktop/src-tauri/binaries/faceforge-core-x86_64-pc-windows-msvc.exe'
 
-  core-python-dist:
-    name: core python dist (sdist + wheel)
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    env:
-      TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.TAG }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Build sdist + wheel
-        shell: bash
+      - name: Build Desktop MSI
+        shell: pwsh
         run: |
-          python -m venv .venv
-          . .venv/bin/activate
-          python -m pip install --upgrade pip build
-          python -m build ./core --outdir ./artifacts/core-dist
+          Push-Location 'desktop/src-tauri'
+          try {
+            cargo tauri build
+          }
+          finally {
+            Pop-Location
+          }
+
+      - name: Collect release assets + SHA256SUMS
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem -Path 'desktop/src-tauri/target/release/bundle/msi' -Filter '*.msi' |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+
+          if (-not $msi) {
+            throw 'Missing Desktop MSI under desktop/src-tauri/target/release/bundle/msi'
+          }
+
+          $coreExe = 'core/dist/faceforge-core.exe'
+          if (-not (Test-Path $coreExe)) { throw "Missing $coreExe" }
+
+          New-Item -ItemType Directory -Force -Path 'artifacts/release' | Out-Null
+
+          Copy-Item -Force $msi.FullName (Join-Path 'artifacts/release' $msi.Name)
+          Copy-Item -Force $coreExe 'artifacts/release/faceforge-core.exe'
+
+          $lines = @()
+          $lines += "{0}  {1}" -f (Get-FileHash (Join-Path 'artifacts/release' $msi.Name) -Algorithm SHA256).Hash.ToLower(), $msi.Name
+          $lines += "{0}  {1}" -f (Get-FileHash 'artifacts/release/faceforge-core.exe' -Algorithm SHA256).Hash.ToLower(), 'faceforge-core.exe'
+
+          ($lines -join "`n") + "`n" | Out-File -Encoding ascii 'artifacts/release/SHA256SUMS.txt'
 
       - name: Upload assets to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
           files: |
-            artifacts/core-dist/*.whl
-            artifacts/core-dist/*.tar.gz
+            artifacts/release/*.msi
+            artifacts/release/faceforge-core.exe
+            artifacts/release/SHA256SUMS.txt

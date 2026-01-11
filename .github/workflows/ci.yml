@@ -51,18 +51,3 @@ jobs:
         run: |
           $py = if ($IsWindows) { '.\.venv\Scripts\python.exe' } else { './.venv/bin/python' }
           & $py -m pytest ./core/tests
-
-      - name: Build Core artifacts (sdist + wheel)
-        if: matrix.os == 'ubuntu-latest'
-        shell: pwsh
-        run: |
-          $py = './.venv/bin/python'
-          & $py -m pip install --upgrade build
-          & $py -m build ./core --outdir ./artifacts/core-dist
-
-      - name: Upload Core artifacts
-        if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: core-dist
-          path: artifacts/core-dist

@@ -78,6 +78,12 @@ db.sqlite3-journal
 # FaceForge local runtime home (dev/test)
 .faceforge/
 
+# Release artifacts (generated locally/CI)
+SHA256SUMS.txt
+
+# Desktop build inputs/outputs
+desktop/src-tauri/binaries/
+
 # Flask stuff:
 instance/
 .webassets-cache

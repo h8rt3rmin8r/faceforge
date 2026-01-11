@@ -71,9 +71,8 @@ fn save_bootstrap(app: &tauri::AppHandle, b: &DesktopBootstrap) -> anyhow::Resul
     Ok(())
 }
 
-fn ensure_bundled_tools(app: &tauri::AppHandle, faceforge_home: &str) {
-    let home = PathBuf::from(faceforge_home);
-    let tools_dir = home.join("tools");
+fn ensure_bundled_tools(app: &tauri::AppHandle, faceforge_home: &std::path::Path) {
+    let tools_dir = faceforge_home.join("tools");
     
     if !tools_dir.exists() {
         let _ = fs::create_dir_all(&tools_dir);
@@ -122,7 +121,7 @@ fn ui_state_from_guard(app: &tauri::AppHandle, guard: &mut AppState) -> UiState 
     if configured && guard.settings.is_none() {
         if let Some(b) = guard.bootstrap.clone() {
             // MVP: Ensure tools are in place before we rely on them.
-            ensure_bundled_tools(app, &b.faceforge_home);
+            ensure_bundled_tools(app, b.faceforge_home.as_path());
 
             match settings::read_desktop_json(&b.faceforge_home) {
                 Ok(s) => {
