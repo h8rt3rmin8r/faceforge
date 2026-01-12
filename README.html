@@ -398,14 +398,38 @@ code {
 <li>A cloud-hosted SaaS requirement</li>
 </ul>
 <p>Those capabilities are intended to ship as plugins that talk to Core over its public APIs.</p>
-<h2 id="high-level-architecture-intended">High-level architecture (intended)</h2>
+<h2 id="audience">Audience</h2>
+<ul>
+<li><strong>End Users</strong>: See <a href="#for-end-users">For End Users</a> below.</li>
+<li><strong>Developers</strong>: See <a href="#for-developers">For Developers</a> to learn how to build and contribute.</li>
+</ul>
+<h2 id="for-end-users">For End Users</h2>
+<p>FaceForge is a self-hosted application designed to run locally on your machine. You do not need to write code or run commands to use it.</p>
+<ol>
+<li><strong>Download</strong>: Go to <a href="https://github.com/h8rt3rmin8r/faceforge/releases">GitHub Releases</a>. You will see two main assets:
+<ul>
+<li><strong>FaceForge Desktop Installer (<code>.exe</code> or <code>.msi</code>)</strong>: This is the <strong>recommended</strong> download for most users. It includes the full Desktop App, the Core API server, and everything you need to run FaceForge.</li>
+<li><strong>FaceForge Core API (<code>.zip</code>)</strong>: This is an <strong>advanced</strong> package containing only the Python API server (Core). Use this only if you intend to run the API headlessly or integrate it into a custom setup without the Desktop UI.</li>
+</ul>
+</li>
+<li><strong>Install &amp; Setup</strong>: Follow the <a href="docs/FaceForge%20User%20Guide.md">User Guide</a>.
+<ul>
+<li>On first launch, the <strong>System Settings</strong> screen will ask you to select a <strong>Data Directory</strong> (default: <code>C:\FaceForge</code>).</li>
+<li>The Desktop app manages the background services (database, API, storage) for you.</li>
+</ul>
+</li>
+<li><strong>Use</strong>: Managing your assets happens in the Web UI, which you launch from the Desktop app.</li>
+</ol>
+<h2 id="for-developers">For Developers</h2>
+<p>This repository is a monorepo containing the Core service (Python) and the Desktop orchestrator (Rust/Tauri).</p>
+<h3 id="high-level-architecture-intended">High-level architecture (intended)</h3>
 <ul>
 <li><strong>FaceForge Desktop</strong> (Tauri v2): orchestrates local components (Core server, optional sidecars like object storage, plugin runners), manages lifecycle, and opens the UI.</li>
 <li><strong>FaceForge Core</strong> (planned: Python 3.11/3.12 + FastAPI + Uvicorn): serves a versioned API under <code>/v1/...</code>, plus <code>/docs</code> and <code>/redoc</code>, and hosts the web UI.</li>
 <li><strong>Storage</strong>: transparent, user-controlled storage paths. Core supports filesystem-only mode and an optional S3-compatible provider (intended: SeaweedFS S3 endpoint) with upload-time routing + automatic fallback.</li>
 <li><strong>Metadata DB</strong>: SQLite, using a “relational spine + JSON fields” approach (entities/assets/relationships/jobs + flexible descriptors).</li>
 </ul>
-<h2 id="core-conventions-from-the-spec">Core conventions (from the spec)</h2>
+<h3 id="core-conventions-from-the-spec">Core conventions (from the spec)</h3>
 <p>When implementation starts, the repo will follow these conventions:</p>
 <ul>
 <li>Network defaults: bind to <code>127.0.0.1</code>; require a per-install token for non-health endpoints.</li>
@@ -413,12 +437,12 @@ code {
 <li>Local-first storage contract: <code>FACEFORGE_HOME</code> is the root data directory; Core creates subfolders under it (e.g. <code>db/</code>, <code>assets/</code>, <code>logs/</code>, <code>config/</code>, <code>plugins/</code>).</li>
 <li>Asset downloads: streaming-first, HTTP range support (resume-friendly), no opaque container volumes.</li>
 </ul>
-<h2 id="repository-layout">Repository layout</h2>
+<h3 id="repository-layout">Repository layout</h3>
 <p>Quick map of what lives where:</p>
 <pre class="hljs"><code><div>  desktop/      # Tauri desktop shell (Sprint 12 MVP)
 faceforge/
   core/         # FastAPI Core service (runnable today)
-  desktop/      # Tauri desktop shell (placeholder for now)
+  desktop/      # Tauri desktop shell
   docs/         # Project spec + MVP sprint plan (source of truth)
   scripts/      # Dev scripts (PowerShell) to run/check Core using .venv
   brand/        # Logos, favicon, fonts (UI branding assets)
@@ -438,9 +462,9 @@ faceforge/
 <li><code>core/src/faceforge_core/api/v1/router.py</code> (v1 router)</li>
 <li><code>core/src/faceforge_core/app.py</code> (app wiring)</li>
 </ul>
-<h2 id="getting-started-today">Getting started (today)</h2>
+<h3 id="getting-started-development">Getting started (Development)</h3>
 <p>FaceForge Core is runnable in dev today, and FaceForge Desktop can orchestrate it.</p>
-<h3 id="prerequisites">Prerequisites</h3>
+<h4 id="prerequisites">Prerequisites</h4>
 <p>Before you start, make sure these tools are installed.</p>
 <ul>
 <li>Rust toolchain (<code>rustc</code>, <code>cargo</code>)
@@ -479,7 +503,7 @@ faceforge/
 </ul>
 <p>What it does:</p>
 <ul>
-<li>First-run wizard to choose <code>FACEFORGE_HOME</code> + localhost ports</li>
+<li>Launches the <strong>System Settings</strong> wizard (Data Directory configuration) on first run</li>
 <li>Starts/stops Core (and optional SeaweedFS if you provide a <code>weed</code> binary under <code>${FACEFORGE_HOME}/tools</code>)</li>
 <li>Runs in the tray (closing the window hides it)</li>
 </ul>

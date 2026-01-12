@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>README.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="faceforge-core">FaceForge Core</h1>
+<p>This folder contains the <strong>Core API service</strong> (planned: FastAPI + Uvicorn).</p>
+<h2 id="repo-structure-core">Repo structure (Core)</h2>
+<p>If you’re trying to find things quickly:</p>
+<pre class="hljs"><code><div>core/
+	src/faceforge_core/
+		__main__.py            # `python -m faceforge_core` entrypoint
+		app.py                 # FastAPI app wiring
+		api/v1/                # versioned HTTP routes
+		auth.py                # install-token auth helpers
+		config.py              # config loading + path resolution
+		home.py                # FACEFORGE_HOME + layout contract
+		db/                    # SQLite schema + migrations + queries
+		internal/              # internal CLIs (dev/admin helpers)
+	tests/                   # pytest tests
+	pyproject.toml           # packaging/dependencies
+</div></code></pre>
+<h2 id="sprint-1-homeconfigruntime-contract">Sprint 1: home/config/runtime contract</h2>
+<p>Core is <strong>local-first</strong> and writes all persistent/runtime files under <code>FACEFORGE_HOME</code>.</p>
+<h3 id="faceforgehome">FACEFORGE_HOME</h3>
+<ul>
+<li>If <code>FACEFORGE_HOME</code> is set, Core uses that directory.</li>
+<li>If it is not set, Core defaults to a local dev folder: <code>./.faceforge</code> (relative to the working directory).</li>
+</ul>
+<h3 id="required-subfolders">Required subfolders</h3>
+<p>On startup, Core ensures these directories exist:</p>
+<ul>
+<li><code>${FACEFORGE_HOME}/db</code></li>
+<li><code>${FACEFORGE_HOME}/s3</code></li>
+<li><code>${FACEFORGE_HOME}/assets</code></li>
+<li><code>${FACEFORGE_HOME}/logs</code></li>
+<li><code>${FACEFORGE_HOME}/run</code></li>
+<li><code>${FACEFORGE_HOME}/config</code></li>
+<li><code>${FACEFORGE_HOME}/tools</code></li>
+<li><code>${FACEFORGE_HOME}/plugins</code></li>
+</ul>
+<h3 id="core-config-file">Core config file</h3>
+<p>Core loads JSON config from:</p>
+<ul>
+<li><code>${FACEFORGE_HOME}/config/core.json</code></li>
+</ul>
+<p>If the file does not exist, defaults are used.</p>
+<p>Current config shape (v1, subject to change):</p>
+<pre class="hljs"><code><div>{
+	<span class="hljs-attr">"version"</span>: <span class="hljs-string">"1"</span>,
+	<span class="hljs-attr">"auth"</span>: {
+		<span class="hljs-attr">"install_token"</span>: <span class="hljs-string">"..."</span>
+	},
+	<span class="hljs-attr">"network"</span>: {
+		<span class="hljs-attr">"bind_host"</span>: <span class="hljs-string">"127.0.0.1"</span>,
+		<span class="hljs-attr">"core_port"</span>: <span class="hljs-number">8787</span>,
+		<span class="hljs-attr">"seaweed_s3_port"</span>: <span class="hljs-literal">null</span>
+	},
+	<span class="hljs-attr">"paths"</span>: {
+		<span class="hljs-attr">"db_dir"</span>: <span class="hljs-literal">null</span>,
+		<span class="hljs-attr">"s3_dir"</span>: <span class="hljs-literal">null</span>,
+		<span class="hljs-attr">"logs_dir"</span>: <span class="hljs-literal">null</span>,
+		<span class="hljs-attr">"plugins_dir"</span>: <span class="hljs-literal">null</span>
+	},
+	<span class="hljs-attr">"tools"</span>: {
+		<span class="hljs-attr">"exiftool_enabled"</span>: <span class="hljs-literal">true</span>,
+		<span class="hljs-attr">"exiftool_path"</span>: <span class="hljs-literal">null</span>
+	},
+	<span class="hljs-attr">"storage"</span>: {
+		<span class="hljs-attr">"routing"</span>: {
+			<span class="hljs-attr">"default_provider"</span>: <span class="hljs-string">"fs"</span>,
+			<span class="hljs-attr">"kind_map"</span>: {},
+			<span class="hljs-attr">"s3_min_size_bytes"</span>: <span class="hljs-literal">null</span>
+		},
+		<span class="hljs-attr">"s3"</span>: {
+			<span class="hljs-attr">"enabled"</span>: <span class="hljs-literal">false</span>,
+			<span class="hljs-attr">"endpoint_url"</span>: <span class="hljs-literal">null</span>,
+			<span class="hljs-attr">"access_key"</span>: <span class="hljs-literal">null</span>,
+			<span class="hljs-attr">"secret_key"</span>: <span class="hljs-literal">null</span>,
+			<span class="hljs-attr">"bucket"</span>: <span class="hljs-string">"faceforge"</span>,
+			<span class="hljs-attr">"region"</span>: <span class="hljs-string">"us-east-1"</span>,
+			<span class="hljs-attr">"use_ssl"</span>: <span class="hljs-literal">false</span>
+		}
+	},
+	<span class="hljs-attr">"seaweed"</span>: {
+		<span class="hljs-attr">"enabled"</span>: <span class="hljs-literal">false</span>,
+		<span class="hljs-attr">"weed_path"</span>: <span class="hljs-literal">null</span>,
+		<span class="hljs-attr">"data_dir"</span>: <span class="hljs-literal">null</span>,
+		<span class="hljs-attr">"ip"</span>: <span class="hljs-string">"127.0.0.1"</span>,
+		<span class="hljs-attr">"master_port"</span>: <span class="hljs-number">9333</span>,
+		<span class="hljs-attr">"volume_port"</span>: <span class="hljs-number">8080</span>,
+		<span class="hljs-attr">"filer_port"</span>: <span class="hljs-number">8888</span>,
+		<span class="hljs-attr">"s3_port"</span>: <span class="hljs-literal">null</span>
+	}
+}
+</div></code></pre>
+<p>Notes:</p>
+<ul>
+<li><code>paths.*</code> may be absolute paths or paths relative to <code>FACEFORGE_HOME</code>.</li>
+<li><code>run/</code> and <code>config/</code> are intentionally <strong>not configurable</strong>.</li>
+</ul>
+<h3 id="runtime-ports-file">Runtime ports file</h3>
+<p>Desktop (or other launcher) may write the selected ports to:</p>
+<ul>
+<li><code>${FACEFORGE_HOME}/run/ports.json</code></li>
+</ul>
+<p>Format:</p>
+<pre class="hljs"><code><div>{
+	<span class="hljs-attr">"core"</span>: <span class="hljs-number">43210</span>,
+	<span class="hljs-attr">"seaweed_s3"</span>: <span class="hljs-number">43211</span>
+}
+</div></code></pre>
+<p>Core also supports a legacy location for compatibility with the design spec:</p>
+<ul>
+<li><code>${FACEFORGE_HOME}/runtime/ports.json</code></li>
+</ul>
+<h2 id="desktop-integration-sprint-12">Desktop integration (Sprint 12)</h2>
+<p>FaceForge Desktop (Tauri) is responsible for the first-run wizard and process orchestration.</p>
+<p>Desktop writes (or updates):</p>
+<ul>
+<li><code>${FACEFORGE_HOME}/run/ports.json</code> (selected ports)</li>
+<li><code>${FACEFORGE_HOME}/config/core.json</code> (network + auth token; optional S3 config)</li>
+</ul>
+<p>Desktop then starts Core with:</p>
+<ul>
+<li><code>FACEFORGE_HOME</code> set to the chosen directory</li>
+<li><code>FACEFORGE_BIND=127.0.0.1</code> (localhost-only by default)</li>
+</ul>
+<p>For browser usage, the Core UI requires logging in once at <code>/ui/login</code> (pastes the install token and stores it in an HttpOnly cookie).</p>
+<h2 id="dev-run">Dev run</h2>
+<p>From the repo root (Windows PowerShell):</p>
+<ul>
+<li><code>./scripts/dev-core.ps1</code></li>
+<li><code>./scripts/check-core.ps1</code> (format + lint + tests)</li>
+<li><code>./scripts/build-core.ps1</code> (builds a local <code>core/dist/faceforge-core.exe</code>)</li>
+</ul>
+<p>Build outputs note:</p>
+<ul>
+<li><code>./scripts/build-core.ps1</code> will automatically prune old timestamped <code>core/build-*</code> and <code>core/dist-*</code> folders left behind by prior locked builds.</li>
+<li>If you want to keep build history for debugging, run: <code>./scripts/build-core.ps1 -KeepBuildHistory</code></li>
+<li>If <code>core/build</code> or <code>core/dist</code> cannot be deleted (e.g. you have a terminal opened inside those folders), the build now fails with a clear message instead of creating timestamped folders. To opt into the old fallback behavior, run: <code>./scripts/build-core.ps1 -AllowTimestampFallback</code></li>
+</ul>
+<p>This repo is set up to avoid relying on a global Python for running commands.
+The scripts create/use the repo-local <code>.venv</code> and always run via <code>.venv\\Scripts\\python.exe</code>.</p>
+<p>Prereq: Python 3.12+ installed (used only to bootstrap the repo-local <code>.venv</code>).</p>
+<p>The service should come up on <code>http://127.0.0.1:8787</code> and expose:</p>
+<ul>
+<li><code>GET /healthz</code></li>
+<li><code>GET /docs</code> (public)</li>
+<li><code>GET /</code> (redirects to Web UI)</li>
+</ul>
+<h2 id="sprint-11-core-web-ui-mvp">Sprint 11: Core Web UI MVP</h2>
+<p>Core serves a small, server-rendered Web UI (no runtime Node) intended for basic, non-technical workflows.</p>
+<p>Routes:</p>
+<ul>
+<li><code>GET /ui/login</code> (public): paste the install token and sign in</li>
+<li><code>POST /ui/login</code>: sets an HttpOnly cookie</li>
+<li><code>POST /ui/logout</code>: clears the cookie</li>
+<li><code>GET /ui/entities</code>: browse/create entities (table/gallery)</li>
+<li><code>GET /ui/entities/{entity_id}</code>: entity detail (overview/descriptors/attachments/relationships)</li>
+<li><code>GET /ui/jobs</code>: job list + start bulk-import</li>
+<li><code>GET /ui/jobs/{job_id}</code>: job details + logs</li>
+<li><code>GET /ui/plugins</code>: list discovered plugins, enable/disable, edit config</li>
+</ul>
+<p>API endpoints (v1):</p>
+<ul>
+<li>
+<p><code>GET /v1/ping</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET /v1/system/info</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET /v1/entities</code> (requires token)</p>
+</li>
+<li>
+<p><code>POST /v1/entities</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET/PATCH/DELETE /v1/entities/{entity_id}</code> (requires token)</p>
+</li>
+<li>
+<p><code>POST /v1/assets/upload</code> (requires token; multipart)</p>
+</li>
+<li>
+<p><code>GET /v1/assets/{asset_id}</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET /v1/assets/{asset_id}/download</code> (requires token; streaming + Range)</p>
+</li>
+<li>
+<p><code>POST /v1/assets/bulk-import</code> (requires token; starts a job)</p>
+</li>
+<li>
+<p><code>POST /v1/entities/{entity_id}/assets/{asset_id}</code> (requires token; link)</p>
+</li>
+<li>
+<p><code>DELETE /v1/entities/{entity_id}/assets/{asset_id}</code> (requires token; unlink)</p>
+</li>
+<li>
+<p><code>POST /v1/jobs</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET /v1/jobs</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET /v1/jobs/{job_id}</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET /v1/jobs/{job_id}/log</code> (requires token; pollable)</p>
+</li>
+<li>
+<p><code>POST /v1/jobs/{job_id}/cancel</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET /v1/admin/field-defs</code> (requires token)</p>
+</li>
+<li>
+<p><code>POST /v1/admin/field-defs</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET /v1/admin/field-defs/{field_def_id}</code> (requires token)</p>
+</li>
+<li>
+<p><code>PATCH /v1/admin/field-defs/{field_def_id}</code> (requires token)</p>
+</li>
+<li>
+<p><code>DELETE /v1/admin/field-defs/{field_def_id}</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET /v1/entities/{entity_id}/descriptors</code> (requires token)</p>
+</li>
+<li>
+<p><code>POST /v1/entities/{entity_id}/descriptors</code> (requires token)</p>
+</li>
+<li>
+<p><code>PATCH /v1/descriptors/{descriptor_id}</code> (requires token)</p>
+</li>
+<li>
+<p><code>DELETE /v1/descriptors/{descriptor_id}</code> (requires token)</p>
+</li>
+<li>
+<p><code>POST /v1/relationships</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET /v1/relationships?entity_id=...</code> (requires token)</p>
+</li>
+<li>
+<p><code>DELETE /v1/relationships/{relationship_id}</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET /v1/relation-types?query=...</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET /v1/plugins</code> (requires token)</p>
+</li>
+<li>
+<p><code>POST /v1/plugins/{plugin_id}/enable</code> (requires token)</p>
+</li>
+<li>
+<p><code>POST /v1/plugins/{plugin_id}/disable</code> (requires token)</p>
+</li>
+<li>
+<p><code>GET /v1/plugins/{plugin_id}/config</code> (requires token)</p>
+</li>
+<li>
+<p><code>PUT /v1/plugins/{plugin_id}/config</code> (requires token)</p>
+</li>
+</ul>
+<h3 id="auth-sprint-3">Auth (Sprint 3)</h3>
+<p>Core requires a per-install token for non-health endpoints.</p>
+<ul>
+<li>The token is stored in <code>${FACEFORGE_HOME}/config/core.json</code> under <code>auth.install_token</code>.</li>
+<li>Requests may provide the token via:
+<ul>
+<li><code>Authorization: Bearer &lt;token&gt;</code></li>
+<li><code>X-FaceForge-Token: &lt;token&gt;</code></li>
+</ul>
+</li>
+</ul>
+<p>Browser UI support:</p>
+<ul>
+<li>The Web UI can store the token in an HttpOnly cookie named <code>ff_token</code> (set by <code>POST /ui/login</code>).</li>
+<li>This makes browser downloads (e.g. <code>GET /v1/assets/{asset_id}/download</code>) work without manually setting headers.</li>
+</ul>
+<h2 id="sprint-10-plugins-discovery--registry">Sprint 10: Plugins (discovery + registry)</h2>
+<p>Core discovers plugin manifests under <code>${FACEFORGE_HOME}/plugins/*/plugin.json</code> and stores metadata/config in the <code>plugin_registry</code> table.</p>
+<p>The v1 endpoints under <code>/v1/plugins</code> expose discovery results, enable/disable state, and a JSON Schema-validated config document.</p>
+<h3 id="manifest-format-pluginjson">Manifest format (<code>plugin.json</code>)</h3>
+<p>Minimal example:</p>
+<pre class="hljs"><code><div>{
+	<span class="hljs-attr">"id"</span>: <span class="hljs-string">"demo.plugin"</span>,
+	<span class="hljs-attr">"name"</span>: <span class="hljs-string">"Demo Plugin"</span>,
+	<span class="hljs-attr">"version"</span>: <span class="hljs-string">"0.1.0"</span>,
+	<span class="hljs-attr">"capabilities"</span>: [<span class="hljs-string">"ui"</span>],
+	<span class="hljs-attr">"config_schema"</span>: {
+		<span class="hljs-attr">"type"</span>: <span class="hljs-string">"object"</span>,
+		<span class="hljs-attr">"properties"</span>: {
+			<span class="hljs-attr">"example_flag"</span>: {<span class="hljs-attr">"type"</span>: <span class="hljs-string">"boolean"</span>, <span class="hljs-attr">"description"</span>: <span class="hljs-string">"Example option"</span>}
+		}
+	}
+}
+</div></code></pre>
+<p>Supported fields today (best-effort discovery):</p>
+<ul>
+<li><code>id</code> (required): stable plugin identifier.</li>
+<li><code>name</code> (required)</li>
+<li><code>version</code> (optional)</li>
+<li><code>capabilities</code> (optional list)</li>
+<li><code>config_schema</code> (optional object): JSON Schema used to validate <code>PUT /v1/plugins/{plugin_id}/config</code>.</li>
+</ul>
+<p>Notes:</p>
+<ul>
+<li>Discovery is best-effort: invalid manifests are ignored.</li>
+<li><code>/v1/plugins/{plugin_id}/...</code> is reserved for future plugin routes (plugin compute is not implemented in Core).</li>
+</ul>
+<h2 id="sprint-2-sqlite-schema--migrations-internal">Sprint 2: SQLite schema + migrations (internal)</h2>
+<p>Core stores metadata in a SQLite DB under:</p>
+<ul>
+<li><code>${FACEFORGE_HOME}/db/core.sqlite3</code></li>
+</ul>
+<p>On Core startup, schema migrations are applied automatically (idempotent).</p>
+<p>Apply migrations and create sample records without using the API:</p>
+<ol>
+<li>Run <code>./scripts/dev-core.ps1</code> once (it installs Core editable into <code>.venv</code>).</li>
+<li>Then invoke internal modules using the venv Python:</li>
+</ol>
+<ul>
+<li><code>.\.venv\Scripts\python.exe -m faceforge_core.internal.bootstrap_db --home &lt;PATH&gt; --migrate</code></li>
+<li><code>.\.venv\Scripts\python.exe -m faceforge_core.internal.bootstrap_db --home &lt;PATH&gt; --create-entity &quot;Ada Lovelace&quot;</code></li>
+<li><code>.\.venv\Scripts\python.exe -m faceforge_core.internal.bootstrap_db --home &lt;PATH&gt; --create-asset &lt;FILEPATH&gt;</code></li>
+</ul>
+<h2 id="sprint-4-entities-crud-v1">Sprint 4: Entities CRUD (v1)</h2>
+<p>Endpoints:</p>
+<ul>
+<li><code>GET /v1/entities</code></li>
+<li><code>POST /v1/entities</code></li>
+<li><code>GET /v1/entities/{entity_id}</code></li>
+<li><code>PATCH /v1/entities/{entity_id}</code></li>
+<li><code>DELETE /v1/entities/{entity_id}</code> (soft delete)</li>
+</ul>
+<p>List query params (minimal primitives):</p>
+<ul>
+<li><code>limit</code> (default 50, max 200)</li>
+<li><code>offset</code> (default 0)</li>
+<li><code>sort_by</code>: <code>created_at</code> | <code>updated_at</code> | <code>display_name</code></li>
+<li><code>sort_order</code>: <code>asc</code> | <code>desc</code></li>
+<li><code>q</code>: substring match (basic)</li>
+<li><code>tag</code>: filter by exact tag string</li>
+</ul>
+<h2 id="sprint-5-assets-v1-filesystem-provider">Sprint 5: Assets v1 (filesystem provider)</h2>
+<h3 id="upload">Upload</h3>
+<ul>
+<li><code>POST /v1/assets/upload</code>
+<ul>
+<li>Multipart field <code>file</code> (required)</li>
+<li>Multipart field <code>meta</code> (optional): companion JSON sidecar (commonly <code>_meta.json</code>)</li>
+</ul>
+</li>
+</ul>
+<p>Example (PowerShell):</p>
+<ul>
+<li><code>Invoke-WebRequest -Headers @{ Authorization = &quot;Bearer &lt;token&gt;&quot; } -Form @{ file = Get-Item .\myfile.bin; meta = Get-Item .\_meta.json } http://127.0.0.1:8787/v1/assets/upload</code></li>
+</ul>
+<h3 id="metadata">Metadata</h3>
+<ul>
+<li><code>GET /v1/assets/{asset_id}</code></li>
+</ul>
+<h3 id="download-streaming--resume">Download (streaming + resume)</h3>
+<ul>
+<li><code>GET /v1/assets/{asset_id}/download</code></li>
+<li>Supports <code>Range: bytes=...</code> (single range)</li>
+</ul>
+<p>Example (curl):</p>
+<ul>
+<li><code>curl -H &quot;Authorization: Bearer &lt;token&gt;&quot; -H &quot;Range: bytes=0-1048575&quot; -o first-1mb.bin http://127.0.0.1:8787/v1/assets/&lt;asset_id&gt;/download</code></li>
+</ul>
+<h2 id="sprint-9-jobs--structured-logs--bulk-import">Sprint 9: Jobs + structured logs + bulk import</h2>
+<p>Core exposes a minimal durable job model backed by SQLite:</p>
+<ul>
+<li>Jobs are created with status <code>queued</code> and executed in-process.</li>
+<li>Logs are append-only and stored in <code>job_logs</code> with timestamps and levels.</li>
+<li>Cancellation is cooperative: <code>POST /v1/jobs/{job_id}/cancel</code> requests cancellation and the worker stops at a safe point.</li>
+</ul>
+<h3 id="create-a-bulk-import-job">Create a bulk import job</h3>
+<ul>
+<li><code>POST /v1/assets/bulk-import</code>
+<ul>
+<li>Body: <code>{ &quot;path&quot;: &quot;...&quot;, &quot;recursive&quot;: true, &quot;kind&quot;: &quot;file&quot; }</code></li>
+<li>Response: <code>{ job_id, job_type, status, created_at }</code></li>
+</ul>
+</li>
+</ul>
+<p>Then poll:</p>
+<ul>
+<li><code>GET /v1/jobs/{job_id}</code> (status + progress)</li>
+<li><code>GET /v1/jobs/{job_id}/log?after_id=0</code> (logs; use <code>next_after_id</code> for incremental polling)</li>
+</ul>
+<h3 id="linkunlink-to-entities">Link/unlink to entities</h3>
+<ul>
+<li><code>POST /v1/entities/{entity_id}/assets/{asset_id}</code> (optional JSON body: <code>{ &quot;role&quot;: &quot;...&quot; }</code>)</li>
+<li><code>DELETE /v1/entities/{entity_id}/assets/{asset_id}</code></li>
+</ul>
+<h3 id="exiftool-metadata-extraction-best-effort">ExifTool metadata extraction (best-effort)</h3>
+<p>On upload, Core will attempt to run ExifTool in the background (if available) and store extracted JSON under the asset <code>meta.metadata[]</code> list.</p>
+<p>Configuration:</p>
+<ul>
+<li><code>${FACEFORGE_HOME}/config/core.json</code> → <code>tools.exiftool_enabled</code> (default <code>true</code>)</li>
+<li><code>${FACEFORGE_HOME}/config/core.json</code> → <code>tools.exiftool_path</code> (optional override)</li>
+</ul>
+<h2 id="sprint-7-descriptors--field-definitions-admin">Sprint 7: Descriptors + Field Definitions (admin)</h2>
+<p>FaceForge Core supports a small “flexible schema without migrations” layer:</p>
+<ul>
+<li>Admin creates <strong>field definitions</strong> (scope + key + type + validation rules)</li>
+<li>API accepts <strong>descriptors</strong> immediately once a field definition exists</li>
+<li>Invalid descriptor values are rejected with a clear <code>validation_error</code> response</li>
+</ul>
+<h3 id="field-definitions">Field definitions</h3>
+<ul>
+<li><code>GET /v1/admin/field-defs</code> (optional query: <code>scope=...</code>)</li>
+<li><code>POST /v1/admin/field-defs</code></li>
+<li><code>GET /v1/admin/field-defs/{field_def_id}</code></li>
+<li><code>PATCH /v1/admin/field-defs/{field_def_id}</code></li>
+<li><code>DELETE /v1/admin/field-defs/{field_def_id}</code> (soft delete)</li>
+</ul>
+<p>Field definition fields:</p>
+<ul>
+<li><code>scope</code> (string; default <code>descriptor</code>)</li>
+<li><code>field_key</code> (string)</li>
+<li><code>field_type</code> (string; supports <code>string</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>enum</code>, <code>json</code>)</li>
+<li><code>required</code> (bool)</li>
+<li><code>regex</code> (string; <code>string</code> only)</li>
+<li><code>options</code> (object; for <code>enum</code>, use <code>{ &quot;options&quot;: [&quot;a&quot;, &quot;b&quot;] }</code>)</li>
+</ul>
+<h3 id="descriptors">Descriptors</h3>
+<ul>
+<li><code>GET /v1/entities/{entity_id}/descriptors</code></li>
+<li><code>POST /v1/entities/{entity_id}/descriptors</code></li>
+<li><code>PATCH /v1/descriptors/{descriptor_id}</code></li>
+<li><code>DELETE /v1/descriptors/{descriptor_id}</code> (soft delete)</li>
+</ul>
+<p>Descriptors are validated against the matching field definition (<code>scope</code> + <code>field_key</code>).</p>
+<p>Bundling/embedding requirement:</p>
+<ul>
+<li>Core does <strong>not</strong> search your system <code>PATH</code> for <code>exiftool</code>.</li>
+<li>If <code>tools.exiftool_path</code> is not set, Core only checks bundled locations under <code>${FACEFORGE_HOME}/tools</code>, using these candidate paths:
+<ul>
+<li>Windows: <code>${FACEFORGE_HOME}/tools/exiftool.exe</code> or <code>${FACEFORGE_HOME}/tools/exiftool/exiftool.exe</code></li>
+<li>macOS/Linux: <code>${FACEFORGE_HOME}/tools/exiftool</code> or <code>${FACEFORGE_HOME}/tools/exiftool/exiftool</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="sprint-6-seaweedfs-provider--default-local-s3-wiring">Sprint 6: SeaweedFS provider + “default local S3” wiring</h2>
+<p>Core can optionally store asset bytes in an <strong>S3-compatible backend</strong> (intended: SeaweedFS S3 endpoint), while still supporting filesystem-only mode.</p>
+<h3 id="storage-routing-upload-time">Storage routing (upload-time)</h3>
+<p>Uploads are routed based on:</p>
+<ul>
+<li><code>storage.routing.kind_map</code> (highest priority)</li>
+<li><code>storage.routing.s3_min_size_bytes</code> (optional)</li>
+<li><code>storage.routing.default_provider</code></li>
+</ul>
+<p>If routing selects <code>s3</code> but the endpoint is not reachable, Core <strong>falls back to filesystem</strong> automatically.</p>
+<h3 id="s3-configuration">S3 configuration</h3>
+<p>Set these in <code>${FACEFORGE_HOME}/config/core.json</code>:</p>
+<ul>
+<li><code>storage.s3.enabled</code>: enable S3 provider</li>
+<li><code>storage.s3.endpoint_url</code>: optional; if omitted, Core derives from <code>network.bind_host</code> + <code>network.seaweed_s3_port</code></li>
+<li><code>storage.s3.access_key</code> / <code>storage.s3.secret_key</code>: credentials for the endpoint</li>
+<li><code>storage.s3.bucket</code>: default bucket name (Core will create it best-effort)</li>
+</ul>
+<h3 id="seaweedfs-managed-binary-contract-optional">SeaweedFS “managed binary” contract (optional)</h3>
+<p>Desktop will orchestrate SeaweedFS later, but Core can optionally start it for dev/testing if you set <code>seaweed.enabled=true</code> and provide the <code>weed</code> binary under <code>${FACEFORGE_HOME}/tools</code>.</p>
+<p>Binary resolution order:</p>
+<ul>
+<li><code>seaweed.weed_path</code> (absolute or relative to <code>${FACEFORGE_HOME}/tools</code>)</li>
+<li>Otherwise, Core checks:
+<ul>
+<li>Windows: <code>${FACEFORGE_HOME}/tools/weed.exe</code>, <code>${FACEFORGE_HOME}/tools/seaweedfs/weed.exe</code>, <code>${FACEFORGE_HOME}/tools/seaweed/weed.exe</code></li>
+<li>Non-Windows: analogous paths without <code>.exe</code></li>
+</ul>
+</li>
+</ul>
+<p>Core-managed runner:</p>
+<ul>
+<li><code>weed server -s3 ...</code> with ports from <code>seaweed.*</code> (and/or <code>network.seaweed_s3_port</code>)</li>
+<li>Data dir defaults to <code>${FACEFORGE_HOME}/s3/seaweedfs</code> (override via <code>seaweed.data_dir</code>)</li>
+</ul>
+<p>Dev helper CLI:</p>
+<ul>
+<li><code>.\.venv\Scripts\python.exe -m faceforge_core.internal.seaweedfs_cli --home &lt;FACEFORGE_HOME&gt; --health</code></li>
+<li><code>.\.venv\Scripts\python.exe -m faceforge_core.internal.seaweedfs_cli --home &lt;FACEFORGE_HOME&gt; --run</code></li>
+<li>If <code>tools.exiftool_path</code> is a relative path, it is resolved relative to <code>${FACEFORGE_HOME}/tools</code>.</li>
+</ul>
+<p>Core skips ExifTool processing for filenames matching the exclusions defined in core/src/faceforge_core/ingest/exiftool.py.</p>
+
+</body>
+</html>
