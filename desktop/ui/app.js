@@ -245,8 +245,13 @@ window.addEventListener('DOMContentLoaded', () => {
     async function doSave(home, corePort, seaweedEnabled, seaweedPort) {
         try {
             await invoke('save_wizard_settings', {
-                home, corePort, seaweedEnabled, seaweedPort,
-                seaweedWeedPath: null // not exposed in UI yet
+                payload: {
+                    faceforge_home: home,
+                    core_port: corePort,
+                    seaweed_enabled: seaweedEnabled,
+                    seaweed_s3_port: seaweedPort,
+                    seaweed_weed_path: null
+                }
             });
             await refreshState();
             setView('status');
