@@ -11,6 +11,9 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+# This build script is expected to run non-interactively (CI and local dev).
+# Disable confirmation prompts triggered by ShouldProcess/ConfirmImpact.
+$ConfirmPreference = 'None'
 
 . (Join-Path $PSScriptRoot '_ensure-venv.ps1')
 
