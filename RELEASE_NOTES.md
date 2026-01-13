@@ -1,3 +1,20 @@
+# FaceForge v0.1.8 Release Notes
+
+This is a patch release focused on Desktop orchestration quality-of-life and maintainer/developer workflow polish.
+
+## Summary
+- **Desktop orchestration**: Adds auto-restart behavior and a “minimize on exit” setting, with accompanying UI updates.
+- **Build & scripts**: Improves PowerShell scripts with richer comment-based help and auto-generated scripts documentation.
+- **Versioning hygiene**: Keeps version metadata aligned across manifests and lockfiles for repeatable builds.
+
+## Upgrade Notes
+- No manual configuration changes are expected for this update.
+
+## Known Issues
+- No new issues have been identified in this release. If you hit something, please file a GitHub issue with logs from `FACEFORGE_HOME/logs/`.
+
+---
+
 # FaceForge v0.1.7 Release Notes
 
 This is a patch release focused on documentation/packaging polish and keeping version metadata consistent across Core and Desktop.

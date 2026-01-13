@@ -7,7 +7,10 @@
       - core/pyproject.toml
       - core/src/faceforge_core/app.py
       - desktop/package.json
+    - desktop/package-lock.json
+    - desktop/node_modules/.package-lock.json
       - desktop/src-tauri/Cargo.toml
+    - desktop/src-tauri/Cargo.lock
       - desktop/src-tauri/tauri.conf.json
 
     The script supports -WhatIf / -Confirm for safe previews.
@@ -81,9 +84,21 @@ Update-FileContent -Path "core/pyproject.toml" -Regex '(?m)^version = "\d+\.\d+\
 # "version": "0.1.0"
 Update-FileContent -Path "desktop/package.json" -Regex '(?m)"version": "\d+\.\d+\.\d+"' -Replacement "`"version`": `"$Version`""
 
+# desktop/package-lock.json (tracked for reproducible builds)
+# Updates only FaceForge's own version fields (not dependency versions).
+Update-FileContent -Path "desktop/package-lock.json" -Regex '(?ms)\A(\{\s*\r?\n\s*"name"\s*:\s*"faceforge-desktop"\s*,\s*\r?\n\s*"version"\s*:\s*")\d+\.\d+\.\d+(".*)' -Replacement "`$1$Version`$2"
+Update-FileContent -Path "desktop/package-lock.json" -Regex '(?ms)("packages"\s*:\s*\{\s*\r?\n\s*""\s*:\s*\{\s*\r?\n\s*"name"\s*:\s*"faceforge-desktop"\s*,\s*\r?\n\s*"version"\s*:\s*")\d+\.\d+\.\d+(".*)' -Replacement "`$1$Version`$2"
+
+# desktop/node_modules/.package-lock.json (tracked in repo)
+Update-FileContent -Path "desktop/node_modules/.package-lock.json" -Regex '(?ms)\A(\{\s*\r?\n\s*"name"\s*:\s*"faceforge-desktop"\s*,\s*\r?\n\s*"version"\s*:\s*")\d+\.\d+\.\d+(".*)' -Replacement "`$1$Version`$2"
+
 # desktop/src-tauri/Cargo.toml
 # version = "0.1.0"
 Update-FileContent -Path "desktop/src-tauri/Cargo.toml" -Regex '(?m)^version = "\d+\.\d+\.\d+"' -Replacement "version = `"$Version`""
+
+# desktop/src-tauri/Cargo.lock
+# Update only the local faceforge_desktop package entry.
+Update-FileContent -Path "desktop/src-tauri/Cargo.lock" -Regex '(?ms)(\[\[package\]\]\s*\r?\nname = "faceforge_desktop"\s*\r?\nversion = ")\d+\.\d+\.\d+(")' -Replacement "`$1$Version`$2"
 
 # desktop/src-tauri/tauri.conf.json
 # "version": "0.1.0"
