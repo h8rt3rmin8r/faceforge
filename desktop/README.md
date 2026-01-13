@@ -1,4 +1,4 @@
-# FaceForge Desktop
+# FaceForge Desktop (Sprint 12)
 
 This folder contains the **Desktop shell MVP** (Tauri v2) that makes FaceForge feel like a real app:
 
@@ -18,8 +18,8 @@ From the repo root:
 
 Notes:
 
-- Desktop launches Core using the repo-local `.venv\\Scripts\\python.exe` if present.
-- Desktop sets `PYTHONPATH` to `core\\src` so Core can run without `pip install -e`.
+- Desktop launches Core using the repo-local `.venv\Scripts\python.exe` if present.
+- Desktop sets `PYTHONPATH` to `core\src` so Core can run without `pip install -e`.
 
 ## Settings + files
 
@@ -31,7 +31,7 @@ On first run, Desktop asks for:
 
 Desktop writes:
 
-- `${FACEFORGE_HOME}/run/ports.json`
+- `${FACEFORGE_HOME}/config/ports.json`
 - `${FACEFORGE_HOME}/config/core.json` (including `auth.install_token`)
 
 Desktop also stores a tiny bootstrap pointer in the OS app config directory so it can find the chosen `FACEFORGE_HOME` on subsequent runs.

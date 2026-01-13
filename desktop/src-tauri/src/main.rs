@@ -182,7 +182,6 @@ async fn save_wizard_settings(
 
     // Ensure FACEFORGE_HOME layout exists; Core will also do this.
     fs::create_dir_all(payload.faceforge_home.join("config")).map_err(|e| e.to_string())?;
-    fs::create_dir_all(payload.faceforge_home.join("run")).map_err(|e| e.to_string())?;
     fs::create_dir_all(payload.faceforge_home.join("tmp")).map_err(|e| e.to_string())?;
 
     let token = settings::write_core_json(&payload.faceforge_home, &payload)

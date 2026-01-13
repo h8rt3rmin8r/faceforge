@@ -368,8 +368,8 @@ code {
 <h1 id="faceforge-core--project-design-specification">FaceForge Core — Project Design Specification</h1>
 <pre class="hljs"><code><div>Document Status: Design &amp; Ideation
 Scope: FaceForge Core
-Last Updated: 2026-01-09
-Version: v0.2.9
+Last Updated: 2026-01-13
+Version: v0.2.10
 </div></code></pre>
 <h2 id="1-source-of-truth">1. Source of Truth</h2>
 <p>This document is the authoritative design specification for <strong>FaceForge Core</strong>: what it must provide, what it intentionally avoids, and the interfaces that future work will build on.</p>
@@ -448,9 +448,12 @@ The Core is designed to serve downstream tools via a stable and well documented 
 <li>Stable, secure download URLs for assets (including large artifacts such as LoRAs).</li>
 <li>Streaming downloads with HTTP range support (resume-friendly).</li>
 </ul>
-<blockquote>
-<p>TO-DO: First-run storage UX (wizard choice vs defaults) and the initial set of supported remote endpoints.</p>
-</blockquote>
+<p>First-run storage UX is desktop-managed:</p>
+<ul>
+<li>FaceForge Desktop prompts for <code>FACEFORGE_HOME</code> (data directory) and ports on first run.</li>
+<li>Core always treats <code>FACEFORGE_HOME</code> as the data root and creates its required subfolders under it.</li>
+</ul>
+<p>Remote S3 endpoints remain a supported <em>design target</em>, but the initial list of “blessed” providers and setup UX can evolve over time.</p>
 <h3 id="33-jobs--logging">3.3 Jobs &amp; Logging</h3>
 <ul>
 <li>Long-running operations are tracked as <strong>jobs</strong> in the database.</li>
@@ -772,44 +775,64 @@ Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and rest
 </blockquote>
 <h2 id="10-storage--path-configuration">10. Storage &amp; Path Configuration</h2>
 <p>All persistent data is stored in one or more user-controlled, user-defined directories.</p>
-<p>A system-wide environment variable controls where the application lives. The primary location where the application binary (FaceForge.exe) and required static assets reside is designated by <code>FACEFORGE_HOME</code>:</p>
+<p><code>FACEFORGE_HOME</code> is the <strong>data directory root</strong> for FaceForge.</p>
 <ul>
-<li><code>$env:FACEFORGE_HOME = 'C:\FaceForge'</code> (Windows example)</li>
-<li><code>FACEFORGE_HOME=/media/faceforge</code> (Linux example)</li>
-</ul>
-<p>Inside that directory, FaceForge maintains several subdirectories.</p>
+<li>In the <strong>Desktop</strong> distribution, the application binaries live in the installer-managed install location.</li>
+<li>Desktop launches Core with <code>FACEFORGE_HOME</code> set to the user-selected path.</li>
+<li>When running Core headlessly (advanced usage), <code>FACEFORGE_HOME</code> can be supplied via environment variable.</li>
+<li>If <code>FACEFORGE_HOME</code> is not set, Core uses a deterministic per-user OS data directory (never the process working directory):
 <ul>
-<li><code>${FACEFORGE_HOME}/db</code>: Metadata database (configurable)
-<ul>
-<li>The SQLite database file that lives here is named: <code>faceforge.db</code></li>
-</ul>
-</li>
-<li><code>${FACEFORGE_HOME}/s3</code>: S3 Object Storage (configurable)
-<ul>
-<li>SeaweedFS volume data lives here</li>
-<li>This can be bypassed by configuring a remote S3 endpoint in the application config</li>
+<li>Windows: <code>%LOCALAPPDATA%\\FaceForge</code></li>
+<li>macOS: <code>~/Library/Application Support/FaceForge</code></li>
+<li>Linux: <code>$XDG_DATA_HOME/faceforge</code> (or <code>~/.local/share/faceforge</code>)</li>
 </ul>
 </li>
-<li><code>${FACEFORGE_HOME}/logs</code>: System Logs (configurable)</li>
-<li><code>${FACEFORGE_HOME}/backups</code>: Backups (configurable)</li>
-<li><code>${FACEFORGE_HOME}/run</code>: Application runtime dependencies (NOT configurable)
+</ul>
+<h3 id="101-required-subfolders-created-by-core">10.1 Required subfolders (created by Core)</h3>
+<p>On startup, Core ensures these subfolders exist under <code>FACEFORGE_HOME</code>:</p>
 <ul>
-<li>Temporary files, PID files, port files</li>
-<li>Python venv (if applicable)</li>
-<li>Additional required binaries, etc.</li>
+<li><code>${FACEFORGE_HOME}/db</code> (SQLite metadata database directory)
+<ul>
+<li>Default DB file: <code>${FACEFORGE_HOME}/db/core.sqlite3</code></li>
 </ul>
 </li>
-<li><code>${FACEFORGE_HOME}/config</code>: Core configuration files (NOT configurable)
+<li><code>${FACEFORGE_HOME}/assets</code> (filesystem-backed asset storage)
 <ul>
-<li>Core config files (YAML/JSON)</li>
+<li>Content-addressed layout for the filesystem provider</li>
 </ul>
 </li>
-<li><code>${FACEFORGE_HOME}/plugins</code>: Plugins (configurable)</li>
+<li><code>${FACEFORGE_HOME}/s3</code> (local S3/SeaweedFS data directory)
+<ul>
+<li>When SeaweedFS is enabled, its default data dir is <code>${FACEFORGE_HOME}/s3/seaweedfs</code></li>
 </ul>
-<p>The items marked &quot;configurable&quot; can be relocated by the user via the application settings UI or by editing the configuration files directly while the application is not running.</p>
-<blockquote>
-<p>TO-DO: Define the config file's internal structure, format (JSON suggested), and name.</p>
-</blockquote>
+</li>
+<li><code>${FACEFORGE_HOME}/logs</code> (log files)</li>
+<li><code>${FACEFORGE_HOME}/tmp</code> (temporary files)</li>
+<li><code>${FACEFORGE_HOME}/config</code> (configuration files)
+<ul>
+<li><code>${FACEFORGE_HOME}/config/core.json</code> (Core configuration)</li>
+<li><code>${FACEFORGE_HOME}/config/ports.json</code> (launcher-selected ports)</li>
+</ul>
+</li>
+<li><code>${FACEFORGE_HOME}/tools</code> (user-managed tool overrides, e.g. ExifTool)</li>
+<li><code>${FACEFORGE_HOME}/plugins</code> (plugin folders containing <code>plugin.json</code> manifests)</li>
+</ul>
+<h3 id="102-configurable-vs-non-configurable-paths">10.2 Configurable vs non-configurable paths</h3>
+<p>Core supports path overrides via <code>${FACEFORGE_HOME}/config/core.json</code>:</p>
+<ul>
+<li>Configurable: <code>paths.db_dir</code>, <code>paths.s3_dir</code>, <code>paths.logs_dir</code>, <code>paths.plugins_dir</code> (absolute or relative-to-<code>FACEFORGE_HOME</code>).</li>
+<li>Intentionally not configurable: <code>config/</code> and <code>tmp/</code>.</li>
+</ul>
+<h3 id="103-core-configuration-file-current-shape">10.3 Core configuration file (current shape)</h3>
+<p>Core uses JSON configuration at <code>${FACEFORGE_HOME}/config/core.json</code>. Current shape (v1):</p>
+<ul>
+<li><code>auth.install_token</code>: per-install token required for non-health endpoints</li>
+<li><code>network.bind_host</code>, <code>network.core_port</code>, <code>network.seaweed_s3_port</code></li>
+<li><code>paths.*</code> (optional path overrides)</li>
+<li><code>tools.exiftool_enabled</code>, <code>tools.exiftool_path</code> (optional override)</li>
+<li><code>storage.routing</code> + <code>storage.s3</code> (routing and S3 endpoint credentials)</li>
+<li><code>seaweed.*</code> (optional Core-managed SeaweedFS; Desktop typically orchestrates SeaweedFS)</li>
+</ul>
 <h2 id="11-frontend-requirements-core-ui--plugin-ui">11. Frontend Requirements (Core UI + plugin UI)</h2>
 <h3 id="111-core-ui-coverage">11.1 Core UI Coverage</h3>
 <p>The Core UI covers all Core features:</p>
@@ -838,9 +861,11 @@ Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and rest
 </ul>
 </li>
 </ul>
-<blockquote>
-<p>TO-DO: SPA vs server-rendered UI is an implementation choice. The hard requirement is that the UI is served by the Core service and does not require NodeJS at runtime.</p>
-</blockquote>
+<p>UI delivery is intentionally runtime-light:</p>
+<ul>
+<li>The Core service serves the UI and does not require NodeJS at runtime.</li>
+<li>Current direction: server-rendered HTML (with minimal JS where needed) so the UI can ship inside Core without a runtime build chain.</li>
+</ul>
 <h2 id="12-packaging-and-%22double-click-to-run%22">12. Packaging and &quot;Double-Click to Run&quot;</h2>
 <p>This section defines the desired end-user experience for running FaceForge Core locally and the specific design decisions intended to reduce friction in that process as much as possible.</p>
 <h3 id="121-network-ports">12.1 Network Ports</h3>
@@ -851,7 +876,8 @@ Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and rest
 <li>SeaweedFS S3-compatible port (default port: 43211)</li>
 </ul>
 </li>
-<li>Launcher supports auto-picking a free port and writing the chosen port to: <code>${FACEFORGE_HOME}/runtime/ports.json</code></li>
+<li>Launcher supports auto-picking a free port and writing the chosen port to: <code>${FACEFORGE_HOME}/config/ports.json</code></li>
+<li>Core may also support a legacy compatibility location: <code>${FACEFORGE_HOME}/runtime/ports.json</code></li>
 </ul>
 <h3 id="122-desktop-launcher-experience-cross-platform">12.2 Desktop Launcher Experience (Cross-Platform)</h3>
 <p>A desktop launcher is a first-class deliverable.</p>

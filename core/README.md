@@ -28,7 +28,10 @@ Core is **local-first** and writes all persistent/runtime files under `FACEFORGE
 ### FACEFORGE_HOME
 
 - If `FACEFORGE_HOME` is set, Core uses that directory.
-- If it is not set, Core defaults to a local dev folder: `./.faceforge` (relative to the working directory).
+- If it is not set, Core defaults to a per-user OS data directory (never relative to the working directory):
+	- Windows: `%LOCALAPPDATA%\\FaceForge`
+	- macOS: `~/Library/Application Support/FaceForge`
+	- Linux: `$XDG_DATA_HOME/faceforge` (or `~/.local/share/faceforge`)
 
 ### Required subfolders
 

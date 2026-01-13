@@ -3,7 +3,7 @@
 This is a patch release focused on stability and operational polish across Core and Desktop. It includes improvements to how the local filesystem layout is structured, reduces logging edge-cases during reload, and tightens a couple of first-run/wizard flows.
 
 ## Summary
-- **Core layout**: Introduces dedicated runtime and tools directories to keep the FaceForge home clean and predictable.
+- **Core layout**: Uses a deterministic, OS-appropriate default for `FACEFORGE_HOME` (never the current working directory) and keeps the FaceForge home clean and predictable.
 - **Logging**: Refines logging setup to reduce duplicate-handler behavior and keep rotation reliable.
 - **Desktop wizard/UI**: Makes first-run settings persistence more robust and aligns the settings payload structure.
 - **Automation**: Improves non-interactive build behavior for CI and scripted usage.
@@ -11,7 +11,7 @@ This is a patch release focused on stability and operational polish across Core 
 ## What Changed
 
 ### Core
-- **New FaceForgePaths fields**: Adds `run_dir` and `tools_dir` and threads them through layout/config/ports handling.
+- **FaceForge home + layout**: Ensures `FACEFORGE_HOME` resolution never depends on the process working directory (e.g. running an installer from Downloads).
 - **Logging initialization cleanup**: Refactors the log handler setup to avoid duplicate handlers on reload, and keeps output consistent.
 
 ### Desktop
@@ -23,7 +23,7 @@ This is a patch release focused on stability and operational polish across Core 
 - **Dependency metadata hygiene**: Keeps Tauri desktop lockfile version metadata consistent.
 
 ## Upgrade Notes
-- On next start, Core will create new subfolders under `FACEFORGE_HOME` (notably `run/` and `tools/`) if they do not already exist.
+- On next start, Core will create any missing subfolders under `FACEFORGE_HOME` (notably `tmp/` and `tools/`) if they do not already exist.
 - No manual configuration changes are expected for this update.
 
 ## Known Issues

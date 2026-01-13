@@ -174,7 +174,7 @@ def ensure_install_token(paths: FaceForgePaths, config: CoreConfig) -> CoreConfi
 def resolve_configured_paths(paths: FaceForgePaths, config: CoreConfig) -> FaceForgePaths:
     """Apply user-configurable path overrides from config.
 
-    Note: per spec, run/ and config/ are not configurable.
+    Note: config/ is intentionally not configurable.
     """
 
     def _resolve_dir(raw: str | None, default: Path) -> Path:
@@ -202,7 +202,6 @@ def resolve_configured_paths(paths: FaceForgePaths, config: CoreConfig) -> FaceF
         s3_dir=s3_dir,
         assets_dir=paths.assets_dir,
         logs_dir=logs_dir,
-        run_dir=paths.run_dir,
         config_dir=paths.config_dir,
         tools_dir=paths.tools_dir,
         plugins_dir=plugins_dir,

@@ -387,7 +387,13 @@ code {
 <h3 id="faceforgehome">FACEFORGE_HOME</h3>
 <ul>
 <li>If <code>FACEFORGE_HOME</code> is set, Core uses that directory.</li>
-<li>If it is not set, Core defaults to a local dev folder: <code>./.faceforge</code> (relative to the working directory).</li>
+<li>If it is not set, Core defaults to a per-user OS data directory (never relative to the working directory):
+<ul>
+<li>Windows: <code>%LOCALAPPDATA%\\FaceForge</code></li>
+<li>macOS: <code>~/Library/Application Support/FaceForge</code></li>
+<li>Linux: <code>$XDG_DATA_HOME/faceforge</code> (or <code>~/.local/share/faceforge</code>)</li>
+</ul>
+</li>
 </ul>
 <h3 id="required-subfolders">Required subfolders</h3>
 <p>On startup, Core ensures these directories exist:</p>
@@ -396,7 +402,7 @@ code {
 <li><code>${FACEFORGE_HOME}/s3</code></li>
 <li><code>${FACEFORGE_HOME}/assets</code></li>
 <li><code>${FACEFORGE_HOME}/logs</code></li>
-<li><code>${FACEFORGE_HOME}/run</code></li>
+<li><code>${FACEFORGE_HOME}/tmp</code></li>
 <li><code>${FACEFORGE_HOME}/config</code></li>
 <li><code>${FACEFORGE_HOME}/tools</code></li>
 <li><code>${FACEFORGE_HOME}/plugins</code></li>
@@ -459,12 +465,12 @@ code {
 <p>Notes:</p>
 <ul>
 <li><code>paths.*</code> may be absolute paths or paths relative to <code>FACEFORGE_HOME</code>.</li>
-<li><code>run/</code> and <code>config/</code> are intentionally <strong>not configurable</strong>.</li>
+<li><code>tmp/</code> and <code>config/</code> are intentionally <strong>not configurable</strong>.</li>
 </ul>
 <h3 id="runtime-ports-file">Runtime ports file</h3>
 <p>Desktop (or other launcher) may write the selected ports to:</p>
 <ul>
-<li><code>${FACEFORGE_HOME}/run/ports.json</code></li>
+<li><code>${FACEFORGE_HOME}/config/ports.json</code></li>
 </ul>
 <p>Format:</p>
 <pre class="hljs"><code><div>{
@@ -480,7 +486,7 @@ code {
 <p>FaceForge Desktop (Tauri) is responsible for the first-run wizard and process orchestration.</p>
 <p>Desktop writes (or updates):</p>
 <ul>
-<li><code>${FACEFORGE_HOME}/run/ports.json</code> (selected ports)</li>
+<li><code>${FACEFORGE_HOME}/config/ports.json</code> (selected ports)</li>
 <li><code>${FACEFORGE_HOME}/config/core.json</code> (network + auth token; optional S3 config)</li>
 </ul>
 <p>Desktop then starts Core with:</p>

@@ -382,7 +382,6 @@ code {
 <p>If you’re arriving here to understand the project, start with:</p>
 <ul>
 <li>Design spec: <a href="docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.html">docs/FaceForge Core - Project Design Specification - v0.2.9.html</a></li>
-<li>Roadmap / implementation sequence: <a href="docs/FaceForge%20Core%20-%20MVP%20Sprint%20Sequence.html">docs/FaceForge Core - MVP Sprint Sequence.html</a></li>
 </ul>
 <h2 id="what-faceforge-is-and-isnt">What FaceForge is (and isn’t)</h2>
 <p><strong>FaceForge is:</strong></p>
@@ -434,7 +433,7 @@ code {
 <ul>
 <li>Network defaults: bind to <code>127.0.0.1</code>; require a per-install token for non-health endpoints.</li>
 <li>API routing: versioned under <code>/v1/...</code> with OpenAPI always kept accurate.</li>
-<li>Local-first storage contract: <code>FACEFORGE_HOME</code> is the root data directory; Core creates subfolders under it (e.g. <code>db/</code>, <code>assets/</code>, <code>logs/</code>, <code>config/</code>, <code>plugins/</code>).</li>
+<li>Local-first storage contract: <code>FACEFORGE_HOME</code> is the root data directory; Core creates these subfolders under it: <code>db/</code>, <code>s3/</code>, <code>assets/</code>, <code>logs/</code>, <code>tmp/</code>, <code>config/</code>, <code>tools/</code>, <code>plugins/</code>.</li>
 <li>Asset downloads: streaming-first, HTTP range support (resume-friendly), no opaque container volumes.</li>
 </ul>
 <h3 id="repository-layout">Repository layout</h3>
@@ -731,13 +730,6 @@ faceforge/
 <li><a href="docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.html">HTML</a></li>
 <li><a href="docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.md">Markdown</a></li>
 <li><a href="docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.pdf">PDF</a></li>
-</ul>
-</li>
-<li>Follow the MVP sprint sequence to implement in small, shippable increments:
-<ul>
-<li><a href="docs/FaceForge%20Core%20-%20MVP%20Sprint%20Sequence.html">HTML</a></li>
-<li><a href="docs/FaceForge%20Core%20-%20MVP%20Sprint%20Sequence.md">Markdown</a></li>
-<li><a href="docs/FaceForge%20Core%20-%20MVP%20Sprint%20Sequence.pdf">PDF</a></li>
 </ul>
 </li>
 <li>For implementers using AI assistance (e.g. GitHub Copilot), follow these guidelines

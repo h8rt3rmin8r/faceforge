@@ -50,5 +50,4 @@ def test_resolve_configured_paths_creates_overrides(tmp_path: Path) -> None:
     assert resolved.logs_dir == (tmp_path / "custom_logs").resolve()
 
     # Non-configurable dirs remain under home.
-    assert resolved.run_dir == (tmp_path / "run").resolve()
     assert resolved.config_dir == (tmp_path / "config").resolve()

@@ -145,6 +145,7 @@ impl Orchestrator {
             .arg("-filer.port=8888")
             .arg("-s3")
             .arg(format!("-s3.port={}", s3_port))
+            .current_dir(&settings.faceforge_home)
             .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::null());
@@ -207,7 +208,8 @@ impl Orchestrator {
                 // Avoid relying on editable install in dev: point PYTHONPATH at core/src.
                 .env("PYTHONPATH", self.repo_root.join("core").join("src"));
         } else {
-            // In prod, just execute.
+            // In prod, never inherit an arbitrary CWD (e.g. installer launched from Downloads).
+            cmd.current_dir(&settings.faceforge_home);
         }
 
         cmd.args(args)
