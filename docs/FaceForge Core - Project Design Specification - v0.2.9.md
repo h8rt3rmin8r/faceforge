@@ -517,6 +517,200 @@ Documentation is written for non-engineers first and includes screenshots of fir
 
 > TO-DO: Update strategy for the Core service, SeaweedFS, and plugin bundles.
 
+### 12.5 Dev Bundling (Standard Commands + Outputs)
+
+This section standardizes how developers produce **bundled artifacts** locally for testing and validation.
+
+**Scope:** “bundling” here means producing:
+
+- a frozen **Core** executable via PyInstaller
+- a bundled **Desktop** installer (Windows MSI) via Tauri
+
+**Prerequisites (Windows):**
+
+- A usable system Python (recommended: Python 3.12 with the `py` launcher)
+- Rust toolchain (stable)
+- Tauri CLI (`cargo install tauri-cli --locked`)
+- WiX toolset (required for MSI builds)
+
+> Note: All repo scripts are designed to run with the repo-local `.venv` and will create it automatically if missing.
+
+#### 12.5.0 macOS/Linux note (current state)
+
+- The standardized PowerShell scripts under `scripts/` are currently **Windows-first** (they assume a Windows-style `.venv` layout in some places).
+- macOS/Linux developers can still bundle the Core binary using PyInstaller, but should run the equivalent commands manually (below).
+- Desktop installer outputs on macOS/Linux are produced by `cargo tauri build`, but release-grade “Core sidecar bundling” is currently standardized only for the Windows MSI pipeline.
+
+**Bundle Core manually (macOS/Linux):**
+
+```bash
+python3.12 -m venv .venv
+./.venv/bin/python -m pip install --upgrade pip
+./.venv/bin/python -m pip install -e ./core
+./.venv/bin/python -m pip install pyinstaller
+
+cd core
+../.venv/bin/python -m PyInstaller pyinstaller.spec --noconfirm --distpath dist --workpath build
+```
+
+**Expected outputs (macOS/Linux):**
+
+- `core/dist/` contains the built Core executable (typically `faceforge-core` without a `.exe` extension).
+- `core/build/` contains PyInstaller work files.
+
+**Build Desktop installers (macOS/Linux):**
+
+```bash
+cd desktop/src-tauri
+cargo tauri build
+```
+
+**Expected outputs (macOS/Linux):**
+
+- `desktop/src-tauri/target/release/bundle/` contains OS-specific installer artifacts (subfolder names and file extensions vary by OS).
+
+#### 12.5.1 Bundle Core (PyInstaller)
+
+From the repo root:
+
+```powershell
+./scripts/check-core.ps1
+./scripts/build-core.ps1
+```
+
+**What it does:**
+
+- Ensures `.venv` exists (creates it if needed)
+- Installs Core into `.venv` (editable) and installs PyInstaller
+- Runs `PyInstaller` using `core/pyinstaller.spec`
+- Normalizes output so downstream tooling can rely on a stable path/name
+
+**Primary outputs:**
+
+- `core/dist/faceforge-core.exe` (stable path; preferred output for all callers)
+
+**Secondary outputs (implementation detail):**
+
+- `core/build/` (PyInstaller workdir)
+- `core/dist-*` and/or `core/build-*` may be created only if you opt in to timestamp fallback
+
+**Common options:**
+
+- `./scripts/build-core.ps1 -KeepBuildHistory` keeps old `build-*`/`dist-*` folders.
+- `./scripts/build-core.ps1 -AllowTimestampFallback` uses `dist-YYYYMMDD-HHMMSS` if `core/dist` is locked.
+
+#### 12.5.2 Bundle Desktop (Windows MSI via Tauri)
+
+This creates an installer that bundles the desktop shell plus the Core binary as a sidecar.
+
+1) Build Core (produces `core/dist/faceforge-core.exe`):
+
+```powershell
+./scripts/build-core.ps1
+```
+
+2) Stage the Core binary into Desktop’s Tauri bundle inputs:
+
+```powershell
+New-Item -ItemType Directory -Force -Path 'desktop/src-tauri/binaries' | Out-Null
+Copy-Item -Force 'core/dist/faceforge-core.exe' 'desktop/src-tauri/binaries/faceforge-core-x86_64-pc-windows-msvc.exe'
+```
+
+3) Build the Desktop installer:
+
+```powershell
+Push-Location 'desktop/src-tauri'
+cargo tauri build
+Pop-Location
+```
+
+**Primary outputs (Windows):**
+
+- `desktop/src-tauri/target/release/bundle/msi/*.msi`
+
+> Note: The exact MSI filename includes the app name and version; treat `*.msi` under that folder as the output.
+
+### 12.6 New Release (Standard Process + CI Sequence)
+
+This section standardizes how new releases are cut and what happens inside GitHub Actions when release assets are produced.
+
+#### 12.6.1 Local maintainer steps (version bump → tag → release)
+
+1) Ensure your working tree is clean and CI is green locally:
+
+```powershell
+./scripts/check-core.ps1
+```
+
+2) Choose the new version number (SemVer: `X.Y.Z`).
+
+3) Bump versions across Core + Desktop in one go:
+
+```powershell
+./scripts/set-version.ps1 -Version X.Y.Z
+```
+
+This updates, at minimum:
+
+- `core/pyproject.toml`
+- `core/src/faceforge_core/app.py`
+- `desktop/package.json`
+- `desktop/src-tauri/Cargo.toml`
+- `desktop/src-tauri/tauri.conf.json`
+
+4) Update human-facing release notes (as appropriate):
+
+- `RELEASE_NOTES.md`
+
+5) Commit the version bump + notes:
+
+```powershell
+git add -A
+git commit -m "chore(release): vX.Y.Z"
+```
+
+6) Create and push the tag (release automation expects a `v`-prefixed tag):
+
+```powershell
+git tag vX.Y.Z
+git push origin HEAD
+git push origin vX.Y.Z
+```
+
+7) Create a GitHub Release for tag `vX.Y.Z` and **publish** it.
+
+> Alternative: you may run the release workflow manually via `workflow_dispatch` and provide `tag: vX.Y.Z`.
+
+#### 12.6.2 What GitHub Actions does (release-core workflow)
+
+When a release is published (or the workflow is manually dispatched), GitHub Actions runs `.github/workflows/release-core.yml`.
+
+**Sequence (Windows release assets job):**
+
+1) Check out the repository at the release tag.
+2) Ensure `core/pyinstaller.spec` exists (for legacy tags it may be fetched from the default branch).
+3) Sync version metadata from the tag (best-effort safety net).
+4) Set up Python 3.12.
+5) Set up Rust toolchain.
+6) Install Tauri CLI (`cargo install tauri-cli --locked`).
+7) Install WiX toolset (MSI tooling).
+8) Build the Core executable by running `./scripts/build-core.ps1`.
+9) Collect/normalize Core output into `core/dist/faceforge-core.exe`.
+10) Stage Core into Desktop sidecar binaries:
+  - `desktop/src-tauri/binaries/faceforge-core-x86_64-pc-windows-msvc.exe`
+11) Build the Desktop MSI via `cargo tauri build`.
+12) Collect release artifacts into `artifacts/release/`:
+  - Desktop `*.msi`
+  - `faceforge-core.exe`
+  - `SHA256SUMS.txt` (SHA-256 hashes of the files above)
+13) Upload these files to the GitHub Release as downloadable assets.
+
+**Published release assets (expected):**
+
+- `faceforge-core.exe`
+- `FaceForge*.msi`
+- `SHA256SUMS.txt`
+
 ## 13. Relevant Links (Informational References)
 
 - FastAPI: https://fastapi.tiangolo.com/
