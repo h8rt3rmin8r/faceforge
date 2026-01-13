@@ -4,7 +4,7 @@
 Document Status: Design & Ideation
 Scope: FaceForge Core
 Last Updated: 2026-01-13
-Version: v0.2.10
+Version: v0.2.11
 ```
 
 ## 1. Source of Truth

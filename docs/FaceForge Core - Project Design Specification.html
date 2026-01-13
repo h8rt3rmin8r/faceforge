@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>FaceForge Core - Project Design Specification - v0.2.9.md</title>
+<title>FaceForge Core - Project Design Specification.md</title>
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 
 <style>
@@ -369,7 +369,7 @@ code {
 <pre class="hljs"><code><div>Document Status: Design &amp; Ideation
 Scope: FaceForge Core
 Last Updated: 2026-01-13
-Version: v0.2.10
+Version: v0.2.11
 </div></code></pre>
 <h2 id="1-source-of-truth">1. Source of Truth</h2>
 <p>This document is the authoritative design specification for <strong>FaceForge Core</strong>: what it must provide, what it intentionally avoids, and the interfaces that future work will build on.</p>
@@ -922,6 +922,191 @@ Node may be used at build time to produce frontend assets bundled into the Core 
 <blockquote>
 <p>TO-DO: Update strategy for the Core service, SeaweedFS, and plugin bundles.</p>
 </blockquote>
+<h3 id="125-dev-bundling-standard-commands--outputs">12.5 Dev Bundling (Standard Commands + Outputs)</h3>
+<p>This section standardizes how developers produce <strong>bundled artifacts</strong> locally for testing and validation.</p>
+<p><strong>Scope:</strong> “bundling” here means producing:</p>
+<ul>
+<li>a frozen <strong>Core</strong> executable via PyInstaller</li>
+<li>a bundled <strong>Desktop</strong> installer (Windows MSI) via Tauri</li>
+</ul>
+<p><strong>Prerequisites (Windows):</strong></p>
+<ul>
+<li>A usable system Python (recommended: Python 3.12 with the <code>py</code> launcher)</li>
+<li>Rust toolchain (stable)</li>
+<li>Tauri CLI (<code>cargo install tauri-cli --locked</code>)</li>
+<li>WiX toolset (required for MSI builds)</li>
+</ul>
+<blockquote>
+<p>Note: All repo scripts are designed to run with the repo-local <code>.venv</code> and will create it automatically if missing.</p>
+</blockquote>
+<h4 id="1250-macoslinux-note-current-state">12.5.0 macOS/Linux note (current state)</h4>
+<ul>
+<li>The standardized PowerShell scripts under <code>scripts/</code> are currently <strong>Windows-first</strong> (they assume a Windows-style <code>.venv</code> layout in some places).</li>
+<li>macOS/Linux developers can still bundle the Core binary using PyInstaller, but should run the equivalent commands manually (below).</li>
+<li>Desktop installer outputs on macOS/Linux are produced by <code>cargo tauri build</code>, but release-grade “Core sidecar bundling” is currently standardized only for the Windows MSI pipeline.</li>
+</ul>
+<p><strong>Bundle Core manually (macOS/Linux):</strong></p>
+<pre class="hljs"><code><div>python3.12 -m venv .venv
+./.venv/bin/python -m pip install --upgrade pip
+./.venv/bin/python -m pip install -e ./core
+./.venv/bin/python -m pip install pyinstaller
+
+<span class="hljs-built_in">cd</span> core
+../.venv/bin/python -m PyInstaller pyinstaller.spec --noconfirm --distpath dist --workpath build
+</div></code></pre>
+<p><strong>Expected outputs (macOS/Linux):</strong></p>
+<ul>
+<li><code>core/dist/</code> contains the built Core executable (typically <code>faceforge-core</code> without a <code>.exe</code> extension).</li>
+<li><code>core/build/</code> contains PyInstaller work files.</li>
+</ul>
+<p><strong>Build Desktop installers (macOS/Linux):</strong></p>
+<pre class="hljs"><code><div><span class="hljs-built_in">cd</span> desktop/src-tauri
+cargo tauri build
+</div></code></pre>
+<p><strong>Expected outputs (macOS/Linux):</strong></p>
+<ul>
+<li><code>desktop/src-tauri/target/release/bundle/</code> contains OS-specific installer artifacts (subfolder names and file extensions vary by OS).</li>
+</ul>
+<h4 id="1251-bundle-core-pyinstaller">12.5.1 Bundle Core (PyInstaller)</h4>
+<p>From the repo root:</p>
+<pre class="hljs"><code><div>./scripts/check<span class="hljs-literal">-core</span>.ps1
+./scripts/build<span class="hljs-literal">-core</span>.ps1
+</div></code></pre>
+<p><strong>What it does:</strong></p>
+<ul>
+<li>Ensures <code>.venv</code> exists (creates it if needed)</li>
+<li>Installs Core into <code>.venv</code> (editable) and installs PyInstaller</li>
+<li>Runs <code>PyInstaller</code> using <code>core/pyinstaller.spec</code></li>
+<li>Normalizes output so downstream tooling can rely on a stable path/name</li>
+</ul>
+<p><strong>Primary outputs:</strong></p>
+<ul>
+<li><code>core/dist/faceforge-core.exe</code> (stable path; preferred output for all callers)</li>
+</ul>
+<p><strong>Secondary outputs (implementation detail):</strong></p>
+<ul>
+<li><code>core/build/</code> (PyInstaller workdir)</li>
+<li><code>core/dist-*</code> and/or <code>core/build-*</code> may be created only if you opt in to timestamp fallback</li>
+</ul>
+<p><strong>Common options:</strong></p>
+<ul>
+<li><code>./scripts/build-core.ps1 -KeepBuildHistory</code> keeps old <code>build-*</code>/<code>dist-*</code> folders.</li>
+<li><code>./scripts/build-core.ps1 -AllowTimestampFallback</code> uses <code>dist-YYYYMMDD-HHMMSS</code> if <code>core/dist</code> is locked.</li>
+</ul>
+<h4 id="1252-bundle-desktop-windows-msi-via-tauri">12.5.2 Bundle Desktop (Windows MSI via Tauri)</h4>
+<p>This creates an installer that bundles the desktop shell plus the Core binary as a sidecar.</p>
+<ol>
+<li>Build Core (produces <code>core/dist/faceforge-core.exe</code>):</li>
+</ol>
+<pre class="hljs"><code><div>./scripts/build<span class="hljs-literal">-core</span>.ps1
+</div></code></pre>
+<ol start="2">
+<li>Stage the Core binary into Desktop’s Tauri bundle inputs:</li>
+</ol>
+<pre class="hljs"><code><div><span class="hljs-built_in">New-Item</span> <span class="hljs-literal">-ItemType</span> Directory <span class="hljs-literal">-Force</span> <span class="hljs-literal">-Path</span> <span class="hljs-string">'desktop/src-tauri/binaries'</span> | <span class="hljs-built_in">Out-Null</span>
+<span class="hljs-built_in">Copy-Item</span> <span class="hljs-literal">-Force</span> <span class="hljs-string">'core/dist/faceforge-core.exe'</span> <span class="hljs-string">'desktop/src-tauri/binaries/faceforge-core-x86_64-pc-windows-msvc.exe'</span>
+</div></code></pre>
+<ol start="3">
+<li>Build the Desktop installer:</li>
+</ol>
+<pre class="hljs"><code><div><span class="hljs-built_in">Push-Location</span> <span class="hljs-string">'desktop/src-tauri'</span>
+cargo tauri build
+<span class="hljs-built_in">Pop-Location</span>
+</div></code></pre>
+<p><strong>Primary outputs (Windows):</strong></p>
+<ul>
+<li><code>desktop/src-tauri/target/release/bundle/msi/*.msi</code></li>
+</ul>
+<blockquote>
+<p>Note: The exact MSI filename includes the app name and version; treat <code>*.msi</code> under that folder as the output.</p>
+</blockquote>
+<h3 id="126-new-release-standard-process--ci-sequence">12.6 New Release (Standard Process + CI Sequence)</h3>
+<p>This section standardizes how new releases are cut and what happens inside GitHub Actions when release assets are produced.</p>
+<h4 id="1261-local-maintainer-steps-version-bump-%E2%86%92-tag-%E2%86%92-release">12.6.1 Local maintainer steps (version bump → tag → release)</h4>
+<ol>
+<li>Ensure your working tree is clean and CI is green locally:</li>
+</ol>
+<pre class="hljs"><code><div>./scripts/check<span class="hljs-literal">-core</span>.ps1
+</div></code></pre>
+<ol start="2">
+<li>
+<p>Choose the new version number (SemVer: <code>X.Y.Z</code>).</p>
+</li>
+<li>
+<p>Bump versions across Core + Desktop in one go:</p>
+</li>
+</ol>
+<pre class="hljs"><code><div>./scripts/<span class="hljs-built_in">set-version</span>.ps1 <span class="hljs-literal">-Version</span> X.Y.Z
+</div></code></pre>
+<p>This updates, at minimum:</p>
+<ul>
+<li><code>core/pyproject.toml</code></li>
+<li><code>core/src/faceforge_core/app.py</code></li>
+<li><code>desktop/package.json</code></li>
+<li><code>desktop/src-tauri/Cargo.toml</code></li>
+<li><code>desktop/src-tauri/tauri.conf.json</code></li>
+</ul>
+<ol start="4">
+<li>Update human-facing release notes (as appropriate):</li>
+</ol>
+<ul>
+<li><code>RELEASE_NOTES.md</code></li>
+</ul>
+<ol start="5">
+<li>Commit the version bump + notes:</li>
+</ol>
+<pre class="hljs"><code><div>git add <span class="hljs-literal">-A</span>
+git commit <span class="hljs-literal">-m</span> <span class="hljs-string">"chore(release): vX.Y.Z"</span>
+</div></code></pre>
+<ol start="6">
+<li>Create and push the tag (release automation expects a <code>v</code>-prefixed tag):</li>
+</ol>
+<pre class="hljs"><code><div>git tag vX.Y.Z
+git push origin HEAD
+git push origin vX.Y.Z
+</div></code></pre>
+<ol start="7">
+<li>Create a GitHub Release for tag <code>vX.Y.Z</code> and <strong>publish</strong> it.</li>
+</ol>
+<blockquote>
+<p>Alternative: you may run the release workflow manually via <code>workflow_dispatch</code> and provide <code>tag: vX.Y.Z</code>.</p>
+</blockquote>
+<h4 id="1262-what-github-actions-does-release-core-workflow">12.6.2 What GitHub Actions does (release-core workflow)</h4>
+<p>When a release is published (or the workflow is manually dispatched), GitHub Actions runs <code>.github/workflows/release-core.yml</code>.</p>
+<p><strong>Sequence (Windows release assets job):</strong></p>
+<ol>
+<li>Check out the repository at the release tag.</li>
+<li>Ensure <code>core/pyinstaller.spec</code> exists (for legacy tags it may be fetched from the default branch).</li>
+<li>Sync version metadata from the tag (best-effort safety net).</li>
+<li>Set up Python 3.12.</li>
+<li>Set up Rust toolchain.</li>
+<li>Install Tauri CLI (<code>cargo install tauri-cli --locked</code>).</li>
+<li>Install WiX toolset (MSI tooling).</li>
+<li>Build the Core executable by running <code>./scripts/build-core.ps1</code>.</li>
+<li>Collect/normalize Core output into <code>core/dist/faceforge-core.exe</code>.</li>
+<li>Stage Core into Desktop sidecar binaries:</li>
+</ol>
+<ul>
+<li><code>desktop/src-tauri/binaries/faceforge-core-x86_64-pc-windows-msvc.exe</code></li>
+</ul>
+<ol start="11">
+<li>Build the Desktop MSI via <code>cargo tauri build</code>.</li>
+<li>Collect release artifacts into <code>artifacts/release/</code>:</li>
+</ol>
+<ul>
+<li>Desktop <code>*.msi</code></li>
+<li><code>faceforge-core.exe</code></li>
+<li><code>SHA256SUMS.txt</code> (SHA-256 hashes of the files above)</li>
+</ul>
+<ol start="13">
+<li>Upload these files to the GitHub Release as downloadable assets.</li>
+</ol>
+<p><strong>Published release assets (expected):</strong></p>
+<ul>
+<li><code>faceforge-core.exe</code></li>
+<li><code>FaceForge*.msi</code></li>
+<li><code>SHA256SUMS.txt</code></li>
+</ul>
 <h2 id="13-relevant-links-informational-references">13. Relevant Links (Informational References)</h2>
 <ul>
 <li>FastAPI: https://fastapi.tiangolo.com/</li>
