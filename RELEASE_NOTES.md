@@ -1,3 +1,14 @@
+# FaceForge v0.1.7 Release Notes
+
+This is a patch release focused on documentation/packaging polish and keeping version metadata consistent across Core and Desktop.
+
+## Summary
+- **Docs output**: Auto-generates HTML/PDF versions of README docs.
+- **README accuracy**: Updates `FACEFORGE_HOME` directory structure and config path details.
+- **Versioning**: Keeps version strings aligned across the repo for bundling and release automation.
+
+---
+
 # FaceForge v0.1.6 Release Notes
 
 This is a patch release focused on stability and operational polish across Core and Desktop. It includes improvements to how the local filesystem layout is structured, reduces logging edge-cases during reload, and tightens a couple of first-run/wizard flows.
