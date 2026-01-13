@@ -935,7 +935,7 @@ dependencies = [
 
 [[package]]
 name = "faceforge_desktop"
-version = "0.1.5"
+version = "0.1.7"
 dependencies = [
  "anyhow",
  "base64 0.22.1",

@@ -33,6 +33,41 @@
        <span id="crumb-text">Home &gt; Status</span>
     </div>
 
+    <!-- LOADING OVERLAY -->
+    <div id="loading-overlay" class="loading-overlay hidden" aria-live="polite" aria-busy="true">
+      <div class="loading-card">
+        <div class="loading-brand">
+          <div class="loading-title">FaceForge</div>
+          <div id="loading-subtitle" class="loading-subtitle">Initializing…</div>
+        </div>
+
+        <div class="loading-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Loading"></div>
+
+        <div class="loading-steps" aria-hidden="true">
+          <div class="loading-step" data-step="config">
+            <span class="loading-dot"></span>
+            <span class="loading-label">Configuration</span>
+          </div>
+          <div class="loading-step" data-step="engine">
+            <span class="loading-dot"></span>
+            <span class="loading-label">Engine</span>
+          </div>
+          <div class="loading-step" data-step="ready">
+            <span class="loading-dot"></span>
+            <span class="loading-label">Ready</span>
+          </div>
+        </div>
+
+        <div class="loading-lines" aria-hidden="true">
+          <div class="loading-line"></div>
+          <div class="loading-line"></div>
+          <div class="loading-line"></div>
+        </div>
+
+        <div id="loading-detail" class="loading-detail">Contacting desktop backend</div>
+      </div>
+    </div>
+
     <section id="error-banner" class="banner hidden">
       <div class="banner-text">
         <div id="error-title" class="banner-title"></div>
@@ -43,7 +78,7 @@
 
     <main class="main-content">
       <!-- SETTINGS / WIZARD -->
-      <section id="view-settings" class="card hidden">
+      <section id="view-settings" class="card view-page hidden">
         <h2>System Settings</h2>
         <p class="muted">Configure local data location and service ports.</p>
 
@@ -65,6 +100,16 @@
               <span class="help-text">Localhost port for API and Web UI.</span>
             </div>
             <input id="setting-core-port" type="number" min="1" max="65535" />
+          </label>
+
+          <label class="checkbox" title="When enabled, FaceForge Desktop will automatically restart the Core service if it stops unexpectedly.">
+            <input id="setting-auto-restart" type="checkbox" />
+            <span>Auto-Restart Core</span>
+          </label>
+
+          <label class="checkbox" title="When enabled, closing the window or clicking Exit will minimize FaceForge to the system tray instead of quitting. Use the tray menu Exit to fully quit.">
+            <input id="setting-minimize-on-exit" type="checkbox" checked />
+            <span>Minimize on Exit</span>
           </label>
            
           <!-- Added Log Size Setting -->
@@ -110,7 +155,7 @@
       </section>
 
       <!-- STATUS -->
-      <section id="view-status" class="card hidden">
+      <section id="view-status" class="card view-page hidden">
         <h2>System Status</h2>
         <div id="status-body" class="kv-table"></div>
 
@@ -143,10 +188,7 @@
         </div>
         
         <h3>Exit Preferences</h3>
-        <label class="checkbox">
-             <input id="setting-exit-kill" type="checkbox" checked />
-             <span>Exit terminates all services</span>
-        </label>
+           <p class="muted">Use the tray menu <b>Exit</b> to fully quit FaceForge Desktop.</p>
       </section>
     </main>
     

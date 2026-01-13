@@ -17,6 +17,8 @@ pub struct WizardSettings {
     pub seaweed_enabled: bool,
     pub seaweed_s3_port: Option<u16>,
     pub seaweed_weed_path: Option<PathBuf>,
+    pub auto_restart: bool,
+    pub minimize_on_exit: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -146,7 +148,9 @@ pub fn write_desktop_json(faceforge_home: &Path, settings: &WizardSettings) -> a
         "core_port": settings.core_port,
         "seaweed_enabled": settings.seaweed_enabled,
         "seaweed_s3_port": settings.seaweed_s3_port,
-        "seaweed_weed_path": settings.seaweed_weed_path
+        "seaweed_weed_path": settings.seaweed_weed_path,
+        "auto_restart": settings.auto_restart,
+        "minimize_on_exit": settings.minimize_on_exit
     });
     fs::write(desktop_json_path(faceforge_home), serde_json::to_vec_pretty(&payload)?)?;
     Ok(())
@@ -169,6 +173,14 @@ pub fn read_desktop_json(faceforge_home: &Path) -> anyhow::Result<WizardSettings
             .unwrap_or(false),
         seaweed_s3_port: v.get("seaweed_s3_port").and_then(|x| x.as_u64()).map(|n| n as u16),
         seaweed_weed_path: v.get("seaweed_weed_path").and_then(|x| x.as_str()).map(PathBuf::from),
+        auto_restart: v
+            .get("auto_restart")
+            .and_then(|x| x.as_bool())
+            .unwrap_or(false),
+        minimize_on_exit: v
+            .get("minimize_on_exit")
+            .and_then(|x| x.as_bool())
+            .unwrap_or(true),
     })
 }
 

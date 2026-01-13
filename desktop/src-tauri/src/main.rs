@@ -20,6 +20,7 @@ struct AppState {
     settings: Option<WizardSettings>,
     install_token: Option<String>,
     orchestrator: Option<Orchestrator>,
+    desired_running: bool,
 }
 
 #[derive(Serialize)]
@@ -29,6 +30,8 @@ struct UiState {
     core_port: Option<u16>,
     seaweed_enabled: bool,
     seaweed_s3_port: Option<u16>,
+    auto_restart: bool,
+    minimize_on_exit: bool,
     install_token: Option<String>,
     status: Option<ServiceStatus>,
     error: Option<String>,
@@ -132,6 +135,12 @@ fn ui_state_from_guard(app: &tauri::AppHandle, guard: &mut AppState) -> UiState 
         core_port: guard.settings.as_ref().map(|s| s.core_port),
         seaweed_enabled: guard.settings.as_ref().map(|s| s.seaweed_enabled).unwrap_or(false),
         seaweed_s3_port: guard.settings.as_ref().and_then(|s| s.seaweed_s3_port),
+        auto_restart: guard.settings.as_ref().map(|s| s.auto_restart).unwrap_or(false),
+        minimize_on_exit: guard
+            .settings
+            .as_ref()
+            .map(|s| s.minimize_on_exit)
+            .unwrap_or(true),
         install_token: guard.install_token.clone(),
         status,
         error,
@@ -214,6 +223,7 @@ async fn start_services(
 
     orch.start_seaweed_if_enabled(&settings).map_err(|e| e.to_string())?;
     orch.start_core(&settings).map_err(|e| e.to_string())?;
+    guard.desired_running = true;
 
     Ok(ui_state_from_guard(&app, &mut guard))
 }
@@ -228,6 +238,7 @@ async fn stop_services(
         orch.stop_core();
         orch.stop_seaweed();
     }
+    guard.desired_running = false;
     Ok(ui_state_from_guard(&app, &mut guard))
 }
 
@@ -255,6 +266,38 @@ async fn open_ui(state: tauri::State<'_, Mutex<AppState>>) -> Result<(), String>
 #[tauri::command]
 async fn request_exit(app: tauri::AppHandle) {
     app.exit(0);
+}
+
+#[tauri::command]
+async fn request_ui_exit(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, Mutex<AppState>>,
+) -> Result<(), String> {
+    let minimize = {
+        let guard = state.lock().unwrap();
+        guard
+            .settings
+            .as_ref()
+            .map(|s| s.minimize_on_exit)
+            .unwrap_or(true)
+    };
+
+    if minimize {
+        if let Some(w) = app.get_webview_window("main") {
+            let _ = w.hide();
+        }
+        return Ok(());
+    }
+
+    {
+        let mut guard = state.lock().unwrap();
+        if let Some(orch) = guard.orchestrator.as_mut() {
+            orch.stop_core();
+            orch.stop_seaweed();
+        }
+    }
+    app.exit(0);
+    Ok(())
 }
 
 #[tauri::command]
@@ -357,10 +400,15 @@ fn main() {
                 {
                     let state = app_handle.state::<Mutex<AppState>>();
                     let mut guard = state.lock().unwrap();
+                    let desired_running = guard.desired_running;
                     if let (Some(settings), Some(orch)) =
                         (guard.settings.clone(), guard.orchestrator.as_mut())
                     {
-                        orch.tick_health_and_maybe_restart(&settings);
+                        // Only auto-restart when the user wants services running.
+                        // Default behavior: do not start Core automatically after configuring.
+                        if desired_running && settings.auto_restart {
+                            orch.tick_health_and_maybe_restart(&settings);
+                        }
                     }
                 }
                 std::thread::sleep(std::time::Duration::from_secs(2));
@@ -370,9 +418,30 @@ fn main() {
         })
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                // Close-to-tray by default.
-                api.prevent_close();
-                let _ = window.hide();
+                let minimize = {
+                    let state = window.app_handle().state::<Mutex<AppState>>();
+                    let guard = state.lock().unwrap();
+                    guard
+                        .settings
+                        .as_ref()
+                        .map(|s| s.minimize_on_exit)
+                        .unwrap_or(true)
+                };
+
+                if minimize {
+                    api.prevent_close();
+                    let _ = window.hide();
+                } else {
+                    api.prevent_close();
+                    let state = window.app_handle().state::<Mutex<AppState>>();
+                    if let Ok(mut guard) = state.lock() {
+                        if let Some(orch) = guard.orchestrator.as_mut() {
+                            orch.stop_core();
+                            orch.stop_seaweed();
+                        }
+                    }
+                    window.app_handle().exit(0);
+                }
             }
         })
         .invoke_handler(tauri::generate_handler![
@@ -385,6 +454,7 @@ fn main() {
             restart_services,
             open_ui,
             request_exit,
+            request_ui_exit,
             read_core_log,
         ])
         .run(tauri::generate_context!())
