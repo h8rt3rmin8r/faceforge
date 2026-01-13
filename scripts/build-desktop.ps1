@@ -8,6 +8,16 @@
     - Stage it into Desktop’s Tauri sidecar binaries folder
     - Produce Desktop installers via `tauri build`
 
+  This script is designed for repeatable local and CI builds:
+    - Uses the repo-local `.venv` for Core builds (never global site-packages).
+    - Stages the Core sidecar into `desktop/src-tauri/binaries/faceforge-core.exe`.
+    - Runs `npx tauri build` to produce installable artifacts.
+
+  Prerequisites (Windows):
+    - Rust toolchain installed (cargo).
+    - Node.js + npm.
+    - Tauri prerequisites (WebView2, bundler toolchains). Tauri will prompt/download some tooling.
+
   Outputs (Windows):
     - desktop/src-tauri/target/release/bundle/msi/*.msi
     - desktop/src-tauri/target/release/bundle/nsis/*-setup.exe
@@ -30,15 +40,25 @@
 
 .EXAMPLE
   ./scripts/build-desktop.ps1
+  Builds Core + Desktop, producing both MSI and NSIS artifacts.
 
 .EXAMPLE
   ./scripts/build-desktop.ps1 -Bundles nsis
+  Builds only the NSIS installer.
 
 .EXAMPLE
   ./scripts/build-desktop.ps1 -SkipCoreBuild -SkipNpmInstall -Bundles msi
+  Fast path when nothing changed in Core/UI dependencies.
+
+.NOTES
+  Outputs (Windows):
+    - desktop/src-tauri/target/release/bundle/msi/*.msi
+    - desktop/src-tauri/target/release/bundle/nsis/*-setup.exe
+
+  This script sets `PositionalBinding = $false` to discourage ambiguous invocation.
 #>
 
-[CmdletBinding()]
+[CmdletBinding(PositionalBinding = $false)]
 param(
   [ValidateSet('all','msi','nsis')]
   [string]$Bundles = 'all',

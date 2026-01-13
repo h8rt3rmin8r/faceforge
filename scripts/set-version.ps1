@@ -26,13 +26,14 @@
 .NOTES
     If a target file or pattern is not found, the script emits a warning and continues.
 #>
-[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+[CmdletBinding(SupportsShouldProcess = $true, PositionalBinding = $false, ConfirmImpact = 'Medium')]
 param(
     [Parameter(Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]$Version
 )
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $Root = (Resolve-Path "$PSScriptRoot/..").Path
 

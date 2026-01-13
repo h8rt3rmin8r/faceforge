@@ -1,3 +1,51 @@
+<#
+.SYNOPSIS
+    Builds the FaceForge Core executable for local bundling and releases.
+
+.DESCRIPTION
+    Produces a Windows executable for FaceForge Core using PyInstaller, using the repo-local
+    virtual environment under `.venv`.
+
+    This script is designed to be safe and repeatable:
+    - Uses a repo-local venv (never relies on global site-packages after bootstrapping).
+    - Cleans previous `core/build` and `core/dist` output directories.
+    - When requested, falls back to timestamped output folders if directories are locked.
+    - Normalizes output to a stable path `core/dist/faceforge-core.exe` for downstream scripts.
+
+    Intended consumers:
+    - Local developers running the Desktop orchestrator.
+    - CI pipelines producing release artifacts.
+    - The all-in-one desktop bundler script (`scripts/build-desktop.ps1`).
+
+.PARAMETER KeepBuildHistory
+    Preserves older timestamped output folders (e.g. `core/build-YYYYMMDD-HHMMSS`, `core/dist-...`).
+    By default, old timestamped output folders are pruned to keep the repo tidy.
+
+.PARAMETER AllowTimestampFallback
+    If `core/build` or `core/dist` cannot be deleted (e.g. open file handles from Explorer or a
+    terminal with CWD inside those folders), the default behavior is to fail with a helpful message.
+    When this switch is provided, the script will instead build into timestamped folders.
+
+.OUTPUTS
+    On success, you will have:
+      - `core/dist/faceforge-core.exe`
+
+.EXAMPLE
+    ./scripts/build-core.ps1
+    Builds Core into `core/dist/faceforge-core.exe`, cleaning old outputs.
+
+.EXAMPLE
+    ./scripts/build-core.ps1 -AllowTimestampFallback
+    Builds Core even if `core/dist` is locked, by using timestamped folders.
+
+.NOTES
+    Prerequisites:
+      - Python 3.12.x installed (only needed to bootstrap `.venv` the first time).
+      - Build dependencies are installed into `.venv` automatically.
+    This script intentionally disables confirmation prompts for non-interactive execution.
+#>
+
+[CmdletBinding(PositionalBinding = $false)]
 param(
     # By default we prune old timestamped build/dist folders under core/ to keep the repo tidy.
     # Use -KeepBuildHistory to preserve build-* and dist-* folders.

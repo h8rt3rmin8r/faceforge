@@ -1,3 +1,30 @@
+<#
+.SYNOPSIS
+        Helper utilities for FaceForge PowerShell scripts.
+
+.DESCRIPTION
+        This file is intended to be dot-sourced by other scripts in the `scripts/` directory.
+        It provides shared helpers for:
+            - Resolving the repository root.
+            - Creating and locating the repo-local Python virtual environment (`.venv`).
+            - Returning the correct `.venv` Python executable path for downstream scripts.
+
+        Design goals:
+            - Never depend on global Python packages at runtime.
+            - Prefer the Windows `py` launcher to bootstrap Python 3.12 venv creation.
+            - Make failures actionable with clear error messages.
+
+.NOTES
+        This file defines functions and does not execute any build/run tasks on its own.
+        Usage pattern:
+            . (Join-Path $PSScriptRoot '_ensure-venv.ps1')
+            $repoRoot = Get-RepoRoot
+            $venvPython = Ensure-Venv -RepoRoot $repoRoot
+#>
+
+[CmdletBinding(PositionalBinding = $false)]
+param()
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 

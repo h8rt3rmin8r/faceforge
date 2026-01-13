@@ -1,3 +1,33 @@
+<#
+.SYNOPSIS
+    Runs FaceForge Core quality gates (format, lint, tests).
+
+.DESCRIPTION
+    Installs FaceForge Core in editable mode with development dependencies into the repo-local
+    virtual environment (`.venv`), then runs:
+      - ruff format --check
+      - ruff check
+      - pytest
+
+    This is intended for local verification and CI usage. It will stop on the first failure and
+    return a non-zero exit code.
+
+.OUTPUTS
+    Console output from tooling. Exits non-zero on failure.
+
+.EXAMPLE
+    ./scripts/check-core.ps1
+    Runs format, lint, and tests.
+
+.NOTES
+    Prerequisites:
+      - Python 3.12.x is recommended (used only to bootstrap `.venv` on first run).
+    This script does not rely on global Python packaging once `.venv` exists.
+#>
+
+[CmdletBinding(PositionalBinding = $false)]
+param()
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
