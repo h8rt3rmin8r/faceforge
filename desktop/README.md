@@ -1,4 +1,4 @@
-# FaceForge Desktop (Sprint 12)
+# FaceForge Desktop
 
 This folder contains the **Desktop shell MVP** (Tauri v2) that makes FaceForge feel like a real app:
 

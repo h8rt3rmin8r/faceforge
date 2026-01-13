@@ -38,7 +38,7 @@ On startup, Core ensures these directories exist:
 - `${FACEFORGE_HOME}/s3`
 - `${FACEFORGE_HOME}/assets`
 - `${FACEFORGE_HOME}/logs`
-- `${FACEFORGE_HOME}/run`
+- `${FACEFORGE_HOME}/tmp`
 - `${FACEFORGE_HOME}/config`
 - `${FACEFORGE_HOME}/tools`
 - `${FACEFORGE_HOME}/plugins`
@@ -106,13 +106,13 @@ Current config shape (v1, subject to change):
 Notes:
 
 - `paths.*` may be absolute paths or paths relative to `FACEFORGE_HOME`.
-- `run/` and `config/` are intentionally **not configurable**.
+- `tmp/` and `config/` are intentionally **not configurable**.
 
 ### Runtime ports file
 
 Desktop (or other launcher) may write the selected ports to:
 
-- `${FACEFORGE_HOME}/run/ports.json`
+- `${FACEFORGE_HOME}/config/ports.json`
 
 Format:
 
@@ -133,7 +133,7 @@ FaceForge Desktop (Tauri) is responsible for the first-run wizard and process or
 
 Desktop writes (or updates):
 
-- `${FACEFORGE_HOME}/run/ports.json` (selected ports)
+- `${FACEFORGE_HOME}/config/ports.json` (selected ports)
 - `${FACEFORGE_HOME}/config/core.json` (network + auth token; optional S3 config)
 
 Desktop then starts Core with:
