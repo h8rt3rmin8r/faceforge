@@ -78,8 +78,8 @@ fn save_bootstrap(app: &tauri::AppHandle, b: &DesktopBootstrap) -> anyhow::Resul
 }
 
 fn ensure_bundled_tools(_app: &tauri::AppHandle, _faceforge_home: &std::path::Path) {
-    // Legacy: we used to copy tools to FACEFORGE_HOME/tools. 
-    // New (v0.2.10): Tools stay in the install dir. 
+    // Legacy: we used to copy tools to FACEFORGE_HOME/tools.
+    // Current behavior: tools stay in the install dir.
     // We do nothing here, avoiding duplication.
 }
 

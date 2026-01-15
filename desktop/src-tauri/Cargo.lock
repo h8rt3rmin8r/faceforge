@@ -933,9 +933,7 @@ dependencies = [
  "pin-project-lite",
 ]
 
-[[package]]
-name = "faceforge_desktop"
-version = "0.1.8"
+$10.1.9"
 dependencies = [
  "anyhow",
  "base64 0.22.1",

@@ -453,6 +453,153 @@
 
 ---
 
+## dev-desktop.ps1
+
+
+- NAME
+
+        ./scripts\dev-desktop.ps1
+
+- SYNOPSIS
+
+        Runs FaceForge Desktop in development mode.
+
+
+- SYNTAX
+
+        ./scripts\dev-desktop.ps1 [-Release] [<CommonParameters>]
+
+
+- DESCRIPTION
+
+        This starts the Tauri desktop app as a normal `cargo run` process (keeps the terminal attached).
+
+        Note: `cargo tauri build` produces installers on Windows (MSI + NSIS `*-setup.exe`).
+        This script is for *running* the dev app, not packaging.
+
+
+- PARAMETERS
+
+        -Release [<SwitchParameter>]
+
+            Required?                    false
+            Position?                    named
+            Default value                False
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
+
+        <CommonParameters>
+            This cmdlet supports the common parameters: Verbose, Debug,
+            ErrorAction, ErrorVariable, WarningAction, WarningVariable,
+            OutBuffer, PipelineVariable, and OutVariable. For more information, see
+            about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
+
+- INPUTS
+
+
+- OUTPUTS
+
+
+        -------------------------- EXAMPLE 1 --------------------------
+
+        PS > ./scripts/dev-desktop.ps1
+
+
+
+
+
+
+        -------------------------- EXAMPLE 2 --------------------------
+
+        PS > ./scripts/dev-desktop.ps1 -Release
+
+
+
+
+
+
+
+- RELATED LINKS
+
+---
+
+## ensure-seaweedfs.ps1
+
+
+- NAME
+
+        ./scripts\ensure-seaweedfs.ps1
+
+- SYNOPSIS
+
+        Ensures a valid SeaweedFS `weed.exe` (Windows x64) is present for Desktop packaging.
+
+
+- SYNTAX
+
+        ./scripts\ensure-seaweedfs.ps1 [-Version <String>] [-Force] [-LargeDisk] [<CommonParameters>]
+
+
+- DESCRIPTION
+
+        The repo intentionally does NOT check in the real SeaweedFS binary. The file under
+        `desktop/src-tauri/resources/tools/weed.exe` may be a placeholder.
+
+        This script downloads the official SeaweedFS Windows amd64 release archive and stages
+        `weed.exe` into `desktop/src-tauri/resources/tools/weed.exe` so `cargo tauri build`
+        bundles the correct executable into the MSI.
+
+
+- PARAMETERS
+
+        -Version <String>
+            SeaweedFS release tag (e.g. 4.06). Default: latest.
+
+            Required?                    false
+            Position?                    named
+            Default value                latest
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
+
+        -Force [<SwitchParameter>]
+            Re-download and overwrite even if a valid `weed.exe` already exists.
+
+            Required?                    false
+            Position?                    named
+            Default value                False
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
+
+        -LargeDisk [<SwitchParameter>]
+            Use the `windows_amd64_large_disk.zip` asset instead of `windows_amd64.zip`.
+
+            Required?                    false
+            Position?                    named
+            Default value                False
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
+
+        <CommonParameters>
+            This cmdlet supports the common parameters: Verbose, Debug,
+            ErrorAction, ErrorVariable, WarningAction, WarningVariable,
+            OutBuffer, PipelineVariable, and OutVariable. For more information, see
+            about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
+
+- INPUTS
+
+
+- OUTPUTS
+
+
+
+- RELATED LINKS
+
+---
+
 ## set-version.ps1
 
 

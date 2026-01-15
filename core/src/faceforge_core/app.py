@@ -76,7 +76,7 @@ def create_app() -> FastAPI:
         finally:
             stop_managed_seaweed(getattr(app.state, "seaweed_process", None))
 
-    app = FastAPI(title="FaceForge Core", version="0.1.8", lifespan=_lifespan)
+    app = FastAPI(title="FaceForge Core", version="0.1.9", lifespan=_lifespan)
 
     @app.middleware("http")
     async def log_requests(request: Request, call_next):

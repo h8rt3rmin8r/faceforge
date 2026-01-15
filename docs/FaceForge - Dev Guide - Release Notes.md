@@ -1,3 +1,20 @@
+# FaceForge v0.1.9 Release Notes
+
+This is a patch release focused on Desktop bundling reliability and significant improvements to the documentation generation pipeline (HTML/PDF).
+
+## Summary
+- **Desktop packaging**: Ensures the official SeaweedFS `weed.exe` is staged during release builds (so installers ship a real binary, not a placeholder).
+- **Docs pipeline**: Improves `update-docs.ps1` with a cleaner config-driven workflow and more robust PDF generation.
+- **Repo hygiene**: Consolidates documentation under `docs/`, improves styling/assets, and removes leftover version-pinned links.
+
+## Upgrade Notes
+- No manual configuration changes are expected for this update.
+
+## Known Issues
+- No new issues have been identified in this release. If you hit something, please file a GitHub issue with logs from `FACEFORGE_HOME/logs/`.
+
+---
+
 # FaceForge v0.1.8 Release Notes
 
 This is a patch release focused on Desktop orchestration quality-of-life and maintainer/developer workflow polish.

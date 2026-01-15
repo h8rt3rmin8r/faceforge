@@ -467,6 +467,156 @@ Starts Core at http://127.0.0.1:43210
 </li>
 </ul>
 <hr>
+<h2 id="dev-desktopps1">dev-desktop.ps1</h2>
+<ul>
+<li>
+<p>NAME</p>
+<div class="codehilite"><pre><span></span><code>./scripts\dev-desktop.ps1
+</code></pre></div>
+
+</li>
+<li>
+<p>SYNOPSIS</p>
+<div class="codehilite"><pre><span></span><code>Runs FaceForge Desktop in development mode.
+</code></pre></div>
+
+</li>
+<li>
+<p>SYNTAX</p>
+<div class="codehilite"><pre><span></span><code>./scripts\dev-desktop.ps1 [-Release] [&lt;CommonParameters&gt;]
+</code></pre></div>
+
+</li>
+<li>
+<p>DESCRIPTION</p>
+<div class="codehilite"><pre><span></span><code>This starts the Tauri desktop app as a normal `cargo run` process (keeps the terminal attached).
+
+Note: `cargo tauri build` produces installers on Windows (MSI + NSIS `*-setup.exe`).
+This script is for *running* the dev app, not packaging.
+</code></pre></div>
+
+</li>
+<li>
+<p>PARAMETERS</p>
+<div class="codehilite"><pre><span></span><code>-Release [&lt;SwitchParameter&gt;]
+
+    Required?                    false
+    Position?                    named
+    Default value                False
+    Accept pipeline input?       false
+    Aliases
+    Accept wildcard characters?  false
+
+&lt;CommonParameters&gt;
+    This cmdlet supports the common parameters: Verbose, Debug,
+    ErrorAction, ErrorVariable, WarningAction, WarningVariable,
+    OutBuffer, PipelineVariable, and OutVariable. For more information, see
+    about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
+</code></pre></div>
+
+</li>
+<li>
+<p>INPUTS</p>
+</li>
+<li>
+<p>OUTPUTS</p>
+<div class="codehilite"><pre><span></span><code>-------------------------- EXAMPLE 1 --------------------------
+
+PS &gt; ./scripts/dev-desktop.ps1
+
+-------------------------- EXAMPLE 2 --------------------------
+
+PS &gt; ./scripts/dev-desktop.ps1 -Release
+</code></pre></div>
+
+</li>
+<li>
+<p>RELATED LINKS</p>
+</li>
+</ul>
+<hr>
+<h2 id="ensure-seaweedfsps1">ensure-seaweedfs.ps1</h2>
+<ul>
+<li>
+<p>NAME</p>
+<div class="codehilite"><pre><span></span><code>./scripts\ensure-seaweedfs.ps1
+</code></pre></div>
+
+</li>
+<li>
+<p>SYNOPSIS</p>
+<div class="codehilite"><pre><span></span><code>Ensures a valid SeaweedFS `weed.exe` (Windows x64) is present for Desktop packaging.
+</code></pre></div>
+
+</li>
+<li>
+<p>SYNTAX</p>
+<div class="codehilite"><pre><span></span><code>./scripts\ensure-seaweedfs.ps1 [-Version &lt;String&gt;] [-Force] [-LargeDisk] [&lt;CommonParameters&gt;]
+</code></pre></div>
+
+</li>
+<li>
+<p>DESCRIPTION</p>
+<div class="codehilite"><pre><span></span><code>The repo intentionally does NOT check in the real SeaweedFS binary. The file under
+`desktop/src-tauri/resources/tools/weed.exe` may be a placeholder.
+
+This script downloads the official SeaweedFS Windows amd64 release archive and stages
+`weed.exe` into `desktop/src-tauri/resources/tools/weed.exe` so `cargo tauri build`
+bundles the correct executable into the MSI.
+</code></pre></div>
+
+</li>
+<li>
+<p>PARAMETERS</p>
+<div class="codehilite"><pre><span></span><code>-Version &lt;String&gt;
+    SeaweedFS release tag (e.g. 4.06). Default: latest.
+
+    Required?                    false
+    Position?                    named
+    Default value                latest
+    Accept pipeline input?       false
+    Aliases
+    Accept wildcard characters?  false
+
+-Force [&lt;SwitchParameter&gt;]
+    Re-download and overwrite even if a valid `weed.exe` already exists.
+
+    Required?                    false
+    Position?                    named
+    Default value                False
+    Accept pipeline input?       false
+    Aliases
+    Accept wildcard characters?  false
+
+-LargeDisk [&lt;SwitchParameter&gt;]
+    Use the `windows_amd64_large_disk.zip` asset instead of `windows_amd64.zip`.
+
+    Required?                    false
+    Position?                    named
+    Default value                False
+    Accept pipeline input?       false
+    Aliases
+    Accept wildcard characters?  false
+
+&lt;CommonParameters&gt;
+    This cmdlet supports the common parameters: Verbose, Debug,
+    ErrorAction, ErrorVariable, WarningAction, WarningVariable,
+    OutBuffer, PipelineVariable, and OutVariable. For more information, see
+    about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
+</code></pre></div>
+
+</li>
+<li>
+<p>INPUTS</p>
+</li>
+<li>
+<p>OUTPUTS</p>
+</li>
+<li>
+<p>RELATED LINKS</p>
+</li>
+</ul>
+<hr>
 <h2 id="set-versionps1">set-version.ps1</h2>
 <ul>
 <li>
