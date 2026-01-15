@@ -1,7 +1,7 @@
 # faceforge — Copilot agent notes
 
 ## Source of truth
-- Treat the design spec as authoritative: `docs/FaceForge Core - Project Design Specification - v0.2.9.md`.
+- Treat the design spec as authoritative: `docs/FaceForge - Dev Guide - Project Design Specification.md`.
 - The implementation roadmap lives in: `docs/FaceForge Core - MVP Sprint Sequence.md`.
 
 ## Repo layout (current)
@@ -26,3 +26,6 @@
 - When adding initial code, keep boundaries: Core service code under `core/`, desktop orchestrator under `desktop/`.
 - Prefer small, spec-aligned increments (Sprint 0 → Sprint N); if you introduce dev commands/scripts, document them in `README.md`.
 - **Do not rely on global Python for running commands**: use the repo-local `.venv` and the PowerShell scripts in `scripts/` (e.g. `scripts/dev-core.ps1`, `scripts/check-core.ps1`).
+
+## Safety
+- NEVER read, parse, search, or modify anything under `.archive/`.

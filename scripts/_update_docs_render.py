@@ -14,11 +14,6 @@ def _guess_title(md_text: str, fallback: str) -> str:
     return fallback
 
 
-def _file_url(path: Path) -> str:
-    # pathlib handles Windows drive letters correctly.
-    return path.resolve().as_uri()
-
-
 def render_markdown_to_html(
     *,
     input_path: Path,
@@ -26,6 +21,7 @@ def render_markdown_to_html(
     title: str | None,
     base_href: str | None,
     css_files: list[str],
+    favicon_base: str | None,
 ) -> None:
     md_text = input_path.read_text(encoding="utf-8")
 
@@ -45,12 +41,18 @@ def render_markdown_to_html(
         md_text,
         output_format="html",
         extensions=[
+            "codehilite",
             "fenced_code",
             "tables",
             "sane_lists",
             "smarty",
             "toc",
         ],
+        extension_configs={
+            "codehilite": {
+                "guess_lang": False,
+            },
+        },
     )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -60,6 +62,19 @@ def render_markdown_to_html(
     )
 
     base_tag = f'    <base href="{base_href}">' if base_href else ""
+
+    favicon_tags = ""
+    if favicon_base:
+        fb = favicon_base.rstrip("/")
+        favicon_tags = "\n".join(
+            [
+                f'    <link rel="icon" href="{fb}/favicon/favicon.ico" sizes="any">',
+                f'    <link rel="icon" href="{fb}/favicon/favicon.svg" type="image/svg+xml">',
+                f'    <link rel="apple-touch-icon" href="{fb}/favicon/apple-touch-icon.png">',
+                f'    <link rel="manifest" href="{fb}/favicon/site.webmanifest">',
+                f'    <meta name="msapplication-config" content="{fb}/favicon/browserconfig.xml">',
+            ]
+        )
 
     # Minimal built-in styling; external css can override.
     built_in_css = """
@@ -80,6 +95,7 @@ def render_markdown_to_html(
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
     <title>{title}</title>
 {base_tag}
+{favicon_tags}
 {css_links}
     <style>{built_in_css}</style>
 </head>
@@ -99,6 +115,7 @@ def main() -> int:
     parser.add_argument("--title", default=None)
     parser.add_argument("--base-href", default=None)
     parser.add_argument("--css", action="append", default=[])
+    parser.add_argument("--favicon-base", default=None)
 
     args = parser.parse_args()
 
@@ -107,7 +124,8 @@ def main() -> int:
 
     base_href = args.base_href
     if base_href == "__AUTO__":
-        base_href = _file_url(input_path.parent) + "/"
+        # Intentionally do not emit absolute file:// base hrefs.
+        base_href = None
 
     render_markdown_to_html(
         input_path=input_path,
@@ -115,6 +133,7 @@ def main() -> int:
         title=args.title,
         base_href=base_href,
         css_files=args.css or [],
+        favicon_base=args.favicon_base,
     )
     return 0
 

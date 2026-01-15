@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-    Generates scripts/README.md from PowerShell comment-based help.
+    Generates docs/FaceForge - Dev Guide - Scripts.md from PowerShell comment-based help.
 
 .DESCRIPTION
     Scans the repository's `scripts/` directory for `.ps1` files and generates a Markdown
-    README at `scripts/README.md`.
+    README at `docs/FaceForge - Dev Guide - Scripts.md`.
 
     The generated README is composed as follows:
       - A single top-level Markdown header (`# Scripts`).
@@ -12,11 +12,11 @@
         the `scripts/` directory.
 
     This ensures the canonical documentation for scripts stays in the scripts themselves,
-    while the `scripts/README.md` remains an always-up-to-date aggregated view.
+    while the dev guide remains an always-up-to-date aggregated view.
 
 .PARAMETER OutputPath
     The path to the generated README file.
-    Default: `<repoRoot>/scripts/README.md`.
+    Default: `<repoRoot>/docs/FaceForge - Dev Guide - Scripts.md`.
 
 .PARAMETER IncludeThisScript
     Include this generator script's own `Get-Help -Full` output in the generated README.
@@ -28,11 +28,11 @@
 
 .EXAMPLE
     ./scripts/generate-scripts-readme.ps1
-    Generates `scripts/README.md` from `Get-Help -Full` outputs.
+    Generates `docs/FaceForge - Dev Guide - Scripts.md` from `Get-Help -Full` outputs.
 
 .EXAMPLE
     ./scripts/generate-scripts-readme.ps1 -WhatIf
-    Shows what would be written without modifying `scripts/README.md`.
+    Shows what would be written without modifying the output doc.
 
 .EXAMPLE
     ./scripts/generate-scripts-readme.ps1 -OutputPath .\scripts\README.md -IncludeThisScript
@@ -194,11 +194,28 @@ function Format-GeneratedReadme {
     return $t
 }
 
+function Rewrite-AbsoluteRepoPathsToRelative {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Text,
+
+        [Parameter(Mandatory)]
+        [string]$RepoRoot
+    )
+
+    $root = (Resolve-Path -LiteralPath $RepoRoot).Path
+    $escaped = [regex]::Escape($root)
+
+    # Replace any absolute references to the repo root (e.g. A:\Code\faceforge\...) with a relative prefix.
+    # This keeps generated docs stable across machines and prevents hard-coded personal paths in HTML/PDF renders.
+    return [regex]::Replace($Text, "${escaped}\\", './')
+}
+
 $repoRoot = Get-RepoRoot
 $scriptDir = Join-Path $repoRoot 'scripts'
 
 if (-not $OutputPath) {
-    $OutputPath = Join-Path $scriptDir 'README.md'
+    $OutputPath = Join-Path $repoRoot 'docs/FaceForge - Dev Guide - Scripts.md'
 }
 
 if (-not (Test-Path $scriptDir)) {
@@ -249,6 +266,7 @@ if ($PSCmdlet.ShouldProcess($OutputPath, 'Write generated scripts README')) {
     # 2) Post-process the generated doc to improve Markdown formatting.
     $generated = Get-Content -Path $OutputPath -Raw
     $formatted = Format-GeneratedReadme -Text $generated
+    $formatted = Rewrite-AbsoluteRepoPathsToRelative -Text $formatted -RepoRoot $repoRoot
     Set-Content -Path $OutputPath -Value $formatted -Encoding utf8
 
     Write-Host "Generated: $OutputPath" -ForegroundColor Green

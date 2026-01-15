@@ -24,7 +24,7 @@ param(
     [string]$ConfigPath = (Join-Path $PSScriptRoot 'update-docs_config.json'),
     [switch]$Force,
 
-    # By default, scripts/README.md is regenerated (from comment-based help) before any doc conversions.
+    # By default, docs/FaceForge - Dev Guide - Scripts.md is regenerated (from comment-based help) before any doc conversions.
     # Use this switch to bypass that behavior.
     [switch]$SkipScriptsReadme
 )
@@ -111,7 +111,8 @@ function Resolve-CssHref {
         throw "Configured css file not found: $Css"
     }
 
-    return (New-Object System.Uri((Resolve-Path -LiteralPath $cssPath).Path)).AbsoluteUri
+    # Return a filesystem path; the renderer will receive relative hrefs to staged assets.
+    return (Resolve-Path -LiteralPath $cssPath).Path
 }
 
 function Normalize-RepoRelPath {
@@ -125,6 +126,176 @@ function Normalize-RepoRelPath {
     return ([string]$PathLike).Trim() -replace '\\', '/'
 }
 
+function Get-ForwardSlashPath {
+    param([Parameter(Mandatory)][string]$PathLike)
+    return ([string]$PathLike) -replace '\\', '/'
+}
+
+function Get-RelativeHref {
+    param(
+        [Parameter(Mandatory)][string]$FromDir,
+        [Parameter(Mandatory)][string]$ToPath
+    )
+
+    $rel = [System.IO.Path]::GetRelativePath($FromDir, $ToPath)
+    return (Get-ForwardSlashPath -PathLike $rel)
+}
+
+function Sync-FileIfChanged {
+    param(
+        [Parameter(Mandatory)][string]$Source,
+        [Parameter(Mandatory)][string]$Destination
+    )
+
+    $destDir = Split-Path -Parent $Destination
+    if ($destDir -and -not (Test-Path -LiteralPath $destDir)) {
+        New-Item -ItemType Directory -Path $destDir -Force | Out-Null
+    }
+
+    if (Test-Path -LiteralPath $Destination) {
+        $srcHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $Source).Hash
+        $dstHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $Destination).Hash
+        if ($srcHash -eq $dstHash) {
+            return $false
+        }
+    }
+
+    Copy-Item -LiteralPath $Source -Destination $Destination -Force
+    return $true
+}
+
+function Sync-DirectoryIfChanged {
+    param(
+        [Parameter(Mandatory)][string]$SourceDir,
+        [Parameter(Mandatory)][string]$DestinationDir
+    )
+
+    $changed = $false
+    if (-not (Test-Path -LiteralPath $DestinationDir)) {
+        New-Item -ItemType Directory -Path $DestinationDir -Force | Out-Null
+        $changed = $true
+    }
+
+    $srcRoot = (Resolve-Path -LiteralPath $SourceDir).Path
+    $files = Get-ChildItem -LiteralPath $srcRoot -Recurse -File
+    foreach ($f in $files) {
+        $rel = [System.IO.Path]::GetRelativePath($srcRoot, $f.FullName)
+        $dest = Join-Path $DestinationDir $rel
+        if (Sync-FileIfChanged -Source $f.FullName -Destination $dest) {
+            $changed = $true
+        }
+    }
+
+    return $changed
+}
+
+function Ensure-DocsReadmeFromRoot {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory)][string]$RepoRoot
+    )
+
+    $src = Join-Path $RepoRoot 'README.md'
+    if (-not (Test-Path -LiteralPath $src)) {
+        throw "Missing root README.md: $src"
+    }
+
+    $dst = Join-Path $RepoRoot 'docs/FaceForge - Readme.md'
+    if ($PSCmdlet.ShouldProcess($dst, 'Sync docs/FaceForge - Readme.md from root README.md')) {
+        [void](Sync-FileIfChanged -Source $src -Destination $dst)
+    }
+}
+
+function Ensure-DocsReleaseNotesFromRoot {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory)][string]$RepoRoot
+    )
+
+    $src = Join-Path $RepoRoot 'RELEASE_NOTES.md'
+    if (-not (Test-Path -LiteralPath $src)) {
+        throw "Missing RELEASE_NOTES.md: $src"
+    }
+
+    $dst = Join-Path $RepoRoot 'docs/FaceForge - Dev Guide - Release Notes.md'
+    if ($PSCmdlet.ShouldProcess($dst, 'Sync docs/FaceForge - Dev Guide - Release Notes.md from RELEASE_NOTES.md')) {
+        [void](Sync-FileIfChanged -Source $src -Destination $dst)
+    }
+}
+
+function Ensure-DocsStyles {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory)][string]$RepoRoot,
+        [Parameter(Mandatory)][string]$VenvPython,
+        [Parameter(Mandatory)][string[]]$CssFiles
+    )
+
+    $stylesDir = Join-Path $RepoRoot 'docs/styles'
+    if (-not (Test-Path -LiteralPath $stylesDir)) {
+        New-Item -ItemType Directory -Path $stylesDir -Force | Out-Null
+    }
+
+    $stagedCss = @()
+
+    foreach ($css in @($CssFiles)) {
+        if ([string]::IsNullOrWhiteSpace($css)) { continue }
+        if ($css -match '^[a-zA-Z][a-zA-Z0-9+.-]*://') {
+            # Allow external stylesheets; they won't be staged.
+            $stagedCss += $css
+            continue
+        }
+
+        $srcPath = (Resolve-CssHref -RepoRoot $RepoRoot -Css ([string]$css))
+        $baseName = [System.IO.Path]::GetFileName($srcPath)
+
+        $destPath = $null
+        $norm = Normalize-RepoRelPath -PathLike $css
+        if ($norm -eq 'brand/fonts/fonts.css') {
+            $destPath = Join-Path $stylesDir (Join-Path 'fonts' $baseName)
+        } else {
+            $destPath = Join-Path $stylesDir $baseName
+        }
+
+        if ($PSCmdlet.ShouldProcess($destPath, "Stage CSS: $css")) {
+            [void](Sync-FileIfChanged -Source $srcPath -Destination $destPath)
+        }
+
+        $stagedCss += $destPath
+    }
+
+    # Stage favicons (used by HTML renders).
+    $faviconSrc = Join-Path $RepoRoot 'brand/favicon'
+    if (Test-Path -LiteralPath $faviconSrc) {
+        $faviconDst = Join-Path $stylesDir 'favicon'
+        if ($PSCmdlet.ShouldProcess($faviconDst, 'Stage favicon assets')) {
+            [void](Sync-DirectoryIfChanged -SourceDir $faviconSrc -DestinationDir $faviconDst)
+        }
+    }
+
+    # Generate syntax highlighting CSS (used by HTML/PDF renders).
+    $syntaxCssPath = Join-Path $stylesDir 'syntax.css'
+    $syntaxCss = & $VenvPython -c "from pygments.formatters import HtmlFormatter; print(HtmlFormatter(style='default').get_style_defs('.codehilite'))" | Out-String
+    if (-not $syntaxCss.EndsWith("`n")) { $syntaxCss += "`n" }
+
+    $needsWrite = $true
+    if (Test-Path -LiteralPath $syntaxCssPath) {
+        $existing = Get-Content -LiteralPath $syntaxCssPath -Raw -Encoding UTF8
+        if ($existing -eq $syntaxCss) { $needsWrite = $false }
+    }
+
+    if ($needsWrite -and $PSCmdlet.ShouldProcess($syntaxCssPath, 'Write syntax highlighting CSS')) {
+        Set-Content -LiteralPath $syntaxCssPath -Value $syntaxCss -Encoding UTF8
+    }
+
+    $stagedCss += $syntaxCssPath
+
+    return [pscustomobject]@{
+        StylesDir = $stylesDir
+        CssFiles  = $stagedCss
+    }
+}
+
 function Ensure-ScriptsReadmeDocInConfig {
     param(
         [Parameter(Mandatory)]
@@ -134,41 +305,10 @@ function Ensure-ScriptsReadmeDocInConfig {
         [string]$ConfigPath
     )
 
-    $targetSource = 'scripts/README.md'
-    $targetHtml = 'scripts/README.html'
-    $targetPdf = 'scripts/README.pdf'
-
-    if ($null -eq $ConfigJson.docs) {
-        $ConfigJson | Add-Member -MemberType NoteProperty -Name 'docs' -Value @() -Force
-    }
-
-    $docs = @($ConfigJson.docs)
-    $targetNorm = Normalize-RepoRelPath -PathLike $targetSource
-
-    foreach ($d in $docs) {
-        if ($null -eq $d) { continue }
-        $src = $d.PSObject.Properties['source'].Value
-        if ((Normalize-RepoRelPath -PathLike ([string]$src)) -eq $targetNorm) {
-            return $false
-        }
-    }
-
-    $newEntry = [pscustomobject]@{
-        source = $targetSource
-        html   = $targetHtml
-        pdf    = $targetPdf
-    }
-
-    $ConfigJson.docs = @($docs + $newEntry)
-
-    if ($PSCmdlet.ShouldProcess($ConfigPath, "Add docs entry for $targetSource")) {
-        $jsonOut = $ConfigJson | ConvertTo-Json -Depth 50
-        # Ensure trailing newline for nicer diffs.
-        if (-not $jsonOut.EndsWith("`n")) { $jsonOut += "`n" }
-        Set-Content -LiteralPath $ConfigPath -Value $jsonOut -Encoding UTF8
-    }
-
-    return $true
+    # NOTE: Scripts docs are now emitted under docs/ as:
+    #   docs/FaceForge - Dev Guide - Scripts.*
+    # Config should be maintained manually in scripts/update-docs_config.json.
+    return $false
 }
 
 $repoRoot = Get-RepoRoot
@@ -180,8 +320,7 @@ if (-not (Test-Path -LiteralPath $ConfigPath)) {
 
 $configJson = Get-Content -LiteralPath $ConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
 
-# Ensure scripts/README.md is included in the docs list (so it can be rendered).
-# We do this early so the remainder of the script operates on the complete doc set.
+# Config is the source of truth for which docs are rendered.
 $configUpdated = Ensure-ScriptsReadmeDocInConfig -ConfigJson $configJson -ConfigPath $ConfigPath
 
 $defaults = $configJson.defaults
@@ -218,6 +357,13 @@ if ($LASTEXITCODE -ne 0) {
     & $venvPython -m pip install --upgrade "Markdown>=3.6" | Out-Host
 }
 
+# Ensure syntax highlighting dependency is present.
+& $venvPython -c "import pygments" 2>$null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Installing Python package: Pygments (for docs syntax highlighting)" -ForegroundColor Cyan
+    & $venvPython -m pip install --upgrade "Pygments>=2.17" | Out-Host
+}
+
 $pdfCmd = $null
 if ($emitPdf) {
     $pdfCmd = Get-PdfEngineCommand -Engine $pdfEngine
@@ -229,19 +375,28 @@ if ($emitPdf) {
     }
 }
 
-# By default, regenerate scripts/README.md from PowerShell comment-based help before conversions.
-# This keeps scripts documentation in-sync and ensures subsequent HTML/PDF outputs are based on the latest README.
+# By default, regenerate docs/FaceForge - Dev Guide - Scripts.md from PowerShell comment-based help before conversions.
+# This keeps scripts documentation in-sync and ensures subsequent HTML/PDF outputs are based on the latest content.
 $generateScriptsReadme = Join-Path $PSScriptRoot 'generate-scripts-readme.ps1'
 if (-not (Test-Path -LiteralPath $generateScriptsReadme)) {
     throw "Missing generator: $generateScriptsReadme"
 }
 
 if (-not $SkipScriptsReadme) {
-    if ($PSCmdlet.ShouldProcess('scripts/README.md', 'Generate scripts/README.md from scripts/*.ps1 help')) {
-        $outPath = Join-Path $repoRoot 'scripts/README.md'
+    if ($PSCmdlet.ShouldProcess('docs/FaceForge - Dev Guide - Scripts.md', 'Generate docs/FaceForge - Dev Guide - Scripts.md from scripts/*.ps1 help')) {
+        $outPath = Join-Path $repoRoot 'docs/FaceForge - Dev Guide - Scripts.md'
         & $generateScriptsReadme -OutputPath $outPath -WhatIf:$WhatIfPreference
     }
 }
+
+# Always ensure docs/FaceForge - Readme.md mirrors the root README.md before any conversions.
+Ensure-DocsReadmeFromRoot -RepoRoot $repoRoot
+
+# Always ensure docs/FaceForge - Dev Guide - Release Notes.md mirrors RELEASE_NOTES.md before any conversions.
+Ensure-DocsReleaseNotesFromRoot -RepoRoot $repoRoot
+
+# Stage styles + brand assets for relative references in HTML output.
+$staged = Ensure-DocsStyles -RepoRoot $repoRoot -VenvPython $venvPython -CssFiles $cssFiles
 
 $docs = @($configJson.docs)
 if ($docs.Count -eq 0) {
@@ -305,18 +460,24 @@ foreach ($doc in $docs) {
 
     if ($needsHtml) {
         if ($PSCmdlet.ShouldProcess($htmlRel, "Render HTML from $sourceRel")) {
+            $outputDir = Split-Path -Parent $htmlPath
+
             $cssArgs = @()
-            foreach ($css in $cssFiles) {
-                $href = Resolve-CssHref -RepoRoot $repoRoot -Css ([string]$css)
-                if ($null -ne $href) {
-                    $cssArgs += @('--css', $href)
+            foreach ($css in @($staged.CssFiles)) {
+                if ([string]::IsNullOrWhiteSpace([string]$css)) { continue }
+                if ($css -match '^[a-zA-Z][a-zA-Z0-9+.-]*://') {
+                    $cssArgs += @('--css', [string]$css)
+                    continue
                 }
+                $cssArgs += @('--css', (Get-RelativeHref -FromDir $outputDir -ToPath ([string]$css)))
             }
+
+            $faviconBase = Get-RelativeHref -FromDir $outputDir -ToPath ([string]$staged.StylesDir)
 
             & $venvPython $renderPy `
                 --input $sourcePath `
                 --output $htmlPath `
-                --base-href '__AUTO__' `
+                --favicon-base $faviconBase `
                 @cssArgs
 
             $built++

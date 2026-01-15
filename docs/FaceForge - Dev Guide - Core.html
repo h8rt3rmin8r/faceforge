@@ -4,8 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FaceForge Core</title>
-    <base href="file:///A:/Code/faceforge/core/">
-    <link rel="stylesheet" href="file:///A:/Code/faceforge/brand/fonts/fonts.css">
+
+    <link rel="icon" href="styles/favicon/favicon.ico" sizes="any">
+    <link rel="icon" href="styles/favicon/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="styles/favicon/apple-touch-icon.png">
+    <link rel="manifest" href="styles/favicon/site.webmanifest">
+    <meta name="msapplication-config" content="styles/favicon/browserconfig.xml">
+    <link rel="stylesheet" href="styles/fonts/fonts.css">
+    <link rel="stylesheet" href="styles/syntax.css">
     <style>:root { color-scheme: light dark; }
     body { max-width: 920px; margin: 40px auto; padding: 0 16px; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.55; }
     code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
@@ -20,7 +26,7 @@
 <p>This folder contains the <strong>Core API service</strong> (planned: FastAPI + Uvicorn).</p>
 <h2 id="repo-structure-core">Repo structure (Core)</h2>
 <p>If you’re trying to find things quickly:</p>
-<pre><code>core/
+<div class="codehilite"><pre><span></span><code>core/
     src/faceforge_core/
         __main__.py            # `python -m faceforge_core` entrypoint
         app.py                 # FastAPI app wiring
@@ -32,7 +38,8 @@
         internal/              # internal CLIs (dev/admin helpers)
     tests/                   # pytest tests
     pyproject.toml           # packaging/dependencies
-</code></pre>
+</code></pre></div>
+
 <h2 id="sprint-1-homeconfigruntime-contract">Sprint 1: home/config/runtime contract</h2>
 <p>Core is <strong>local-first</strong> and writes all persistent/runtime files under <code>FACEFORGE_HOME</code>.</p>
 <h3 id="faceforge_home">FACEFORGE_HOME</h3>
@@ -64,54 +71,55 @@
 </ul>
 <p>If the file does not exist, defaults are used.</p>
 <p>Current config shape (v1, subject to change):</p>
-<pre><code class="language-json">{
-    &quot;version&quot;: &quot;1&quot;,
-    &quot;auth&quot;: {
-        &quot;install_token&quot;: &quot;...&quot;
-    },
-    &quot;network&quot;: {
-        &quot;bind_host&quot;: &quot;127.0.0.1&quot;,
-        &quot;core_port&quot;: 8787,
-        &quot;seaweed_s3_port&quot;: null
-    },
-    &quot;paths&quot;: {
-        &quot;db_dir&quot;: null,
-        &quot;s3_dir&quot;: null,
-        &quot;logs_dir&quot;: null,
-        &quot;plugins_dir&quot;: null
-    },
-    &quot;tools&quot;: {
-        &quot;exiftool_enabled&quot;: true,
-        &quot;exiftool_path&quot;: null
-    },
-    &quot;storage&quot;: {
-        &quot;routing&quot;: {
-            &quot;default_provider&quot;: &quot;fs&quot;,
-            &quot;kind_map&quot;: {},
-            &quot;s3_min_size_bytes&quot;: null
-        },
-        &quot;s3&quot;: {
-            &quot;enabled&quot;: false,
-            &quot;endpoint_url&quot;: null,
-            &quot;access_key&quot;: null,
-            &quot;secret_key&quot;: null,
-            &quot;bucket&quot;: &quot;faceforge&quot;,
-            &quot;region&quot;: &quot;us-east-1&quot;,
-            &quot;use_ssl&quot;: false
-        }
-    },
-    &quot;seaweed&quot;: {
-        &quot;enabled&quot;: false,
-        &quot;weed_path&quot;: null,
-        &quot;data_dir&quot;: null,
-        &quot;ip&quot;: &quot;127.0.0.1&quot;,
-        &quot;master_port&quot;: 9333,
-        &quot;volume_port&quot;: 8080,
-        &quot;filer_port&quot;: 8888,
-        &quot;s3_port&quot;: null
-    }
-}
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;auth&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;install_token&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;network&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;bind_host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;core_port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8787</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;seaweed_s3_port&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;paths&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;db_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;s3_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;logs_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;plugins_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;tools&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;exiftool_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;exiftool_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;storage&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;routing&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;default_provider&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;fs&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;kind_map&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
+<span class="w">            </span><span class="nt">&quot;s3_min_size_bytes&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;s3&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;endpoint_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;access_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;secret_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;bucket&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;faceforge&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;region&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;use_ssl&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;seaweed&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;weed_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;data_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;ip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;master_port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">9333</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;volume_port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8080</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;filer_port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8888</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;s3_port&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
 <p>Notes:</p>
 <ul>
 <li><code>paths.*</code> may be absolute paths or paths relative to <code>FACEFORGE_HOME</code>.</li>
@@ -123,11 +131,12 @@
 <li><code>${FACEFORGE_HOME}/config/ports.json</code></li>
 </ul>
 <p>Format:</p>
-<pre><code class="language-json">{
-    &quot;core&quot;: 43210,
-    &quot;seaweed_s3&quot;: 43211
-}
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;core&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">43210</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;seaweed_s3&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">43211</span>
+<span class="p">}</span>
+</code></pre></div>
+
 <p>Core also supports a legacy location for compatibility with the design spec:</p>
 <ul>
 <li><code>${FACEFORGE_HOME}/runtime/ports.json</code></li>
@@ -261,19 +270,20 @@ The scripts create/use the repo-local <code>.venv</code> and always run via <cod
 <p>The v1 endpoints under <code>/v1/plugins</code> expose discovery results, enable/disable state, and a JSON Schema-validated config document.</p>
 <h3 id="manifest-format-pluginjson">Manifest format (<code>plugin.json</code>)</h3>
 <p>Minimal example:</p>
-<pre><code class="language-json">{
-    &quot;id&quot;: &quot;demo.plugin&quot;,
-    &quot;name&quot;: &quot;Demo Plugin&quot;,
-    &quot;version&quot;: &quot;0.1.0&quot;,
-    &quot;capabilities&quot;: [&quot;ui&quot;],
-    &quot;config_schema&quot;: {
-        &quot;type&quot;: &quot;object&quot;,
-        &quot;properties&quot;: {
-            &quot;example_flag&quot;: {&quot;type&quot;: &quot;boolean&quot;, &quot;description&quot;: &quot;Example option&quot;}
-        }
-    }
-}
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;demo.plugin&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Demo Plugin&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;capabilities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ui&quot;</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;config_schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;example_flag&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Example option&quot;</span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
 <p>Supported fields today (best-effort discovery):</p>
 <ul>
 <li><code>id</code> (required): stable plugin identifier.</li>

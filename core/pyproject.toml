@@ -2,7 +2,7 @@
 name = "faceforge-core"
 version = "0.1.8"
 description = "FaceForge Core API service (scaffolding)"
-readme = "README.md"
+readme = "../docs/FaceForge - Dev Guide - Core.md"
 requires-python = ">=3.12,<3.13"
 license = { file = "LICENSE" }
 authors = [{ name = "FaceForge contributors" }]

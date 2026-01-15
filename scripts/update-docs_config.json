@@ -14,39 +14,39 @@
   },
   "docs": [
     {
-      "source": "README.md",
-      "html": "README.html",
-      "pdf": "README.pdf"
+      "source": "docs/FaceForge - Dev Guide - Release Notes.md",
+      "html": "docs/FaceForge - Dev Guide - Release Notes.html",
+      "pdf": "docs/FaceForge - Dev Guide - Release Notes.pdf"
     },
     {
-      "source": "RELEASE_NOTES.md",
-      "html": "RELEASE_NOTES.html",
-      "pdf": "RELEASE_NOTES.pdf"
+      "source": "docs/FaceForge - Readme.md",
+      "html": "docs/FaceForge - Readme.html",
+      "pdf": "docs/FaceForge - Readme.pdf"
     },
     {
-      "source": "core/README.md",
-      "html": "core/README.html",
-      "pdf": "core/README.pdf"
+      "source": "docs/FaceForge - Dev Guide - Scripts.md",
+      "html": "docs/FaceForge - Dev Guide - Scripts.html",
+      "pdf": "docs/FaceForge - Dev Guide - Scripts.pdf"
     },
     {
-      "source": "desktop/README.md",
-      "html": "desktop/README.html",
-      "pdf": "desktop/README.pdf"
+      "source": "docs/FaceForge - Dev Guide - Core.md",
+      "html": "docs/FaceForge - Dev Guide - Core.html",
+      "pdf": "docs/FaceForge - Dev Guide - Core.pdf"
     },
     {
-      "source": "scripts/README.md",
-      "html": "scripts/README.html",
-      "pdf": "scripts/README.pdf"
+      "source": "docs/FaceForge - Dev Guide - Desktop.md",
+      "html": "docs/FaceForge - Dev Guide - Desktop.html",
+      "pdf": "docs/FaceForge - Dev Guide - Desktop.pdf"
     },
     {
-      "source": "docs/FaceForge Core - Project Design Specification.md",
-      "html": "docs/FaceForge Core - Project Design Specification.html",
-      "pdf": "docs/FaceForge Core - Project Design Specification.pdf"
+      "source": "docs/FaceForge - Dev Guide - Project Design Specification.md",
+      "html": "docs/FaceForge - Dev Guide - Project Design Specification.html",
+      "pdf": "docs/FaceForge - Dev Guide - Project Design Specification.pdf"
     },
     {
-      "source": "docs/FaceForge User Guide.md",
-      "html": "docs/FaceForge User Guide.html",
-      "pdf": "docs/FaceForge User Guide.pdf"
+      "source": "docs/FaceForge - User Guide.md",
+      "html": "docs/FaceForge - User Guide.html",
+      "pdf": "docs/FaceForge - User Guide.pdf"
     }
   ]
 }

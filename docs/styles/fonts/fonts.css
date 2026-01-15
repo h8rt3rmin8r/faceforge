@@ -1,0 +1,11 @@
+:root{
+  --ff-font-body: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  --ff-font-display: "Space Grotesk", Inter, system-ui, sans-serif;
+  --ff-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --ff-font-accent: Fraunces, Georgia, "Times New Roman", serif;
+}
+
+body { font-family: var(--ff-font-body); }
+h1,h2,h3 { font-family: var(--ff-font-display); }
+code, pre, kbd, samp { font-family: var(--ff-font-mono); }
+blockquote .accent { font-family: var(--ff-font-accent); }

@@ -4,7 +4,7 @@
 
 ### NAME
 
-    A:\Code\faceforge\scripts\_ensure-venv.ps1
+    ./scripts\_ensure-venv.ps1
 
 ### SYNOPSIS
 
@@ -12,7 +12,7 @@
 
 ### SYNTAX
 ```text
-    A:\Code\faceforge\scripts\_ensure-venv.ps1 [<CommonParameters>]
+    ./scripts\_ensure-venv.ps1 [<CommonParameters>]
 
 ```
 
@@ -55,7 +55,7 @@
 
 ### NAME
 
-    A:\Code\faceforge\scripts\build-core.ps1
+    ./scripts\build-core.ps1
 
 ### SYNOPSIS
 
@@ -63,7 +63,7 @@
 
 ### SYNTAX
 ```text
-    A:\Code\faceforge\scripts\build-core.ps1 [-KeepBuildHistory] [-AllowTimestampFallback] [<CommonParameters>]
+    ./scripts\build-core.ps1 [-KeepBuildHistory] [-AllowTimestampFallback] [<CommonParameters>]
 
 ```
 
@@ -144,7 +144,7 @@
 
 ### NAME
 
-    A:\Code\faceforge\scripts\build-desktop.ps1
+    ./scripts\build-desktop.ps1
 
 ### SYNOPSIS
 
@@ -152,7 +152,7 @@
 
 ### SYNTAX
 ```text
-    A:\Code\faceforge\scripts\build-desktop.ps1 [-Bundles <String>] [-SkipCoreBuild] [-KeepBuildHistory] [-AllowTimestampFallback] [<CommonParameters>]
+    ./scripts\build-desktop.ps1 [-Bundles <String>] [-SkipCoreBuild] [-KeepBuildHistory] [-AllowTimestampFallback] [<CommonParameters>]
 
 ```
 
@@ -258,7 +258,7 @@
 
 ### NAME
 
-    A:\Code\faceforge\scripts\check-core.ps1
+    ./scripts\check-core.ps1
 
 ### SYNOPSIS
 
@@ -266,7 +266,7 @@
 
 ### SYNTAX
 ```text
-    A:\Code\faceforge\scripts\check-core.ps1 [<CommonParameters>]
+    ./scripts\check-core.ps1 [<CommonParameters>]
 
 ```
 
@@ -312,7 +312,7 @@
 
 ### NAME
 
-    A:\Code\faceforge\scripts\dev-core.ps1
+    ./scripts\dev-core.ps1
 
 ### SYNOPSIS
 
@@ -320,7 +320,7 @@
 
 ### SYNTAX
 ```text
-    A:\Code\faceforge\scripts\dev-core.ps1 [<CommonParameters>]
+    ./scripts\dev-core.ps1 [<CommonParameters>]
 
 ```
 
@@ -370,7 +370,7 @@
 
 ### NAME
 
-    A:\Code\faceforge\scripts\set-version.ps1
+    ./scripts\set-version.ps1
 
 ### SYNOPSIS
 
@@ -378,7 +378,7 @@
 
 ### SYNTAX
 ```text
-    A:\Code\faceforge\scripts\set-version.ps1 -Version <String> [-WhatIf] [-Confirm] [<CommonParameters>]
+    ./scripts\set-version.ps1 -Version <String> [-WhatIf] [-Confirm] [<CommonParameters>]
 
 ```
 
