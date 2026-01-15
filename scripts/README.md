@@ -152,8 +152,7 @@
 
 ### SYNTAX
 ```text
-    A:\Code\faceforge\scripts\build-desktop.ps1 [-Bundles <String>] [-SkipCoreBuild] [-SkipNpmInstall] [-KeepBuildHistory] [-AllowTimestampFallback]
-    [<CommonParameters>]
+    A:\Code\faceforge\scripts\build-desktop.ps1 [-Bundles <String>] [-SkipCoreBuild] [-KeepBuildHistory] [-AllowTimestampFallback] [<CommonParameters>]
 
 ```
 
@@ -167,11 +166,10 @@
     This script is designed for repeatable local and CI builds:
       - Uses the repo-local `.venv` for Core builds (never global site-packages).
       - Stages the Core sidecar into `desktop/src-tauri/binaries/faceforge-core.exe`.
-      - Runs `npx tauri build` to produce installable artifacts.
+      - Runs `cargo tauri build` to produce installable artifacts.
 
     Prerequisites (Windows):
       - Rust toolchain installed (cargo).
-      - Node.js + npm.
       - Tauri prerequisites (WebView2, bundler toolchains). Tauri will prompt/download some tooling.
 
     Outputs (Windows):
@@ -193,16 +191,6 @@
 
     -SkipCoreBuild [<SwitchParameter>]
         Skip running scripts/build-core.ps1 (expects core/dist/faceforge-core.exe to already exist).
-
-        Required?                    false
-        Position?                    named
-        Default value                False
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
-
-    -SkipNpmInstall [<SwitchParameter>]
-        Skip `npm install` (assumes dependencies are already installed).
 
         Required?                    false
         Position?                    named
@@ -261,8 +249,8 @@
 
     -------------------------- EXAMPLE 3 --------------------------
 
-    PS > ./scripts/build-desktop.ps1 -SkipCoreBuild -SkipNpmInstall -Bundles msi
-    Fast path when nothing changed in Core/UI dependencies.
+    PS > ./scripts/build-desktop.ps1 -SkipCoreBuild -Bundles msi
+    Fast path when nothing changed in Core.
 
 ### RELATED LINKS
 
@@ -399,8 +387,8 @@
     Updates version strings in the following files:
       - core/pyproject.toml
       - core/src/faceforge_core/app.py
-      - desktop/package.json
       - desktop/src-tauri/Cargo.toml
+    - desktop/src-tauri/Cargo.lock
       - desktop/src-tauri/tauri.conf.json
 
     The script supports -WhatIf / -Confirm for safe previews.

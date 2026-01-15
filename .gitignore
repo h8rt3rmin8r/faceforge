@@ -85,6 +85,9 @@ SHA256SUMS.txt
 # Desktop build inputs/outputs
 desktop/src-tauri/binaries/
 
+# Desktop Node artifacts (FaceForge does not require Node)
+desktop/node_modules/
+
 # Flask stuff:
 instance/
 .webassets-cache

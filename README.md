@@ -347,11 +347,13 @@ To create a distributable installer:
     This uses PyInstaller to freeze the Python service into `core/dist/faceforge-core.exe`.
 
 2.  **Build Desktop Bundle**:
-    ```bash
-    cd desktop
-    npm install
-    npm run tauri build
-    ```
+  ```powershell
+  ./scripts/build-desktop.ps1
+  # or, if you want to run Tauri directly:
+  Push-Location 'desktop/src-tauri'
+  cargo tauri build
+  Pop-Location
+  ```
     This packages the Desktop shell, bundles the Core executable (as a sidecar), and includes necessary tools (ExifTool, etc.).
 
 ## Contributing

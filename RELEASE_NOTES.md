@@ -75,7 +75,7 @@ We are excited to announce FaceForge v0.1.5! This release brings significant imp
 - **Path Structure**: Updated ports path and file structure layout.
 
 ## 📦 Maintenance
-- **Version consistency**: Synchronized version numbers across Core (Python), Desktop (Node/Tauri), and Rust components.
+- **Version consistency**: Synchronized version numbers across Core (Python), Desktop (Tauri), and Rust components.
 
 ---
 *For a full list of changes, please refer to the git log.*

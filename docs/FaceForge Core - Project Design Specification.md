@@ -503,8 +503,7 @@ Documentation is written for non-engineers first and includes screenshots of fir
 
 ### 12.3 Runtime Constraints
 
-- NodeJS is not required at runtime.  
-  Node may be used at build time to produce frontend assets bundled into the Core service.
+- NodeJS is not required at runtime or for the standard build toolchain.
 - The desktop shell must be lightweight (reserve CPU/RAM/VRAM for the likely AI workloads managed by FaceForge plugins).
 
 ### 12.4 Packaging Notes (Implementation Direction)
@@ -654,7 +653,6 @@ This updates, at minimum:
 
 - `core/pyproject.toml`
 - `core/src/faceforge_core/app.py`
-- `desktop/package.json`
 - `desktop/src-tauri/Cargo.toml`
 - `desktop/src-tauri/tauri.conf.json`
 

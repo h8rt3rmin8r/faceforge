@@ -11,11 +11,10 @@
   This script is designed for repeatable local and CI builds:
     - Uses the repo-local `.venv` for Core builds (never global site-packages).
     - Stages the Core sidecar into `desktop/src-tauri/binaries/faceforge-core.exe`.
-    - Runs `npx tauri build` to produce installable artifacts.
+    - Runs `cargo tauri build` to produce installable artifacts.
 
   Prerequisites (Windows):
     - Rust toolchain installed (cargo).
-    - Node.js + npm.
     - Tauri prerequisites (WebView2, bundler toolchains). Tauri will prompt/download some tooling.
 
   Outputs (Windows):
@@ -28,9 +27,6 @@
 
 .PARAMETER SkipCoreBuild
   Skip running scripts/build-core.ps1 (expects core/dist/faceforge-core.exe to already exist).
-
-.PARAMETER SkipNpmInstall
-  Skip `npm install` (assumes dependencies are already installed).
 
 .PARAMETER KeepBuildHistory
   Forwarded to scripts/build-core.ps1; preserves old build/dist folders under core/.
@@ -47,8 +43,8 @@
   Builds only the NSIS installer.
 
 .EXAMPLE
-  ./scripts/build-desktop.ps1 -SkipCoreBuild -SkipNpmInstall -Bundles msi
-  Fast path when nothing changed in Core/UI dependencies.
+  ./scripts/build-desktop.ps1 -SkipCoreBuild -Bundles msi
+  Fast path when nothing changed in Core.
 
 .NOTES
   Outputs (Windows):
@@ -64,7 +60,6 @@ param(
   [string]$Bundles = 'all',
 
   [switch]$SkipCoreBuild,
-  [switch]$SkipNpmInstall,
 
   [switch]$KeepBuildHistory,
   [switch]$AllowTimestampFallback
@@ -116,25 +111,14 @@ try {
   Copy-Item -Force $coreExe (Join-Path $dstDir 'faceforge-core.exe')
 
   Write-Host 'Step 3/3: Building Desktop installer(s) via Tauri' -ForegroundColor Cyan
-  $desktopDir = Join-Path $repoRoot 'desktop'
+  $desktopTauriDir = Join-Path $repoRoot 'desktop/src-tauri'
 
-  if (-not $SkipNpmInstall) {
-    Push-Location $desktopDir
-    try {
-      Invoke-Checked { npm install | Out-Host } 'npm install failed'
-    } finally {
-      Pop-Location
-    }
-  } else {
-    Write-Host 'Skipping npm install' -ForegroundColor Yellow
-  }
-
-  Push-Location $desktopDir
+  Push-Location $desktopTauriDir
   try {
     if ($Bundles -eq 'all') {
-      Invoke-Checked { npx tauri build | Out-Host } 'tauri build failed'
+      Invoke-Checked { cargo tauri build | Out-Host } 'tauri build failed'
     } else {
-      Invoke-Checked { npx tauri build --bundles=$Bundles --verbose | Out-Host } "tauri build ($Bundles) failed"
+      Invoke-Checked { cargo tauri build --bundles=$Bundles --verbose | Out-Host } "tauri build ($Bundles) failed"
     }
   } finally {
     Pop-Location
