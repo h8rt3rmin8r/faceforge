@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FaceForge v0.1.8 Release Notes</title>
+    <base href="file:///A:/Code/faceforge/">
+    <link rel="stylesheet" href="file:///A:/Code/faceforge/brand/fonts/fonts.css">
+    <style>:root { color-scheme: light dark; }
+    body { max-width: 920px; margin: 40px auto; padding: 0 16px; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.55; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    pre { padding: 12px 14px; overflow-x: auto; border: 1px solid rgba(127,127,127,.35); border-radius: 8px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid rgba(127,127,127,.35); padding: 6px 8px; }
+    blockquote { margin: 0; padding-left: 14px; border-left: 4px solid rgba(127,127,127,.35); }
+    img { max-width: 100%; height: auto; }</style>
+</head>
+<body>
+<h1 id="faceforge-v018-release-notes">FaceForge v0.1.8 Release Notes</h1>
+<p>This is a patch release focused on Desktop orchestration quality-of-life and maintainer/developer workflow polish.</p>
+<h2 id="summary">Summary</h2>
+<ul>
+<li><strong>Desktop orchestration</strong>: Adds auto-restart behavior and a “minimize on exit” setting, with accompanying UI updates.</li>
+<li><strong>Build &amp; scripts</strong>: Improves PowerShell scripts with richer comment-based help and auto-generated scripts documentation.</li>
+<li><strong>Versioning hygiene</strong>: Keeps version metadata aligned across manifests and lockfiles for repeatable builds.</li>
+</ul>
+<h2 id="upgrade-notes">Upgrade Notes</h2>
+<ul>
+<li>No manual configuration changes are expected for this update.</li>
+</ul>
+<h2 id="known-issues">Known Issues</h2>
+<ul>
+<li>No new issues have been identified in this release. If you hit something, please file a GitHub issue with logs from <code>FACEFORGE_HOME/logs/</code>.</li>
+</ul>
+<hr>
+<h1 id="faceforge-v017-release-notes">FaceForge v0.1.7 Release Notes</h1>
+<p>This is a patch release focused on documentation/packaging polish and keeping version metadata consistent across Core and Desktop.</p>
+<h2 id="summary_1">Summary</h2>
+<ul>
+<li><strong>Docs output</strong>: Auto-generates HTML/PDF versions of README docs.</li>
+<li><strong>README accuracy</strong>: Updates <code>FACEFORGE_HOME</code> directory structure and config path details.</li>
+<li><strong>Versioning</strong>: Keeps version strings aligned across the repo for bundling and release automation.</li>
+</ul>
+<hr>
+<h1 id="faceforge-v016-release-notes">FaceForge v0.1.6 Release Notes</h1>
+<p>This is a patch release focused on stability and operational polish across Core and Desktop. It includes improvements to how the local filesystem layout is structured, reduces logging edge-cases during reload, and tightens a couple of first-run/wizard flows.</p>
+<h2 id="summary_2">Summary</h2>
+<ul>
+<li><strong>Core layout</strong>: Uses a deterministic, OS-appropriate default for <code>FACEFORGE_HOME</code> (never the current working directory) and keeps the FaceForge home clean and predictable.</li>
+<li><strong>Logging</strong>: Refines logging setup to reduce duplicate-handler behavior and keep rotation reliable.</li>
+<li><strong>Desktop wizard/UI</strong>: Makes first-run settings persistence more robust and aligns the settings payload structure.</li>
+<li><strong>Automation</strong>: Improves non-interactive build behavior for CI and scripted usage.</li>
+</ul>
+<h2 id="what-changed">What Changed</h2>
+<h3 id="core">Core</h3>
+<ul>
+<li><strong>FaceForge home + layout</strong>: Ensures <code>FACEFORGE_HOME</code> resolution never depends on the process working directory (e.g. running an installer from Downloads).</li>
+<li><strong>Logging initialization cleanup</strong>: Refactors the log handler setup to avoid duplicate handlers on reload, and keeps output consistent.</li>
+</ul>
+<h3 id="desktop">Desktop</h3>
+<ul>
+<li><strong>First-run robustness</strong>: Ensures the temporary directory exists before saving wizard settings.</li>
+<li><strong>Settings payload consistency</strong>: Updates the UI-side payload structure to match what the desktop side expects.</li>
+</ul>
+<h3 id="build-developer-experience">Build &amp; Developer Experience</h3>
+<ul>
+<li><strong>Non-interactive builds</strong>: Updates <code>scripts/build-core.ps1</code> to avoid confirmation prompts when running unattended.</li>
+<li><strong>Dependency metadata hygiene</strong>: Keeps Tauri desktop lockfile version metadata consistent.</li>
+</ul>
+<h2 id="upgrade-notes_1">Upgrade Notes</h2>
+<ul>
+<li>On next start, Core will create any missing subfolders under <code>FACEFORGE_HOME</code> (notably <code>tmp/</code> and <code>tools/</code>) if they do not already exist.</li>
+<li>No manual configuration changes are expected for this update.</li>
+</ul>
+<h2 id="known-issues_1">Known Issues</h2>
+<ul>
+<li>No new issues have been identified in this release. If you hit something, please file a GitHub issue with logs from <code>FACEFORGE_HOME/logs/</code>.</li>
+</ul>
+<hr>
+<h1 id="faceforge-v015-release-notes">FaceForge v0.1.5 Release Notes</h1>
+<p>We are excited to announce FaceForge v0.1.5! This release brings significant improvements to the desktop orchestration, UI enhancements, and a more robust development infrastructure.</p>
+<h2 id="key-changes">🚀 Key Changes</h2>
+<h3 id="desktop-ui">Desktop &amp; UI</h3>
+<ul>
+<li><strong>Refactored Orchestrator</strong>: Improved tool path resolution and stability in the desktop orchestrator.</li>
+<li><strong>Settings &amp; Logs Management</strong>: Enhanced the UI with a dedicated settings interface and better log viewing capabilities.</li>
+<li><strong>Styling Improvements</strong>: Polished the overall look and feel for a smoother user experience.</li>
+</ul>
+<h3 id="core-infrastructure">Core &amp; Infrastructure</h3>
+<ul>
+<li><strong>Centralized Version Management</strong>: Introduced a new <code>scripts/set-version.ps1</code> script to eliminate hardcoded version strings and ensure consistency across the project.</li>
+<li><strong>Path Structure</strong>: Updated ports path and file structure layout.</li>
+</ul>
+<h2 id="maintenance">📦 Maintenance</h2>
+<ul>
+<li><strong>Version consistency</strong>: Synchronized version numbers across Core (Python), Desktop (Tauri), and Rust components.</li>
+</ul>
+<hr>
+<p><em>For a full list of changes, please refer to the git log.</em></p>
+</body>
+</html>

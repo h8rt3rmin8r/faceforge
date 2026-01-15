@@ -1,376 +1,27 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<title>FaceForge Core - Project Design Specification.md</title>
-<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-
-<style>
-/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-
-body {
-	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
-	font-size: var(--vscode-markdown-font-size, 14px);
-	padding: 0 26px;
-	line-height: var(--vscode-markdown-line-height, 22px);
-	word-wrap: break-word;
-}
-
-#code-csp-warning {
-	position: fixed;
-	top: 0;
-	right: 0;
-	color: white;
-	margin: 16px;
-	text-align: center;
-	font-size: 12px;
-	font-family: sans-serif;
-	background-color:#444444;
-	cursor: pointer;
-	padding: 6px;
-	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
-}
-
-#code-csp-warning:hover {
-	text-decoration: none;
-	background-color:#007acc;
-	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
-}
-
-body.scrollBeyondLastLine {
-	margin-bottom: calc(100vh - 22px);
-}
-
-body.showEditorSelection .code-line {
-	position: relative;
-}
-
-body.showEditorSelection .code-active-line:before,
-body.showEditorSelection .code-line:hover:before {
-	content: "";
-	display: block;
-	position: absolute;
-	top: 0;
-	left: -12px;
-	height: 100%;
-}
-
-body.showEditorSelection li.code-active-line:before,
-body.showEditorSelection li.code-line:hover:before {
-	left: -30px;
-}
-
-.vscode-light.showEditorSelection .code-active-line:before {
-	border-left: 3px solid rgba(0, 0, 0, 0.15);
-}
-
-.vscode-light.showEditorSelection .code-line:hover:before {
-	border-left: 3px solid rgba(0, 0, 0, 0.40);
-}
-
-.vscode-light.showEditorSelection .code-line .code-line:hover:before {
-	border-left: none;
-}
-
-.vscode-dark.showEditorSelection .code-active-line:before {
-	border-left: 3px solid rgba(255, 255, 255, 0.4);
-}
-
-.vscode-dark.showEditorSelection .code-line:hover:before {
-	border-left: 3px solid rgba(255, 255, 255, 0.60);
-}
-
-.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
-	border-left: none;
-}
-
-.vscode-high-contrast.showEditorSelection .code-active-line:before {
-	border-left: 3px solid rgba(255, 160, 0, 0.7);
-}
-
-.vscode-high-contrast.showEditorSelection .code-line:hover:before {
-	border-left: 3px solid rgba(255, 160, 0, 1);
-}
-
-.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
-	border-left: none;
-}
-
-img {
-	max-width: 100%;
-	max-height: 100%;
-}
-
-a {
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
-}
-
-a:focus,
-input:focus,
-select:focus,
-textarea:focus {
-	outline: 1px solid -webkit-focus-ring-color;
-	outline-offset: -1px;
-}
-
-hr {
-	border: 0;
-	height: 2px;
-	border-bottom: 2px solid;
-}
-
-h1 {
-	padding-bottom: 0.3em;
-	line-height: 1.2;
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
-}
-
-h1, h2, h3 {
-	font-weight: normal;
-}
-
-table {
-	border-collapse: collapse;
-}
-
-table > thead > tr > th {
-	text-align: left;
-	border-bottom: 1px solid;
-}
-
-table > thead > tr > th,
-table > thead > tr > td,
-table > tbody > tr > th,
-table > tbody > tr > td {
-	padding: 5px 10px;
-}
-
-table > tbody > tr + tr > td {
-	border-top: 1px solid;
-}
-
-blockquote {
-	margin: 0 7px 0 5px;
-	padding: 0 16px 0 10px;
-	border-left-width: 5px;
-	border-left-style: solid;
-}
-
-code {
-	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
-	font-size: 1em;
-	line-height: 1.357em;
-}
-
-body.wordWrap pre {
-	white-space: pre-wrap;
-}
-
-pre:not(.hljs),
-pre.hljs code > div {
-	padding: 16px;
-	border-radius: 3px;
-	overflow: auto;
-}
-
-pre code {
-	color: var(--vscode-editor-foreground);
-	tab-size: 4;
-}
-
-/** Theming */
-
-.vscode-light pre {
-	background-color: rgba(220, 220, 220, 0.4);
-}
-
-.vscode-dark pre {
-	background-color: rgba(10, 10, 10, 0.4);
-}
-
-.vscode-high-contrast pre {
-	background-color: rgb(0, 0, 0);
-}
-
-.vscode-high-contrast h1 {
-	border-color: rgb(0, 0, 0);
-}
-
-.vscode-light table > thead > tr > th {
-	border-color: rgba(0, 0, 0, 0.69);
-}
-
-.vscode-dark table > thead > tr > th {
-	border-color: rgba(255, 255, 255, 0.69);
-}
-
-.vscode-light h1,
-.vscode-light hr,
-.vscode-light table > tbody > tr + tr > td {
-	border-color: rgba(0, 0, 0, 0.18);
-}
-
-.vscode-dark h1,
-.vscode-dark hr,
-.vscode-dark table > tbody > tr + tr > td {
-	border-color: rgba(255, 255, 255, 0.18);
-}
-
-</style>
-
-<style>
-/* Tomorrow Theme */
-/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
-/* Original theme - https://github.com/chriskempson/tomorrow-theme */
-
-/* Tomorrow Comment */
-.hljs-comment,
-.hljs-quote {
-	color: #8e908c;
-}
-
-/* Tomorrow Red */
-.hljs-variable,
-.hljs-template-variable,
-.hljs-tag,
-.hljs-name,
-.hljs-selector-id,
-.hljs-selector-class,
-.hljs-regexp,
-.hljs-deletion {
-	color: #c82829;
-}
-
-/* Tomorrow Orange */
-.hljs-number,
-.hljs-built_in,
-.hljs-builtin-name,
-.hljs-literal,
-.hljs-type,
-.hljs-params,
-.hljs-meta,
-.hljs-link {
-	color: #f5871f;
-}
-
-/* Tomorrow Yellow */
-.hljs-attribute {
-	color: #eab700;
-}
-
-/* Tomorrow Green */
-.hljs-string,
-.hljs-symbol,
-.hljs-bullet,
-.hljs-addition {
-	color: #718c00;
-}
-
-/* Tomorrow Blue */
-.hljs-title,
-.hljs-section {
-	color: #4271ae;
-}
-
-/* Tomorrow Purple */
-.hljs-keyword,
-.hljs-selector-tag {
-	color: #8959a8;
-}
-
-.hljs {
-	display: block;
-	overflow-x: auto;
-	color: #4d4d4c;
-	padding: 0.5em;
-}
-
-.hljs-emphasis {
-	font-style: italic;
-}
-
-.hljs-strong {
-	font-weight: bold;
-}
-</style>
-
-<style>
-/*
- * Markdown PDF CSS
- */
-
- body {
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
-	padding: 0 12px;
-}
-
-pre {
-	background-color: #f8f8f8;
-	border: 1px solid #cccccc;
-	border-radius: 3px;
-	overflow-x: auto;
-	white-space: pre-wrap;
-	overflow-wrap: break-word;
-}
-
-pre:not(.hljs) {
-	padding: 23px;
-	line-height: 19px;
-}
-
-blockquote {
-	background: rgba(127, 127, 127, 0.1);
-	border-color: rgba(0, 122, 204, 0.5);
-}
-
-.emoji {
-	height: 1.4em;
-}
-
-code {
-	font-size: 14px;
-	line-height: 19px;
-}
-
-/* for inline code */
-:not(pre):not(.hljs) > code {
-	color: #C9AE75; /* Change the old color so it seems less like an error */
-	font-size: inherit;
-}
-
-/* Page Break : use <div class="page"/> to insert page break
--------------------------------------------------------- */
-.page {
-	page-break-after: always;
-}
-
-</style>
-
-<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FaceForge Core — Project Design Specification</title>
+    <base href="file:///A:/Code/faceforge/docs/">
+    <link rel="stylesheet" href="file:///A:/Code/faceforge/brand/fonts/fonts.css">
+    <style>:root { color-scheme: light dark; }
+    body { max-width: 920px; margin: 40px auto; padding: 0 16px; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.55; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    pre { padding: 12px 14px; overflow-x: auto; border: 1px solid rgba(127,127,127,.35); border-radius: 8px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid rgba(127,127,127,.35); padding: 6px 8px; }
+    blockquote { margin: 0; padding-left: 14px; border-left: 4px solid rgba(127,127,127,.35); }
+    img { max-width: 100%; height: auto; }</style>
 </head>
 <body>
-  <script>
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
-          ? 'dark'
-          : 'default'
-    });
-  </script>
-<h1 id="faceforge-core--project-design-specification">FaceForge Core — Project Design Specification</h1>
-<pre class="hljs"><code><div>Document Status: Design &amp; Ideation
+<h1 id="faceforge-core-project-design-specification">FaceForge Core — Project Design Specification</h1>
+<pre><code class="language-text">Document Status: Design &amp; Ideation
 Scope: FaceForge Core
 Last Updated: 2026-01-13
 Version: v0.2.11
-</div></code></pre>
+</code></pre>
 <h2 id="1-source-of-truth">1. Source of Truth</h2>
 <p>This document is the authoritative design specification for <strong>FaceForge Core</strong>: what it must provide, what it intentionally avoids, and the interfaces that future work will build on.</p>
 <p>FaceForge is designed to stay <strong>stable and boring at the center</strong>, while advanced functionality (recognition, training, integrations, rich visualizations, etc.) is delivered as optional plugins over the Core’s public APIs and job system.</p>
@@ -387,7 +38,7 @@ Version: v0.2.11
 </ul>
 <p>External tools (for example, ComfyUI or StashApp) must be able to query FaceForge and retrieve assets through a stable API without depending on the UI.</p>
 <p>A common target environment includes <strong>very large local datasets</strong>. FaceForge is expected to operate primarily on local storage while remaining compatible with remote object storage systems (like Amazon S3, Google Cloud Storage, MEGA S4, MinIO, etc.).</p>
-<h3 id="22-the-%22boring-core%22-philosophy">2.2 The &quot;boring core&quot; philosophy</h3>
+<h3 id="22-the-boring-core-philosophy">2.2 The &ldquo;boring core&rdquo; philosophy</h3>
 <p>The Core provides stable foundations:</p>
 <ul>
 <li>Database CRUD operations (create, read, update, and delete) for entity records and the metadata of their associated attachments</li>
@@ -400,19 +51,19 @@ Version: v0.2.11
 <ol>
 <li>
 <p><strong>Keep the center stable</strong>
-The Core stays small and dependable. New capabilities should plug in through stable interfaces rather than expanding Core scope.</p>
+   The Core stays small and dependable. New capabilities should plug in through stable interfaces rather than expanding Core scope.</p>
 </li>
 <li>
 <p><strong>Transparent storage</strong>
-Assets must not be hidden inside opaque container volumes. Users must be able to see and manage where their data lives (local disks, NAS, remote storage, etc.). The user can control the application's data storage broadly (running everything from a named folder path) or in a more modular way (e.g., separating database files from object storage).</p>
+   Assets must not be hidden inside opaque container volumes. Users must be able to see and manage where their data lives (local disks, NAS, remote storage, etc.). The user can control the application&rsquo;s data storage broadly (running everything from a named folder path) or in a more modular way (e.g., separating database files from object storage).</p>
 </li>
 <li>
-<p><strong>&quot;Double-click&quot; simplicity (cross-platform)</strong>
-The system must be runnable by non‑developer users via a single desktop launcher experience. <strong>Container runtimes (Docker, Podman, etc.) are explicitly out of scope for end‑user deployment.</strong> All required components are managed directly by the desktop shell application.</p>
+<p><strong>&ldquo;Double-click&rdquo; simplicity (cross-platform)</strong>
+   The system must be runnable by non‑developer users via a single desktop launcher experience. <strong>Container runtimes (Docker, Podman, etc.) are explicitly out of scope for end‑user deployment.</strong> All required components are managed directly by the desktop shell application.</p>
 </li>
 <li>
 <p><strong>Integration-first</strong><br>
-The Core is designed to serve downstream tools via a stable and well documented API. Documentation of the API is provided by OpenAPI/Swagger and kept in sync with the active implementation at all times.</p>
+   The Core is designed to serve downstream tools via a stable and well documented API. Documentation of the API is provided by OpenAPI/Swagger and kept in sync with the active implementation at all times.</p>
 </li>
 </ol>
 <h2 id="3-what-faceforge-core-provides">3. What FaceForge Core Provides</h2>
@@ -420,31 +71,22 @@ The Core is designed to serve downstream tools via a stable and well documented 
 <h3 id="31-central-metadata-engine">3.1 Central Metadata Engine</h3>
 <ul>
 <li>Immutable <strong>entity IDs</strong> (SHA-256) assigned at creation time.</li>
-<li>Entity records with flexible fields, including:
-<ul>
+<li>Entity records with flexible fields, including:</li>
 <li>standard descriptive information fields</li>
 <li>arbitrary admin-defined custom fields</li>
-</ul>
-</li>
 <li>A universal asset/attachment model that can represent <strong>any file type</strong> (images, audio, PDFs, archives, model artifacts, etc.).</li>
-<li>Durable representations of relationships between:
-<ul>
+<li>Durable representations of relationships between:</li>
 <li>entities ↔ assets (attachments)</li>
 <li>assets ↔ derived assets (e.g., thumbnail derived from an original image)</li>
 <li>entities ↔ entities (relationships stored as metadata)</li>
 </ul>
-</li>
-</ul>
 <p><strong>Note:</strong> The <em>visual relationship graph UI</em> is intentionally out of scope for the Core. The Core provides the data surface for relationship metadata; rendering and interaction will live in an official plugin (FFGraph).</p>
-<h3 id="32-storage--retrieval">3.2 Storage &amp; Retrieval</h3>
+<h3 id="32-storage-retrieval">3.2 Storage &amp; Retrieval</h3>
 <ul>
-<li>A storage abstraction that supports rule-based selection of storage backends per asset type/kind:
-<ul>
+<li>A storage abstraction that supports rule-based selection of storage backends per asset type/kind:</li>
 <li>Local S3-compatible object storage (default: SeaweedFS)</li>
 <li>Local filesystem-only provider (e.g., for small files)</li>
 <li>Remote S3 endpoints (AWS S3, Wasabi, Backblaze, MEGA S4, etc.) configured by the user</li>
-</ul>
-</li>
 <li>Stable, secure download URLs for assets (including large artifacts such as LoRAs).</li>
 <li>Streaming downloads with HTTP range support (resume-friendly).</li>
 </ul>
@@ -454,17 +96,14 @@ The Core is designed to serve downstream tools via a stable and well documented 
 <li>Core always treats <code>FACEFORGE_HOME</code> as the data root and creates its required subfolders under it.</li>
 </ul>
 <p>Remote S3 endpoints remain a supported <em>design target</em>, but the initial list of “blessed” providers and setup UX can evolve over time.</p>
-<h3 id="33-jobs--logging">3.3 Jobs &amp; Logging</h3>
+<h3 id="33-jobs-logging">3.3 Jobs &amp; Logging</h3>
 <ul>
 <li>Long-running operations are tracked as <strong>jobs</strong> in the database.</li>
-<li>Job state + append-only structured logs:
-<ul>
+<li>Job state + append-only structured logs:</li>
 <li>Viewable in the web UI</li>
 <li>Retrievable via headless API requests</li>
-</ul>
-</li>
 <li>Jobs can emit <strong>progress updates</strong> (percentage complete, current step, etc.).</li>
-<li>A consistent &quot;job type&quot; contract so plugins can contribute job types.</li>
+<li>A consistent &ldquo;job type&rdquo; contract so plugins can contribute job types.</li>
 </ul>
 <p><strong>Design intent:</strong> Compute-heavy work happens out-of-process. The Core remains the job registry, API surface, and artifact store.</p>
 <h3 id="34-plugin-foundations">3.4 Plugin Foundations</h3>
@@ -478,7 +117,7 @@ The Core is designed to serve downstream tools via a stable and well documented 
 </ul>
 <h3 id="35-web-based-ui-for-all-core-features">3.5 Web-Based UI for all Core Features</h3>
 <ul>
-<li>The UI exposes <em>everything the Core can do</em> (no &quot;backend-only&quot; features are allowed).</li>
+<li>The UI exposes <em>everything the Core can do</em> (no &ldquo;backend-only&rdquo; features are allowed).</li>
 <li>Plugin UIs integrate into the Core UI shell and navigation.</li>
 </ul>
 <h2 id="4-planned-official-plugins">4. Planned Official Plugins</h2>
@@ -486,47 +125,47 @@ The Core is designed to serve downstream tools via a stable and well documented 
 <ul>
 <li>
 <p><strong>FFIdentify — face detection + identity matching</strong><br>
-Detect faces, compute embeddings, match identities across media, and emit structured results back into Core.</p>
+   Detect faces, compute embeddings, match identities across media, and emit structured results back into Core.</p>
 </li>
 <li>
 <p><strong>FFGraph — relationship graphing</strong><br>
-Force-directed graph visualization that turns Core relationship metadata into an interactive &quot;entities web.&quot;</p>
+   Force-directed graph visualization that turns Core relationship metadata into an interactive &ldquo;entities web.&rdquo;</p>
 </li>
 <li>
 <p><strong>FFLoRA — LoRA training</strong><br>
-Produces per-entity LoRAs (SDXL, SD 1.5, SD 2.x). Outputs are stored as assets with clean provenance and derived-asset links.</p>
+   Produces per-entity LoRAs (SDXL, SD 1.5, SD 2.x). Outputs are stored as assets with clean provenance and derived-asset links.</p>
 </li>
 <li>
 <p><strong>FFSD — Stable Diffusion / ComfyUI integration</strong><br>
-Custom nodes that can list, fetch, and resolve LoRAs and other artifacts directly from FaceForge with a stable API contract.</p>
+   Custom nodes that can list, fetch, and resolve LoRAs and other artifacts directly from FaceForge with a stable API contract.</p>
 </li>
 <li>
 <p><strong>FFStash — StashApp integration</strong><br>
-Bulk-friendly import and sync workflows (performers → entities, media scanning jobs, write-back of tags/notes where configured).</p>
+   Bulk-friendly import and sync workflows (performers → entities, media scanning jobs, write-back of tags/notes where configured).</p>
 </li>
 <li>
 <p><strong>FFVoice — voice cloning</strong><br>
-Manages voice samples as assets linked to entities and produces cloning artifacts per entity.</p>
+   Manages voice samples as assets linked to entities and produces cloning artifacts per entity.</p>
 </li>
 <li>
 <p><strong>FFDialogue — conversational agent</strong><br>
-Builds context-aware chat agents using entity metadata + attachments, with a dedicated UI surface.</p>
+   Builds context-aware chat agents using entity metadata + attachments, with a dedicated UI surface.</p>
 </li>
 <li>
 <p><strong>FFMeta — media library enrichment</strong><br>
-Scans libraries, extracts faces/audio, matches identities, and writes structured outputs (tags, notes, sidecar metadata files).</p>
+   Scans libraries, extracts faces/audio, matches identities, and writes structured outputs (tags, notes, sidecar metadata files).</p>
 </li>
 <li>
 <p><strong>FFBackup — backup/export/restore</strong><br>
-Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and restore workflows.</p>
+   Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and restore workflows.</p>
 </li>
 </ul>
-<h2 id="5-project-non-goals--constraints">5. Project Non-Goals &amp; Constraints</h2>
+<h2 id="5-project-non-goals-constraints">5. Project Non-Goals &amp; Constraints</h2>
 <ul>
 <li>No paid SaaS should ever be required.</li>
 <li>Authentication secrets are never committed (appropriate <code>.gitignore</code> rules, environment variable support, etc.).</li>
 <li>Plugins must not silently exfiltrate data; permissions and explicit enablement are required.</li>
-<li>Avoid magical &quot;it trains a LoRA.&quot; Training lives outside the Core and is explicit about tooling and invocation.</li>
+<li>Avoid magical &ldquo;it trains a LoRA.&rdquo; Training lives outside the Core and is explicit about tooling and invocation.</li>
 <li>Keep Core stable; breaking changes are rare and intentional.</li>
 <li>Avoid using any infrastructure that forces Electron-scale overhead without a hard requirement for it.</li>
 </ul>
@@ -543,52 +182,38 @@ Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and rest
 <h2 id="6-core-architecture-baseline-practical-v1-target">6. Core Architecture Baseline (Practical v1 Target)</h2>
 <p>This section describes a practical minimum baseline intended to be reliable and easy to run locally <strong>without containerization</strong>.</p>
 <h3 id="61-runtime-layout-what-ships">6.1 Runtime Layout (What Ships)</h3>
-<p><strong>6.1.1 Desktop Shell Orchestrator</strong></p>
-<ul>
-<li><strong>Tauri v2</strong> desktop app (tray + updates + system popups)</li>
-<li>Responsible for:
-<ul>
-<li>Starting/stopping/monitoring managed components (Core API service, local object storage, plugin runners)</li>
-<li>Autostart at login (optional)</li>
-<li>Presenting status/logs and opening the web UI</li>
-</ul>
-</li>
-</ul>
-<p><strong>6.1.2 Core Service (Python 3.11/3.12 + FastAPI + Uvicorn)</strong></p>
-<ul>
-<li>Runs as a local HTTP API server:
-<ul>
-<li><code>/v1/...</code> API</li>
-<li><code>/docs</code> and <code>/redoc</code> API playground</li>
-<li>the web UI as static assets (one service, one port)</li>
-</ul>
-</li>
-</ul>
+<p><strong>6.1.1 Desktop Shell Orchestrator</strong>
+- <strong>Tauri v2</strong> desktop app (tray + updates + system popups)
+- Responsible for:
+  - Starting/stopping/monitoring managed components (Core API service, local object storage, plugin runners)
+  - Autostart at login (optional)
+  - Presenting status/logs and opening the web UI</p>
+<p><strong>6.1.2 Core Service (Python 3.11/3.12 + FastAPI + Uvicorn)</strong>
+- Runs as a local HTTP API server:
+  - <code>/v1/...</code> API
+  - <code>/docs</code> and <code>/redoc</code> API playground
+  - the web UI as static assets (one service, one port)</p>
 <h3 id="62-database-sqlite">6.2 Database (SQLite)</h3>
 <ul>
 <li><strong>SQLite</strong> is the metadata database.</li>
 <li>The database lives under the user data directory (file-based, easy to relocate and back up).</li>
 <li>The Core uses a <strong>relational spine</strong> for durable relationships (entities/assets/jobs/relationships) plus <strong>JSON fields</strong> for flexible, admin-defined descriptors.</li>
 </ul>
-<p><strong>Why SQLite (design reasoning):</strong></p>
-<ul>
-<li><strong>Embeddable engine</strong>: no separate database service to install/manage; lifecycle is bound to the Core process.</li>
-<li><strong>Local-first reliability</strong>: single-file persistence with excellent durability; easy backups and restores.</li>
-<li><strong>Flexible fields without schema churn</strong>: admin-defined fields live in JSON; common fields can be indexed via generated columns.</li>
-<li><strong>Operational simplicity</strong>: fewer moving parts, fewer failure modes, and a smoother &quot;double-click&quot; experience.</li>
-</ul>
+<p><strong>Why SQLite (design reasoning):</strong>
+- <strong>Embeddable engine</strong>: no separate database service to install/manage; lifecycle is bound to the Core process.
+- <strong>Local-first reliability</strong>: single-file persistence with excellent durability; easy backups and restores.
+- <strong>Flexible fields without schema churn</strong>: admin-defined fields live in JSON; common fields can be indexed via generated columns.
+- <strong>Operational simplicity</strong>: fewer moving parts, fewer failure modes, and a smoother &ldquo;double-click&rdquo; experience.</p>
 <h3 id="63-s3-compatible-object-storage-seaweedfs">6.3 S3-Compatible Object Storage (SeaweedFS)</h3>
 <ul>
 <li>Default: <strong>SeaweedFS</strong> providing a <strong>local, S3-compatible endpoint</strong> for asset storage.</li>
 <li>SeaweedFS points at a user-selected directory inside the FaceForge data directory (or another user-chosen path).</li>
 <li>Optional: remote S3 endpoint configured by the user (AWS/Wasabi/Backblaze/etc.) in later phases.</li>
 </ul>
-<p><strong>Why SeaweedFS (design reasoning):</strong></p>
-<ul>
-<li><strong>S3 compatibility for external tools</strong> without bundling MinIO (and its licensing/packaging concerns).</li>
-<li><strong>User transparency</strong> over where bucket data lives on disk.</li>
-<li><strong>Lightweight local services model</strong> appropriate for a self-hosted desktop-managed bundle.</li>
-</ul>
+<p><strong>Why SeaweedFS (design reasoning):</strong>
+- <strong>S3 compatibility for external tools</strong> without bundling MinIO (and its licensing/packaging concerns).
+- <strong>User transparency</strong> over where bucket data lives on disk.
+- <strong>Lightweight local services model</strong> appropriate for a self-hosted desktop-managed bundle.</p>
 <h3 id="64-network-and-security-defaults">6.4 Network and Security Defaults</h3>
 <ul>
 <li>Core binds to <strong>127.0.0.1</strong> by default (not LAN-accessible unless the user opts in).</li>
@@ -619,7 +244,7 @@ Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and rest
 <p>Universal attachment model (files, models, documents, etc.).</p>
 <ul>
 <li><code>asset_id</code>: SHA-256 hex string (64 chars), immutable</li>
-<li><code>owner</code>: <code>{ &quot;type&quot;: &quot;entity&quot; | &quot;system&quot; | &quot;plugin&quot;, &quot;id&quot;: &quot;...&quot; }</code></li>
+<li><code>owner</code>: <code>{ "type": "entity" | "system" | "plugin", "id": "..." }</code></li>
 <li><code>linked_entity_ids</code>: <code>entity_id[]</code> (many-to-many)</li>
 <li><code>kind</code>: string (examples: <code>image.original</code>, <code>image.thumbnail</code>, <code>model.lora</code>, <code>doc.pdf</code>, <code>audio.clip</code>)</li>
 <li><code>mime_type</code>, <code>size_bytes</code></li>
@@ -636,12 +261,10 @@ Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and rest
 <li><strong>Field definitions</strong>: admin-declared keys that control validation and UX (type, options, regex, etc.).</li>
 <li><strong>Descriptors</strong>: facts/attributes that may be time-bound or historical (addresses, phone numbers, notes, external IDs, etc.).</li>
 </ul>
-<p>Design intent:</p>
-<ul>
-<li>The system must support <em>new</em> descriptor keys being defined at any time.</li>
-<li>Historic records are not required to have those keys.</li>
-<li>Historic records may be updated later, without migrations or schema changes.</li>
-</ul>
+<p>Design intent:
+- The system must support <em>new</em> descriptor keys being defined at any time.
+- Historic records are not required to have those keys.
+- Historic records may be updated later, without migrations or schema changes.</p>
 <h3 id="74-jobs-events-relationships">7.4 Jobs, Events, Relationships</h3>
 <ul>
 <li><strong>Jobs</strong> track long-running operations and their logs.</li>
@@ -663,157 +286,114 @@ Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and rest
 <ul>
 <li><code>id</code>, <code>name</code>, <code>version</code></li>
 <li><code>core_compat</code>: semver range</li>
-<li><code>capabilities</code>: <code>[&quot;api&quot;, &quot;runner&quot;, &quot;ui&quot;, ...]</code></li>
+<li><code>capabilities</code>: <code>["api", "runner", "ui", ...]</code></li>
 <li><code>config_schema</code>: JSON Schema (for UI-rendered settings)</li>
 <li><code>permissions</code>: declared needs (read entities, write assets, create jobs, filesystem scopes, network, GPU access, etc.)</li>
 <li><code>routes_prefix</code>: e.g. <code>/v1/plugins/&lt;id&gt;</code></li>
 <li><code>job_types</code>: list (namespaced)</li>
-<li><code>entrypoints</code>:
-<ul>
+<li><code>entrypoints</code>:</li>
 <li><code>runner</code>: how to start the plugin process</li>
 <li><code>ui</code>: route(s) exposed in the Core UI shell</li>
 </ul>
-</li>
-</ul>
 <h3 id="83-execution-model-out-of-process-first">8.3 Execution Model (Out-of-Process First)</h3>
-<p><strong>Phase 1 (MVP):</strong></p>
-<ul>
-<li>plugins installed as folders inside a local install dir</li>
-<li>Core loads manifests and exposes plugin metadata via API</li>
-<li>Desktop shell starts/stops plugin runner processes as needed</li>
-<li>Plugins communicate with Core via <strong>HTTP</strong>:
-<ul>
-<li>create jobs</li>
-<li>stream logs/progress</li>
-<li>upload artifacts (assets) and link them to entities</li>
-</ul>
-</li>
-<li>UI renders navigation based on manifest + enabled status</li>
-</ul>
-<p><strong>Phase 2 (later):</strong></p>
-<ul>
-<li>install from URL/local <code>.whl</code>/<code>.zip</code></li>
-<li>per-plugin virtualenvs (and potentially per-plugin Python versions)</li>
-<li>signed bundles + marketplace</li>
-</ul>
+<p><strong>Phase 1 (MVP):</strong>
+- plugins installed as folders inside a local install dir
+- Core loads manifests and exposes plugin metadata via API
+- Desktop shell starts/stops plugin runner processes as needed
+- Plugins communicate with Core via <strong>HTTP</strong>:
+  - create jobs
+  - stream logs/progress
+  - upload artifacts (assets) and link them to entities
+- UI renders navigation based on manifest + enabled status</p>
+<p><strong>Phase 2 (later):</strong>
+- install from URL/local <code>.whl</code>/<code>.zip</code>
+- per-plugin virtualenvs (and potentially per-plugin Python versions)
+- signed bundles + marketplace</p>
 <blockquote>
 <p>TO-DO: Bundle signing, distribution, sandboxing strategy, and permission enforcement depth need a separate design doc when in scope.</p>
 </blockquote>
-<h2 id="9-api-contract-core--plugin-friendly">9. API Contract (Core + Plugin Friendly)</h2>
+<h2 id="9-api-contract-core-plugin-friendly">9. API Contract (Core + Plugin Friendly)</h2>
 <h3 id="91-versioning">9.1 Versioning</h3>
 <ul>
 <li>Core API version prefix: <code>/v1/...</code></li>
 <li>Avoid breaking changes. Prefer adding fields rather than removing.</li>
 </ul>
 <h3 id="92-core-endpoints-minimum">9.2 Core Endpoints (Minimum)</h3>
-<p><strong>9.2.1 Entities</strong></p>
-<ul>
-<li><code>GET /v1/entities</code></li>
-<li><code>POST /v1/entities</code></li>
-<li><code>GET /v1/entities/{entity_id}</code></li>
-<li><code>PATCH /v1/entities/{entity_id}</code></li>
-<li><code>DELETE /v1/entities/{entity_id}</code> (soft delete recommended)</li>
-</ul>
-<p><strong>9.2.2 Descriptors</strong></p>
-<ul>
-<li><code>GET /v1/entities/{entity_id}/descriptors</code></li>
-<li><code>POST /v1/entities/{entity_id}/descriptors</code></li>
-<li><code>PATCH /v1/descriptors/{descriptor_id}</code></li>
-<li><code>DELETE /v1/descriptors/{descriptor_id}</code></li>
-</ul>
-<p><strong>9.2.3 Field Definitions (Admin)</strong></p>
-<ul>
-<li><code>GET /v1/admin/field-defs</code></li>
-<li><code>POST /v1/admin/field-defs</code></li>
-<li><code>PATCH /v1/admin/field-defs/{field_key}</code></li>
-<li><code>DELETE /v1/admin/field-defs/{field_key}</code></li>
-</ul>
-<p><strong>9.2.4 Assets / Attachments</strong></p>
-<ul>
-<li><code>POST /v1/assets/upload</code> (multipart; supports companion <code>_meta.json</code>)</li>
-<li><code>POST /v1/assets/bulk-import</code> (directory import job; reads <code>*_meta.json</code> sidecars)</li>
-<li><code>GET /v1/assets/{asset_id}</code></li>
-<li><code>GET /v1/assets/{asset_id}/download</code> (stream; must support HTTP range)</li>
-<li><code>POST /v1/entities/{entity_id}/assets/{asset_id}/link</code></li>
-<li><code>POST /v1/entities/{entity_id}/assets/{asset_id}/unlink</code></li>
-</ul>
-<p><strong>9.2.5 Relationships</strong></p>
-<ul>
-<li><code>GET /v1/relationships?entity_id=...</code></li>
-<li><code>POST /v1/relationships</code></li>
-<li><code>DELETE /v1/relationships/{relationship_id}</code></li>
-<li><code>GET /v1/relation-types?query=sp</code></li>
-</ul>
-<p><strong>9.2.6 Jobs</strong></p>
-<ul>
-<li><code>POST /v1/jobs</code></li>
-<li><code>GET /v1/jobs/{job_id}</code></li>
-<li><code>GET /v1/jobs/{job_id}/log</code></li>
-<li><code>POST /v1/jobs/{job_id}/cancel</code></li>
-</ul>
-<p><strong>9.2.7 Plugins</strong></p>
-<ul>
-<li><code>GET /v1/plugins</code></li>
-<li><code>POST /v1/plugins/{id}/enable</code></li>
-<li><code>POST /v1/plugins/{id}/disable</code></li>
-<li><code>GET /v1/plugins/{id}/config</code></li>
-<li><code>PUT /v1/plugins/{id}/config</code></li>
-</ul>
+<p><strong>9.2.1 Entities</strong>
+- <code>GET /v1/entities</code>
+- <code>POST /v1/entities</code>
+- <code>GET /v1/entities/{entity_id}</code>
+- <code>PATCH /v1/entities/{entity_id}</code>
+- <code>DELETE /v1/entities/{entity_id}</code> (soft delete recommended)</p>
+<p><strong>9.2.2 Descriptors</strong>
+- <code>GET /v1/entities/{entity_id}/descriptors</code>
+- <code>POST /v1/entities/{entity_id}/descriptors</code>
+- <code>PATCH /v1/descriptors/{descriptor_id}</code>
+- <code>DELETE /v1/descriptors/{descriptor_id}</code></p>
+<p><strong>9.2.3 Field Definitions (Admin)</strong>
+- <code>GET /v1/admin/field-defs</code>
+- <code>POST /v1/admin/field-defs</code>
+- <code>PATCH /v1/admin/field-defs/{field_key}</code>
+- <code>DELETE /v1/admin/field-defs/{field_key}</code></p>
+<p><strong>9.2.4 Assets / Attachments</strong>
+- <code>POST /v1/assets/upload</code> (multipart; supports companion <code>_meta.json</code>)
+- <code>POST /v1/assets/bulk-import</code> (directory import job; reads <code>*_meta.json</code> sidecars)
+- <code>GET /v1/assets/{asset_id}</code>
+- <code>GET /v1/assets/{asset_id}/download</code> (stream; must support HTTP range)
+- <code>POST /v1/entities/{entity_id}/assets/{asset_id}/link</code>
+- <code>POST /v1/entities/{entity_id}/assets/{asset_id}/unlink</code></p>
+<p><strong>9.2.5 Relationships</strong>
+- <code>GET /v1/relationships?entity_id=...</code>
+- <code>POST /v1/relationships</code>
+- <code>DELETE /v1/relationships/{relationship_id}</code>
+- <code>GET /v1/relation-types?query=sp</code></p>
+<p><strong>9.2.6 Jobs</strong>
+- <code>POST /v1/jobs</code>
+- <code>GET /v1/jobs/{job_id}</code>
+- <code>GET /v1/jobs/{job_id}/log</code>
+- <code>POST /v1/jobs/{job_id}/cancel</code></p>
+<p><strong>9.2.7 Plugins</strong>
+- <code>GET /v1/plugins</code>
+- <code>POST /v1/plugins/{id}/enable</code>
+- <code>POST /v1/plugins/{id}/disable</code>
+- <code>GET /v1/plugins/{id}/config</code>
+- <code>PUT /v1/plugins/{id}/config</code></p>
 <h3 id="93-integration-driven-core-requirements">9.3 Integration-Driven Core Requirements</h3>
-<p><strong>Stable asset listing &amp; download</strong></p>
-<ul>
-<li><code>GET /v1/entities/{entity_id}/assets?kind=model.lora</code></li>
-<li><code>GET /v1/assets/{asset_id}/download</code> supports large files and resumable downloads (HTTP range).</li>
-</ul>
-<p><strong>Bulk operations</strong></p>
-<ul>
-<li><code>POST /v1/entities/bulk-upsert</code> (idempotent; external IDs supported)</li>
-<li><code>POST /v1/jobs</code> must support large inputs via stored &quot;job input assets&quot; (avoid giant JSON payloads)</li>
-</ul>
+<p><strong>Stable asset listing &amp; download</strong>
+- <code>GET /v1/entities/{entity_id}/assets?kind=model.lora</code>
+- <code>GET /v1/assets/{asset_id}/download</code> supports large files and resumable downloads (HTTP range).</p>
+<p><strong>Bulk operations</strong>
+- <code>POST /v1/entities/bulk-upsert</code> (idempotent; external IDs supported)
+- <code>POST /v1/jobs</code> must support large inputs via stored &ldquo;job input assets&rdquo; (avoid giant JSON payloads)</p>
 <blockquote>
 <p>TO-DO: The exact shape of external IDs and bulk-upsert conflict resolution rules require specification.</p>
 </blockquote>
-<h2 id="10-storage--path-configuration">10. Storage &amp; Path Configuration</h2>
+<h2 id="10-storage-path-configuration">10. Storage &amp; Path Configuration</h2>
 <p>All persistent data is stored in one or more user-controlled, user-defined directories.</p>
 <p><code>FACEFORGE_HOME</code> is the <strong>data directory root</strong> for FaceForge.</p>
 <ul>
 <li>In the <strong>Desktop</strong> distribution, the application binaries live in the installer-managed install location.</li>
 <li>Desktop launches Core with <code>FACEFORGE_HOME</code> set to the user-selected path.</li>
 <li>When running Core headlessly (advanced usage), <code>FACEFORGE_HOME</code> can be supplied via environment variable.</li>
-<li>If <code>FACEFORGE_HOME</code> is not set, Core uses a deterministic per-user OS data directory (never the process working directory):
-<ul>
+<li>If <code>FACEFORGE_HOME</code> is not set, Core uses a deterministic per-user OS data directory (never the process working directory):</li>
 <li>Windows: <code>%LOCALAPPDATA%\\FaceForge</code></li>
 <li>macOS: <code>~/Library/Application Support/FaceForge</code></li>
 <li>Linux: <code>$XDG_DATA_HOME/faceforge</code> (or <code>~/.local/share/faceforge</code>)</li>
 </ul>
-</li>
-</ul>
 <h3 id="101-required-subfolders-created-by-core">10.1 Required subfolders (created by Core)</h3>
 <p>On startup, Core ensures these subfolders exist under <code>FACEFORGE_HOME</code>:</p>
 <ul>
-<li><code>${FACEFORGE_HOME}/db</code> (SQLite metadata database directory)
-<ul>
+<li><code>${FACEFORGE_HOME}/db</code> (SQLite metadata database directory)</li>
 <li>Default DB file: <code>${FACEFORGE_HOME}/db/core.sqlite3</code></li>
-</ul>
-</li>
-<li><code>${FACEFORGE_HOME}/assets</code> (filesystem-backed asset storage)
-<ul>
+<li><code>${FACEFORGE_HOME}/assets</code> (filesystem-backed asset storage)</li>
 <li>Content-addressed layout for the filesystem provider</li>
-</ul>
-</li>
-<li><code>${FACEFORGE_HOME}/s3</code> (local S3/SeaweedFS data directory)
-<ul>
+<li><code>${FACEFORGE_HOME}/s3</code> (local S3/SeaweedFS data directory)</li>
 <li>When SeaweedFS is enabled, its default data dir is <code>${FACEFORGE_HOME}/s3/seaweedfs</code></li>
-</ul>
-</li>
 <li><code>${FACEFORGE_HOME}/logs</code> (log files)</li>
 <li><code>${FACEFORGE_HOME}/tmp</code> (temporary files)</li>
-<li><code>${FACEFORGE_HOME}/config</code> (configuration files)
-<ul>
+<li><code>${FACEFORGE_HOME}/config</code> (configuration files)</li>
 <li><code>${FACEFORGE_HOME}/config/core.json</code> (Core configuration)</li>
 <li><code>${FACEFORGE_HOME}/config/ports.json</code> (launcher-selected ports)</li>
-</ul>
-</li>
 <li><code>${FACEFORGE_HOME}/tools</code> (user-managed tool overrides, e.g. ExifTool)</li>
 <li><code>${FACEFORGE_HOME}/plugins</code> (plugin folders containing <code>plugin.json</code> manifests)</li>
 </ul>
@@ -833,7 +413,7 @@ Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and rest
 <li><code>storage.routing</code> + <code>storage.s3</code> (routing and S3 endpoint credentials)</li>
 <li><code>seaweed.*</code> (optional Core-managed SeaweedFS; Desktop typically orchestrates SeaweedFS)</li>
 </ul>
-<h2 id="11-frontend-requirements-core-ui--plugin-ui">11. Frontend Requirements (Core UI + plugin UI)</h2>
+<h2 id="11-frontend-requirements-core-ui-plugin-ui">11. Frontend Requirements (Core UI + plugin UI)</h2>
 <h3 id="111-core-ui-coverage">11.1 Core UI Coverage</h3>
 <p>The Core UI covers all Core features:</p>
 <ul>
@@ -843,7 +423,7 @@ Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and rest
 <li>view job status and logs</li>
 <li>manage plugins (enable/disable/config)</li>
 </ul>
-<h3 id="112-ui-delivery-model-aligned-with-desktop--local-services">11.2 UI Delivery Model (Aligned with Desktop + Local Services)</h3>
+<h3 id="112-ui-delivery-model-aligned-with-desktop-local-services">11.2 UI Delivery Model (Aligned with Desktop + Local Services)</h3>
 <ul>
 <li>The Core service serves the web UI as static assets.</li>
 <li>Users can open it in a browser at <code>http://127.0.0.1:&lt;port&gt;</code> <em>or</em> view it inside the desktop shell window.</li>
@@ -851,56 +431,43 @@ Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and rest
 <p>Minimum UX expectations:</p>
 <ul>
 <li><strong>Entities</strong> page with list + gallery view</li>
-<li><strong>Entity detail</strong> page with tabs:
-<ul>
+<li><strong>Entity detail</strong> page with tabs:</li>
 <li>Overview</li>
 <li>Descriptors</li>
 <li>Attachments</li>
 <li>Relationships (metadata)</li>
 <li>Plugin panels (rendered per plugin)</li>
 </ul>
-</li>
-</ul>
 <p>UI delivery is intentionally runtime-light:</p>
 <ul>
 <li>The Core service serves the UI and does not require NodeJS at runtime.</li>
 <li>Current direction: server-rendered HTML (with minimal JS where needed) so the UI can ship inside Core without a runtime build chain.</li>
 </ul>
-<h2 id="12-packaging-and-%22double-click-to-run%22">12. Packaging and &quot;Double-Click to Run&quot;</h2>
+<h2 id="12-packaging-and-double-click-to-run">12. Packaging and &ldquo;Double-Click to Run&rdquo;</h2>
 <p>This section defines the desired end-user experience for running FaceForge Core locally and the specific design decisions intended to reduce friction in that process as much as possible.</p>
 <h3 id="121-network-ports">12.1 Network Ports</h3>
 <ul>
-<li>Core exposes two localhost ports which are configurable via the application config files:
-<ul>
+<li>Core exposes two localhost ports which are configurable via the application config files:</li>
 <li>Core port (API + UI) (default port: 43210)</li>
 <li>SeaweedFS S3-compatible port (default port: 43211)</li>
-</ul>
-</li>
 <li>Launcher supports auto-picking a free port and writing the chosen port to: <code>${FACEFORGE_HOME}/config/ports.json</code></li>
 <li>Core may also support a legacy compatibility location: <code>${FACEFORGE_HOME}/runtime/ports.json</code></li>
 </ul>
 <h3 id="122-desktop-launcher-experience-cross-platform">12.2 Desktop Launcher Experience (Cross-Platform)</h3>
 <p>A desktop launcher is a first-class deliverable.</p>
-<p><strong>Release UX requirements:</strong></p>
-<ul>
-<li>ship a <strong>FaceForge Desktop</strong> app (Tauri) that behaves like a real app:
-<ul>
-<li>first-run wizard for choosing <code>FACEFORGE_HOME</code> and Core port</li>
-<li>starts/monitors required components (Core API service, SeaweedFS services, plugin runners)</li>
-<li>exposes only the UI/API port</li>
-<li>minimizes to system tray instead of exiting when the window is closed</li>
-<li>tray menu: <strong>Open UI</strong>, <strong>Status</strong>, <strong>Logs</strong>, <strong>Stop</strong>, <strong>Restart</strong>, <strong>Exit</strong></li>
-<li>on exit: prompt whether to stop services or leave them running</li>
-</ul>
-</li>
-</ul>
-<p>User-facing simplification goals:</p>
-<ul>
-<li>one installer per OS (or portable zip where appropriate)</li>
-<li>one desktop launcher app</li>
-<li>one user-chosen data directory</li>
-<li>no loose scripts</li>
-</ul>
+<p><strong>Release UX requirements:</strong>
+- ship a <strong>FaceForge Desktop</strong> app (Tauri) that behaves like a real app:
+  - first-run wizard for choosing <code>FACEFORGE_HOME</code> and Core port
+  - starts/monitors required components (Core API service, SeaweedFS services, plugin runners)
+  - exposes only the UI/API port
+  - minimizes to system tray instead of exiting when the window is closed
+  - tray menu: <strong>Open UI</strong>, <strong>Status</strong>, <strong>Logs</strong>, <strong>Stop</strong>, <strong>Restart</strong>, <strong>Exit</strong>
+  - on exit: prompt whether to stop services or leave them running</p>
+<p>User-facing simplification goals:
+- one installer per OS (or portable zip where appropriate)
+- one desktop launcher app
+- one user-chosen data directory
+- no loose scripts</p>
 <p>Documentation is written for non-engineers first and includes screenshots of first-run and tray controls.</p>
 <h3 id="123-runtime-constraints">12.3 Runtime Constraints</h3>
 <ul>
@@ -910,18 +477,15 @@ Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and rest
 <h3 id="124-packaging-notes-implementation-direction">12.4 Packaging Notes (Implementation Direction)</h3>
 <ul>
 <li>Tauri packages the desktop app per-OS.</li>
-<li>Core Python service ships as a sidecar:
-<ul>
+<li>Core Python service ships as a sidecar:</li>
 <li>either a frozen binary (PyInstaller/Nuitka), or</li>
 <li>an embedded Python runtime + venv</li>
-</ul>
-</li>
 <li>SeaweedFS binaries live alongside the app (or are user-supplied) and are launched with explicit paths/config.</li>
 </ul>
 <blockquote>
 <p>TO-DO: Update strategy for the Core service, SeaweedFS, and plugin bundles.</p>
 </blockquote>
-<h3 id="125-dev-bundling-standard-commands--outputs">12.5 Dev Bundling (Standard Commands + Outputs)</h3>
+<h3 id="125-dev-bundling-standard-commands-outputs">12.5 Dev Bundling (Standard Commands + Outputs)</h3>
 <p>This section standardizes how developers produce <strong>bundled artifacts</strong> locally for testing and validation.</p>
 <p><strong>Scope:</strong> “bundling” here means producing:</p>
 <ul>
@@ -945,32 +509,32 @@ Scheduled backups of metadata + assets, selective exports (JSON + ZIP), and rest
 <li>Desktop installer outputs on macOS/Linux are produced by <code>cargo tauri build</code>, but release-grade “Core sidecar bundling” is currently standardized only for the Windows MSI pipeline.</li>
 </ul>
 <p><strong>Bundle Core manually (macOS/Linux):</strong></p>
-<pre class="hljs"><code><div>python3.12 -m venv .venv
+<pre><code class="language-bash">python3.12 -m venv .venv
 ./.venv/bin/python -m pip install --upgrade pip
 ./.venv/bin/python -m pip install -e ./core
 ./.venv/bin/python -m pip install pyinstaller
 
-<span class="hljs-built_in">cd</span> core
+cd core
 ../.venv/bin/python -m PyInstaller pyinstaller.spec --noconfirm --distpath dist --workpath build
-</div></code></pre>
+</code></pre>
 <p><strong>Expected outputs (macOS/Linux):</strong></p>
 <ul>
 <li><code>core/dist/</code> contains the built Core executable (typically <code>faceforge-core</code> without a <code>.exe</code> extension).</li>
 <li><code>core/build/</code> contains PyInstaller work files.</li>
 </ul>
 <p><strong>Build Desktop installers (macOS/Linux):</strong></p>
-<pre class="hljs"><code><div><span class="hljs-built_in">cd</span> desktop/src-tauri
+<pre><code class="language-bash">cd desktop/src-tauri
 cargo tauri build
-</div></code></pre>
+</code></pre>
 <p><strong>Expected outputs (macOS/Linux):</strong></p>
 <ul>
 <li><code>desktop/src-tauri/target/release/bundle/</code> contains OS-specific installer artifacts (subfolder names and file extensions vary by OS).</li>
 </ul>
 <h4 id="1251-bundle-core-pyinstaller">12.5.1 Bundle Core (PyInstaller)</h4>
 <p>From the repo root:</p>
-<pre class="hljs"><code><div>./scripts/check<span class="hljs-literal">-core</span>.ps1
-./scripts/build<span class="hljs-literal">-core</span>.ps1
-</div></code></pre>
+<pre><code class="language-powershell">./scripts/check-core.ps1
+./scripts/build-core.ps1
+</code></pre>
 <p><strong>What it does:</strong></p>
 <ul>
 <li>Ensures <code>.venv</code> exists (creates it if needed)</li>
@@ -994,24 +558,18 @@ cargo tauri build
 </ul>
 <h4 id="1252-bundle-desktop-windows-msi-via-tauri">12.5.2 Bundle Desktop (Windows MSI via Tauri)</h4>
 <p>This creates an installer that bundles the desktop shell plus the Core binary as a sidecar.</p>
-<ol>
-<li>Build Core (produces <code>core/dist/faceforge-core.exe</code>):</li>
-</ol>
-<pre class="hljs"><code><div>./scripts/build<span class="hljs-literal">-core</span>.ps1
-</div></code></pre>
-<ol start="2">
-<li>Stage the Core binary into Desktop’s Tauri bundle inputs:</li>
-</ol>
-<pre class="hljs"><code><div><span class="hljs-built_in">New-Item</span> <span class="hljs-literal">-ItemType</span> Directory <span class="hljs-literal">-Force</span> <span class="hljs-literal">-Path</span> <span class="hljs-string">'desktop/src-tauri/binaries'</span> | <span class="hljs-built_in">Out-Null</span>
-<span class="hljs-built_in">Copy-Item</span> <span class="hljs-literal">-Force</span> <span class="hljs-string">'core/dist/faceforge-core.exe'</span> <span class="hljs-string">'desktop/src-tauri/binaries/faceforge-core-x86_64-pc-windows-msvc.exe'</span>
-</div></code></pre>
-<ol start="3">
-<li>Build the Desktop installer:</li>
-</ol>
-<pre class="hljs"><code><div><span class="hljs-built_in">Push-Location</span> <span class="hljs-string">'desktop/src-tauri'</span>
+<p>1) Build Core (produces <code>core/dist/faceforge-core.exe</code>):</p>
+<pre><code class="language-powershell">./scripts/build-core.ps1
+</code></pre>
+<p>2) Stage the Core binary into Desktop’s Tauri bundle inputs:</p>
+<pre><code class="language-powershell">New-Item -ItemType Directory -Force -Path 'desktop/src-tauri/binaries' | Out-Null
+Copy-Item -Force 'core/dist/faceforge-core.exe' 'desktop/src-tauri/binaries/faceforge-core-x86_64-pc-windows-msvc.exe'
+</code></pre>
+<p>3) Build the Desktop installer:</p>
+<pre><code class="language-powershell">Push-Location 'desktop/src-tauri'
 cargo tauri build
-<span class="hljs-built_in">Pop-Location</span>
-</div></code></pre>
+Pop-Location
+</code></pre>
 <p><strong>Primary outputs (Windows):</strong></p>
 <ul>
 <li><code>desktop/src-tauri/target/release/bundle/msi/*.msi</code></li>
@@ -1019,24 +577,16 @@ cargo tauri build
 <blockquote>
 <p>Note: The exact MSI filename includes the app name and version; treat <code>*.msi</code> under that folder as the output.</p>
 </blockquote>
-<h3 id="126-new-release-standard-process--ci-sequence">12.6 New Release (Standard Process + CI Sequence)</h3>
+<h3 id="126-new-release-standard-process-ci-sequence">12.6 New Release (Standard Process + CI Sequence)</h3>
 <p>This section standardizes how new releases are cut and what happens inside GitHub Actions when release assets are produced.</p>
-<h4 id="1261-local-maintainer-steps-version-bump-%E2%86%92-tag-%E2%86%92-release">12.6.1 Local maintainer steps (version bump → tag → release)</h4>
-<ol>
-<li>Ensure your working tree is clean and CI is green locally:</li>
-</ol>
-<pre class="hljs"><code><div>./scripts/check<span class="hljs-literal">-core</span>.ps1
-</div></code></pre>
-<ol start="2">
-<li>
-<p>Choose the new version number (SemVer: <code>X.Y.Z</code>).</p>
-</li>
-<li>
-<p>Bump versions across Core + Desktop in one go:</p>
-</li>
-</ol>
-<pre class="hljs"><code><div>./scripts/<span class="hljs-built_in">set-version</span>.ps1 <span class="hljs-literal">-Version</span> X.Y.Z
-</div></code></pre>
+<h4 id="1261-local-maintainer-steps-version-bump-tag-release">12.6.1 Local maintainer steps (version bump → tag → release)</h4>
+<p>1) Ensure your working tree is clean and CI is green locally:</p>
+<pre><code class="language-powershell">./scripts/check-core.ps1
+</code></pre>
+<p>2) Choose the new version number (SemVer: <code>X.Y.Z</code>).</p>
+<p>3) Bump versions across Core + Desktop in one go:</p>
+<pre><code class="language-powershell">./scripts/set-version.ps1 -Version X.Y.Z
+</code></pre>
 <p>This updates, at minimum:</p>
 <ul>
 <li><code>core/pyproject.toml</code></li>
@@ -1044,61 +594,43 @@ cargo tauri build
 <li><code>desktop/src-tauri/Cargo.toml</code></li>
 <li><code>desktop/src-tauri/tauri.conf.json</code></li>
 </ul>
-<ol start="4">
-<li>Update human-facing release notes (as appropriate):</li>
-</ol>
+<p>4) Update human-facing release notes (as appropriate):</p>
 <ul>
 <li><code>RELEASE_NOTES.md</code></li>
 </ul>
-<ol start="5">
-<li>Commit the version bump + notes:</li>
-</ol>
-<pre class="hljs"><code><div>git add <span class="hljs-literal">-A</span>
-git commit <span class="hljs-literal">-m</span> <span class="hljs-string">"chore(release): vX.Y.Z"</span>
-</div></code></pre>
-<ol start="6">
-<li>Create and push the tag (release automation expects a <code>v</code>-prefixed tag):</li>
-</ol>
-<pre class="hljs"><code><div>git tag vX.Y.Z
+<p>5) Commit the version bump + notes:</p>
+<pre><code class="language-powershell">git add -A
+git commit -m &quot;chore(release): vX.Y.Z&quot;
+</code></pre>
+<p>6) Create and push the tag (release automation expects a <code>v</code>-prefixed tag):</p>
+<pre><code class="language-powershell">git tag vX.Y.Z
 git push origin HEAD
 git push origin vX.Y.Z
-</div></code></pre>
-<ol start="7">
-<li>Create a GitHub Release for tag <code>vX.Y.Z</code> and <strong>publish</strong> it.</li>
-</ol>
+</code></pre>
+<p>7) Create a GitHub Release for tag <code>vX.Y.Z</code> and <strong>publish</strong> it.</p>
 <blockquote>
 <p>Alternative: you may run the release workflow manually via <code>workflow_dispatch</code> and provide <code>tag: vX.Y.Z</code>.</p>
 </blockquote>
 <h4 id="1262-what-github-actions-does-release-core-workflow">12.6.2 What GitHub Actions does (release-core workflow)</h4>
 <p>When a release is published (or the workflow is manually dispatched), GitHub Actions runs <code>.github/workflows/release-core.yml</code>.</p>
 <p><strong>Sequence (Windows release assets job):</strong></p>
-<ol>
-<li>Check out the repository at the release tag.</li>
-<li>Ensure <code>core/pyinstaller.spec</code> exists (for legacy tags it may be fetched from the default branch).</li>
-<li>Sync version metadata from the tag (best-effort safety net).</li>
-<li>Set up Python 3.12.</li>
-<li>Set up Rust toolchain.</li>
-<li>Install Tauri CLI (<code>cargo install tauri-cli --locked</code>).</li>
-<li>Install WiX toolset (MSI tooling).</li>
-<li>Build the Core executable by running <code>./scripts/build-core.ps1</code>.</li>
-<li>Collect/normalize Core output into <code>core/dist/faceforge-core.exe</code>.</li>
-<li>Stage Core into Desktop sidecar binaries:</li>
-</ol>
-<ul>
-<li><code>desktop/src-tauri/binaries/faceforge-core-x86_64-pc-windows-msvc.exe</code></li>
-</ul>
-<ol start="11">
-<li>Build the Desktop MSI via <code>cargo tauri build</code>.</li>
-<li>Collect release artifacts into <code>artifacts/release/</code>:</li>
-</ol>
-<ul>
-<li>Desktop <code>*.msi</code></li>
-<li><code>faceforge-core.exe</code></li>
-<li><code>SHA256SUMS.txt</code> (SHA-256 hashes of the files above)</li>
-</ul>
-<ol start="13">
-<li>Upload these files to the GitHub Release as downloadable assets.</li>
-</ol>
+<p>1) Check out the repository at the release tag.
+2) Ensure <code>core/pyinstaller.spec</code> exists (for legacy tags it may be fetched from the default branch).
+3) Sync version metadata from the tag (best-effort safety net).
+4) Set up Python 3.12.
+5) Set up Rust toolchain.
+6) Install Tauri CLI (<code>cargo install tauri-cli --locked</code>).
+7) Install WiX toolset (MSI tooling).
+8) Build the Core executable by running <code>./scripts/build-core.ps1</code>.
+9) Collect/normalize Core output into <code>core/dist/faceforge-core.exe</code>.
+10) Stage Core into Desktop sidecar binaries:
+  - <code>desktop/src-tauri/binaries/faceforge-core-x86_64-pc-windows-msvc.exe</code>
+11) Build the Desktop MSI via <code>cargo tauri build</code>.
+12) Collect release artifacts into <code>artifacts/release/</code>:
+  - Desktop <code>*.msi</code>
+  - <code>faceforge-core.exe</code>
+  - <code>SHA256SUMS.txt</code> (SHA-256 hashes of the files above)
+13) Upload these files to the GitHub Release as downloadable assets.</p>
 <p><strong>Published release assets (expected):</strong></p>
 <ul>
 <li><code>faceforge-core.exe</code></li>
@@ -1114,6 +646,5 @@ git push origin vX.Y.Z
 <li>Tauri: https://tauri.app/</li>
 <li>Uvicorn: https://www.uvicorn.org/</li>
 </ul>
-
 </body>
 </html>

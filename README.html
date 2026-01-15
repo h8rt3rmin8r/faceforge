@@ -1,375 +1,26 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<title>README.md</title>
-<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-
-<style>
-/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-
-body {
-	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
-	font-size: var(--vscode-markdown-font-size, 14px);
-	padding: 0 26px;
-	line-height: var(--vscode-markdown-line-height, 22px);
-	word-wrap: break-word;
-}
-
-#code-csp-warning {
-	position: fixed;
-	top: 0;
-	right: 0;
-	color: white;
-	margin: 16px;
-	text-align: center;
-	font-size: 12px;
-	font-family: sans-serif;
-	background-color:#444444;
-	cursor: pointer;
-	padding: 6px;
-	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
-}
-
-#code-csp-warning:hover {
-	text-decoration: none;
-	background-color:#007acc;
-	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
-}
-
-body.scrollBeyondLastLine {
-	margin-bottom: calc(100vh - 22px);
-}
-
-body.showEditorSelection .code-line {
-	position: relative;
-}
-
-body.showEditorSelection .code-active-line:before,
-body.showEditorSelection .code-line:hover:before {
-	content: "";
-	display: block;
-	position: absolute;
-	top: 0;
-	left: -12px;
-	height: 100%;
-}
-
-body.showEditorSelection li.code-active-line:before,
-body.showEditorSelection li.code-line:hover:before {
-	left: -30px;
-}
-
-.vscode-light.showEditorSelection .code-active-line:before {
-	border-left: 3px solid rgba(0, 0, 0, 0.15);
-}
-
-.vscode-light.showEditorSelection .code-line:hover:before {
-	border-left: 3px solid rgba(0, 0, 0, 0.40);
-}
-
-.vscode-light.showEditorSelection .code-line .code-line:hover:before {
-	border-left: none;
-}
-
-.vscode-dark.showEditorSelection .code-active-line:before {
-	border-left: 3px solid rgba(255, 255, 255, 0.4);
-}
-
-.vscode-dark.showEditorSelection .code-line:hover:before {
-	border-left: 3px solid rgba(255, 255, 255, 0.60);
-}
-
-.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
-	border-left: none;
-}
-
-.vscode-high-contrast.showEditorSelection .code-active-line:before {
-	border-left: 3px solid rgba(255, 160, 0, 0.7);
-}
-
-.vscode-high-contrast.showEditorSelection .code-line:hover:before {
-	border-left: 3px solid rgba(255, 160, 0, 1);
-}
-
-.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
-	border-left: none;
-}
-
-img {
-	max-width: 100%;
-	max-height: 100%;
-}
-
-a {
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
-}
-
-a:focus,
-input:focus,
-select:focus,
-textarea:focus {
-	outline: 1px solid -webkit-focus-ring-color;
-	outline-offset: -1px;
-}
-
-hr {
-	border: 0;
-	height: 2px;
-	border-bottom: 2px solid;
-}
-
-h1 {
-	padding-bottom: 0.3em;
-	line-height: 1.2;
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
-}
-
-h1, h2, h3 {
-	font-weight: normal;
-}
-
-table {
-	border-collapse: collapse;
-}
-
-table > thead > tr > th {
-	text-align: left;
-	border-bottom: 1px solid;
-}
-
-table > thead > tr > th,
-table > thead > tr > td,
-table > tbody > tr > th,
-table > tbody > tr > td {
-	padding: 5px 10px;
-}
-
-table > tbody > tr + tr > td {
-	border-top: 1px solid;
-}
-
-blockquote {
-	margin: 0 7px 0 5px;
-	padding: 0 16px 0 10px;
-	border-left-width: 5px;
-	border-left-style: solid;
-}
-
-code {
-	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
-	font-size: 1em;
-	line-height: 1.357em;
-}
-
-body.wordWrap pre {
-	white-space: pre-wrap;
-}
-
-pre:not(.hljs),
-pre.hljs code > div {
-	padding: 16px;
-	border-radius: 3px;
-	overflow: auto;
-}
-
-pre code {
-	color: var(--vscode-editor-foreground);
-	tab-size: 4;
-}
-
-/** Theming */
-
-.vscode-light pre {
-	background-color: rgba(220, 220, 220, 0.4);
-}
-
-.vscode-dark pre {
-	background-color: rgba(10, 10, 10, 0.4);
-}
-
-.vscode-high-contrast pre {
-	background-color: rgb(0, 0, 0);
-}
-
-.vscode-high-contrast h1 {
-	border-color: rgb(0, 0, 0);
-}
-
-.vscode-light table > thead > tr > th {
-	border-color: rgba(0, 0, 0, 0.69);
-}
-
-.vscode-dark table > thead > tr > th {
-	border-color: rgba(255, 255, 255, 0.69);
-}
-
-.vscode-light h1,
-.vscode-light hr,
-.vscode-light table > tbody > tr + tr > td {
-	border-color: rgba(0, 0, 0, 0.18);
-}
-
-.vscode-dark h1,
-.vscode-dark hr,
-.vscode-dark table > tbody > tr + tr > td {
-	border-color: rgba(255, 255, 255, 0.18);
-}
-
-</style>
-
-<style>
-/* Tomorrow Theme */
-/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
-/* Original theme - https://github.com/chriskempson/tomorrow-theme */
-
-/* Tomorrow Comment */
-.hljs-comment,
-.hljs-quote {
-	color: #8e908c;
-}
-
-/* Tomorrow Red */
-.hljs-variable,
-.hljs-template-variable,
-.hljs-tag,
-.hljs-name,
-.hljs-selector-id,
-.hljs-selector-class,
-.hljs-regexp,
-.hljs-deletion {
-	color: #c82829;
-}
-
-/* Tomorrow Orange */
-.hljs-number,
-.hljs-built_in,
-.hljs-builtin-name,
-.hljs-literal,
-.hljs-type,
-.hljs-params,
-.hljs-meta,
-.hljs-link {
-	color: #f5871f;
-}
-
-/* Tomorrow Yellow */
-.hljs-attribute {
-	color: #eab700;
-}
-
-/* Tomorrow Green */
-.hljs-string,
-.hljs-symbol,
-.hljs-bullet,
-.hljs-addition {
-	color: #718c00;
-}
-
-/* Tomorrow Blue */
-.hljs-title,
-.hljs-section {
-	color: #4271ae;
-}
-
-/* Tomorrow Purple */
-.hljs-keyword,
-.hljs-selector-tag {
-	color: #8959a8;
-}
-
-.hljs {
-	display: block;
-	overflow-x: auto;
-	color: #4d4d4c;
-	padding: 0.5em;
-}
-
-.hljs-emphasis {
-	font-style: italic;
-}
-
-.hljs-strong {
-	font-weight: bold;
-}
-</style>
-
-<style>
-/*
- * Markdown PDF CSS
- */
-
- body {
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
-	padding: 0 12px;
-}
-
-pre {
-	background-color: #f8f8f8;
-	border: 1px solid #cccccc;
-	border-radius: 3px;
-	overflow-x: auto;
-	white-space: pre-wrap;
-	overflow-wrap: break-word;
-}
-
-pre:not(.hljs) {
-	padding: 23px;
-	line-height: 19px;
-}
-
-blockquote {
-	background: rgba(127, 127, 127, 0.1);
-	border-color: rgba(0, 122, 204, 0.5);
-}
-
-.emoji {
-	height: 1.4em;
-}
-
-code {
-	font-size: 14px;
-	line-height: 19px;
-}
-
-/* for inline code */
-:not(pre):not(.hljs) > code {
-	color: #C9AE75; /* Change the old color so it seems less like an error */
-	font-size: inherit;
-}
-
-/* Page Break : use <div class="page"/> to insert page break
--------------------------------------------------------- */
-.page {
-	page-break-after: always;
-}
-
-</style>
-
-<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FaceForge</title>
+    <base href="file:///A:/Code/faceforge/">
+    <link rel="stylesheet" href="file:///A:/Code/faceforge/brand/fonts/fonts.css">
+    <style>:root { color-scheme: light dark; }
+    body { max-width: 920px; margin: 40px auto; padding: 0 16px; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.55; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    pre { padding: 12px 14px; overflow-x: auto; border: 1px solid rgba(127,127,127,.35); border-radius: 8px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid rgba(127,127,127,.35); padding: 6px 8px; }
+    blockquote { margin: 0; padding-left: 14px; border-left: 4px solid rgba(127,127,127,.35); }
+    img { max-width: 100%; height: auto; }</style>
 </head>
 <body>
-  <script>
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
-          ? 'dark'
-          : 'default'
-    });
-  </script>
 <h1 id="faceforge">FaceForge</h1>
-<picture>
-	<source media="(prefers-color-scheme: dark)" srcset="brand/logo/wide-dark-clear-1200x600.png">
-	<img alt="FaceForge" src="brand/logo/wide-light-clear-1200x600.png" width="720" />
-</picture>
+<p><picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/logo/wide-dark-clear-1200x600.png">
+    <img alt="FaceForge" src="brand/logo/wide-light-clear-1200x600.png" width="720" />
+</picture></p>
 <p>A local-first, self-hosted <strong>Asset Management System (AMS)</strong> focused on <strong>entities</strong> (real or fictional, human or non-human) and the <strong>assets</strong> attached to them.</p>
 <p>FaceForge is designed to be a stable, integration-friendly “boring core” for storing metadata + files, while advanced features (recognition, graph visualization, training, third-party integrations) live in optional plugins.</p>
 <h2 id="status">Status</h2>
@@ -381,7 +32,7 @@ code {
 </ul>
 <p>If you’re arriving here to understand the project, start with:</p>
 <ul>
-<li>Design spec: <a href="docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.html">docs/FaceForge Core - Project Design Specification - v0.2.9.html</a></li>
+<li>Design spec: <a href="docs/FaceForge%20Core%20-%20Project%20Design%20Specification.html">docs/FaceForge Core - Project Design Specification.html</a></li>
 </ul>
 <h2 id="what-faceforge-is-and-isnt">What FaceForge is (and isn’t)</h2>
 <p><strong>FaceForge is:</strong></p>
@@ -405,14 +56,12 @@ code {
 <h2 id="for-end-users">For End Users</h2>
 <p>FaceForge is a self-hosted application designed to run locally on your machine. You do not need to write code or run commands to use it.</p>
 <ol>
-<li><strong>Download</strong>: Go to <a href="https://github.com/h8rt3rmin8r/faceforge/releases">GitHub Releases</a>. You will see two main assets:
-<ul>
+<li><strong>Download</strong>: Go to <a href="https://github.com/h8rt3rmin8r/faceforge/releases">GitHub Releases</a>. You will see two main assets:<ul>
 <li><strong>FaceForge Desktop Installer (<code>.exe</code> or <code>.msi</code>)</strong>: This is the <strong>recommended</strong> download for most users. It includes the full Desktop App, the Core API server, and everything you need to run FaceForge.</li>
 <li><strong>FaceForge Core API (<code>.zip</code>)</strong>: This is an <strong>advanced</strong> package containing only the Python API server (Core). Use this only if you intend to run the API headlessly or integrate it into a custom setup without the Desktop UI.</li>
 </ul>
 </li>
-<li><strong>Install &amp; Setup</strong>: Follow the <a href="docs/FaceForge%20User%20Guide.md">User Guide</a>.
-<ul>
+<li><strong>Install &amp; Setup</strong>: Follow the <a href="docs/FaceForge%20User%20Guide.md">User Guide</a>.<ul>
 <li>On first launch, the <strong>System Settings</strong> screen will ask you to select a <strong>Data Directory</strong> (default: <code>C:\FaceForge</code>).</li>
 <li>The Desktop app manages the background services (database, API, storage) for you.</li>
 </ul>
@@ -438,16 +87,16 @@ code {
 </ul>
 <h3 id="repository-layout">Repository layout</h3>
 <p>Quick map of what lives where:</p>
-<pre class="hljs"><code><div>  desktop/      # Tauri desktop shell (Sprint 12 MVP)
+<pre><code>  desktop/      # Tauri desktop shell (Sprint 12 MVP)
 faceforge/
   core/         # FastAPI Core service (runnable today)
   desktop/      # Tauri desktop shell
   docs/         # Project spec + MVP sprint plan (source of truth)
   scripts/      # Dev scripts (PowerShell) to run/check Core using .venv
   brand/        # Logos, favicon, fonts (UI branding assets)
-</div></code></pre>
+</code></pre>
 <p>Core service code is a standard Python package under:</p>
-<pre class="hljs"><code><div>core/
+<pre><code>core/
   src/faceforge_core/       # app entrypoint + API + DB + storage
     app.py                  # FastAPI app factory / wiring
     api/v1/                 # versioned HTTP routes
@@ -455,7 +104,7 @@ faceforge/
     internal/               # internal CLIs/utilities (dev/admin)
   tests/                    # pytest tests for Core
   pyproject.toml            # Core packaging/deps
-</div></code></pre>
+</code></pre>
 <p>If you’re new and wondering “where do I add a route?”, start at:</p>
 <ul>
 <li><code>core/src/faceforge_core/api/v1/router.py</code> (v1 router)</li>
@@ -466,30 +115,19 @@ faceforge/
 <h4 id="prerequisites">Prerequisites</h4>
 <p>Before you start, make sure these tools are installed.</p>
 <ul>
-<li>Rust toolchain (<code>rustc</code>, <code>cargo</code>)
-<ul>
+<li>Rust toolchain (<code>rustc</code>, <code>cargo</code>)</li>
 <li>Verify: <code>rustc --version</code> and <code>cargo --version</code></li>
-<li>Install (recommended): Rustup from https://rustup.rs
-<ul>
+<li>Install (recommended): Rustup from https://rustup.rs<ul>
 <li>Or via WinGet: <code>winget install --id Rustlang.Rustup -e</code></li>
 </ul>
 </li>
-</ul>
-</li>
-<li>Tauri CLI (<code>cargo tauri</code>)
-<ul>
+<li>Tauri CLI (<code>cargo tauri</code>)</li>
 <li>Verify: <code>cargo tauri --version</code></li>
 <li>Install: <code>cargo install tauri-cli</code></li>
-</ul>
-</li>
-<li>Python 3.12.x
-<ul>
+<li>Python 3.12.x</li>
 <li>Verify: <code>python --version</code></li>
-<li>Install: https://www.python.org/downloads/ (make sure “Add Python to PATH” is enabled)
-<ul>
+<li>Install: https://www.python.org/downloads/ (make sure “Add Python to PATH” is enabled)<ul>
 <li>Or via WinGet: <code>winget install --id Python.Python.3.12 -e</code></li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
@@ -529,33 +167,19 @@ faceforge/
 </ul>
 <p>Core now exposes initial Entities + Assets v1 endpoints (token required):</p>
 <ul>
-<li>
-<p><code>GET /v1/entities</code></p>
-</li>
-<li>
-<p><code>POST /v1/entities</code></p>
-</li>
+<li><code>GET /v1/entities</code></li>
+<li><code>POST /v1/entities</code></li>
 <li>
 <p><code>GET/PATCH/DELETE /v1/entities/{entity_id}</code></p>
 </li>
 <li>
 <p><code>POST /v1/assets/upload</code> (multipart)</p>
 </li>
-<li>
-<p><code>GET /v1/assets/{asset_id}</code></p>
-</li>
-<li>
-<p><code>GET /v1/assets/{asset_id}/download</code> (streaming + HTTP Range)</p>
-</li>
-<li>
-<p><code>POST /v1/assets/bulk-import</code> (starts a durable job)</p>
-</li>
-<li>
-<p><code>POST /v1/entities/{entity_id}/assets/{asset_id}</code> (link)</p>
-</li>
-<li>
-<p><code>DELETE /v1/entities/{entity_id}/assets/{asset_id}</code> (unlink)</p>
-</li>
+<li><code>GET /v1/assets/{asset_id}</code></li>
+<li><code>GET /v1/assets/{asset_id}/download</code> (streaming + HTTP Range)</li>
+<li><code>POST /v1/assets/bulk-import</code> (starts a durable job)</li>
+<li><code>POST /v1/entities/{entity_id}/assets/{asset_id}</code> (link)</li>
+<li><code>DELETE /v1/entities/{entity_id}/assets/{asset_id}</code> (unlink)</li>
 </ul>
 <p>Core also exposes initial Jobs endpoints (Sprint 9):</p>
 <ul>
@@ -567,33 +191,19 @@ faceforge/
 </ul>
 <p>Core also exposes initial Descriptor + Field Definition endpoints (Sprint 7):</p>
 <ul>
-<li>
-<p><code>GET /v1/admin/field-defs</code> (admin)</p>
-</li>
-<li>
-<p><code>POST /v1/admin/field-defs</code> (admin)</p>
-</li>
-<li>
-<p><code>GET /v1/admin/field-defs/{field_def_id}</code> (admin)</p>
-</li>
-<li>
-<p><code>PATCH /v1/admin/field-defs/{field_def_id}</code> (admin)</p>
-</li>
+<li><code>GET /v1/admin/field-defs</code> (admin)</li>
+<li><code>POST /v1/admin/field-defs</code> (admin)</li>
+<li><code>GET /v1/admin/field-defs/{field_def_id}</code> (admin)</li>
+<li><code>PATCH /v1/admin/field-defs/{field_def_id}</code> (admin)</li>
 <li>
 <p><code>DELETE /v1/admin/field-defs/{field_def_id}</code> (admin)</p>
 </li>
 <li>
 <p><code>GET /v1/entities/{entity_id}/descriptors</code></p>
 </li>
-<li>
-<p><code>POST /v1/entities/{entity_id}/descriptors</code></p>
-</li>
-<li>
-<p><code>PATCH /v1/descriptors/{descriptor_id}</code></p>
-</li>
-<li>
-<p><code>DELETE /v1/descriptors/{descriptor_id}</code></p>
-</li>
+<li><code>POST /v1/entities/{entity_id}/descriptors</code></li>
+<li><code>PATCH /v1/descriptors/{descriptor_id}</code></li>
+<li><code>DELETE /v1/descriptors/{descriptor_id}</code></li>
 </ul>
 <p>Core also exposes initial Relationships endpoints (Sprint 8):</p>
 <ul>
@@ -616,23 +226,23 @@ faceforge/
 <li><code>${FACEFORGE_HOME}/plugins/*/plugin.json</code></li>
 </ul>
 <p>Minimal <code>plugin.json</code> example:</p>
-<pre class="hljs"><code><div>{
-  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"demo.plugin"</span>,
-  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"Demo Plugin"</span>,
-  <span class="hljs-attr">"version"</span>: <span class="hljs-string">"0.1.0"</span>,
-  <span class="hljs-attr">"capabilities"</span>: [<span class="hljs-string">"ui"</span>],
-  <span class="hljs-attr">"config_schema"</span>: {
-    <span class="hljs-attr">"type"</span>: <span class="hljs-string">"object"</span>,
-    <span class="hljs-attr">"properties"</span>: {
-      <span class="hljs-attr">"example_flag"</span>: { <span class="hljs-attr">"type"</span>: <span class="hljs-string">"boolean"</span> }
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;demo.plugin&quot;,
+  &quot;name&quot;: &quot;Demo Plugin&quot;,
+  &quot;version&quot;: &quot;0.1.0&quot;,
+  &quot;capabilities&quot;: [&quot;ui&quot;],
+  &quot;config_schema&quot;: {
+    &quot;type&quot;: &quot;object&quot;,
+    &quot;properties&quot;: {
+      &quot;example_flag&quot;: { &quot;type&quot;: &quot;boolean&quot; }
     },
-    <span class="hljs-attr">"additionalProperties"</span>: <span class="hljs-literal">true</span>
+    &quot;additionalProperties&quot;: true
   }
 }
-</div></code></pre>
+</code></pre>
 <p>Notes:</p>
 <ul>
-<li>Plugin enable/disable and config are persisted in Core's SQLite DB.</li>
+<li>Plugin enable/disable and config are persisted in Core&rsquo;s SQLite DB.</li>
 <li>If a <code>config_schema</code> is provided, <code>PUT /v1/plugins/{plugin_id}/config</code> validates the config using JSON Schema.</li>
 <li>The namespace <code>/v1/plugins/{plugin_id}/...</code> is reserved for future plugin-provided HTTP surfaces.</li>
 </ul>
@@ -651,19 +261,12 @@ faceforge/
 <p>To produce a standalone <code>faceforge-core.exe</code> (PyInstaller one-file build):</p>
 <ol>
 <li>Verify Python is available (3.12.x):
-<ul>
-<li><code>python --version</code></li>
-</ul>
-</li>
+   - <code>python --version</code></li>
 <li>Build the executable from the repo root:
-<ul>
-<li><code>./scripts/build-core.ps1</code></li>
-<li>This script creates/updates the repo-local <code>.venv</code>, installs build dependencies, and runs PyInstaller.</li>
-<li>If it fails to delete <code>core/dist</code> or <code>core/build</code>, close any terminals/Explorer windows using those folders and re-run.
-<ul>
+   - <code>./scripts/build-core.ps1</code>
+   - This script creates/updates the repo-local <code>.venv</code>, installs build dependencies, and runs PyInstaller.
+   - If it fails to delete <code>core/dist</code> or <code>core/build</code>, close any terminals/Explorer windows using those folders and re-run.<ul>
 <li>Optional: <code>./scripts/build-core.ps1 -AllowTimestampFallback</code></li>
-</ul>
-</li>
 </ul>
 </li>
 </ol>
@@ -716,47 +319,40 @@ faceforge/
 <p>For the Web UI in a browser, you can also log in at <code>/ui/login</code>, which stores the token in an HttpOnly cookie.</p>
 <p>Example (PowerShell):</p>
 <ul>
-<li><code>Invoke-RestMethod -Headers @{ Authorization = &quot;Bearer &lt;token&gt;&quot; } http://127.0.0.1:8787/v1/ping</code></li>
+<li><code>Invoke-RestMethod -Headers @{ Authorization = "Bearer &lt;token&gt;" } http://127.0.0.1:8787/v1/ping</code></li>
 </ul>
-<h3 id="checks-format--lint--tests">Checks (format + lint + tests)</h3>
+<h3 id="checks-format-lint-tests">Checks (format + lint + tests)</h3>
 <ul>
 <li><code>./scripts/check-core.ps1</code></li>
 </ul>
 <p>These scripts create/use the repo-local <code>.venv</code> and always run commands through it.</p>
 <p>To get productive right now:</p>
 <ul>
-<li>Read the Project Design Specification:
-<ul>
-<li><a href="docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.html">HTML</a></li>
-<li><a href="docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.md">Markdown</a></li>
-<li><a href="docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.pdf">PDF</a></li>
-</ul>
-</li>
-<li>For implementers using AI assistance (e.g. GitHub Copilot), follow these guidelines
-<ul>
+<li>Read the Project Design Specification:</li>
+<li><a href="docs/FaceForge%20Core%20-%20Project%20Design%20Specification.html">HTML</a></li>
+<li><a href="docs/FaceForge%20Core%20-%20Project%20Design%20Specification.md">Markdown</a></li>
+<li><a href="docs/FaceForge%20Core%20-%20Project%20Design%20Specification.pdf">PDF</a></li>
+<li>For implementers using AI assistance (e.g. GitHub Copilot), follow these guidelines</li>
 <li>Markdown doc via the repo UI: <a href="https://github.com/h8rt3rmin8r/faceforge/blob/main/.github/copilot-instructions.md">copilot-instructions.md</a></li>
-</ul>
-</li>
 </ul>
 <h2 id="building-for-release">Building for Release</h2>
 <p>To create a distributable installer:</p>
 <ol>
 <li>
-<p><strong>Build Core Executable</strong>:</p>
-<pre class="hljs"><code><div>./scripts/build<span class="hljs-literal">-core</span>.ps1
-</div></code></pre>
-<p>This uses PyInstaller to freeze the Python service into <code>core/dist/faceforge-core.exe</code>.</p>
+<p><strong>Build Core Executable</strong>:
+    <code>powershell
+    ./scripts/build-core.ps1</code>
+    This uses PyInstaller to freeze the Python service into <code>core/dist/faceforge-core.exe</code>.</p>
 </li>
 <li>
-<p><strong>Build Desktop Bundle</strong>:</p>
-<pre class="hljs"><code><div><span class="hljs-built_in">cd</span> desktop
-./scripts/build-desktop.ps1
-# or, if you want to run Tauri directly:
-Push-Location 'desktop/src-tauri'
-cargo tauri build
-Pop-Location
-</div></code></pre>
-<p>This packages the Desktop shell, bundles the Core executable (as a sidecar), and includes necessary tools (ExifTool, etc.).</p>
+<p><strong>Build Desktop Bundle</strong>:
+  <code>powershell
+  ./scripts/build-desktop.ps1
+  # or, if you want to run Tauri directly:
+  Push-Location 'desktop/src-tauri'
+  cargo tauri build
+  Pop-Location</code>
+    This packages the Desktop shell, bundles the Core executable (as a sidecar), and includes necessary tools (ExifTool, etc.).</p>
 </li>
 </ol>
 <h2 id="contributing">Contributing</h2>
@@ -767,6 +363,5 @@ Pop-Location
 </ul>
 <h2 id="license">License</h2>
 <p>See <a href="LICENSE">LICENSE</a>.</p>
-
 </body>
 </html>

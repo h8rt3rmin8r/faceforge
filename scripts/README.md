@@ -449,4 +449,8 @@
 
 ### RELATED LINKS
 
+## update-docs.ps1
+
+update-docs.ps1 [-ConfigPath <string>] [-Force] [-SkipScriptsReadme] [-WhatIf] [-Confirm] [<CommonParameters>]
+
 

@@ -22,7 +22,11 @@
 [CmdletBinding(SupportsShouldProcess = $true, PositionalBinding = $false)]
 param(
     [string]$ConfigPath = (Join-Path $PSScriptRoot 'update-docs_config.json'),
-    [switch]$Force
+    [switch]$Force,
+
+    # By default, scripts/README.md is regenerated (from comment-based help) before any doc conversions.
+    # Use this switch to bypass that behavior.
+    [switch]$SkipScriptsReadme
 )
 
 Set-StrictMode -Version Latest
@@ -110,6 +114,63 @@ function Resolve-CssHref {
     return (New-Object System.Uri((Resolve-Path -LiteralPath $cssPath).Path)).AbsoluteUri
 }
 
+function Normalize-RepoRelPath {
+    param([string]$PathLike)
+
+    if ([string]::IsNullOrWhiteSpace($PathLike)) {
+        return ''
+    }
+
+    # Normalize to forward slashes for stable comparisons.
+    return ([string]$PathLike).Trim() -replace '\\', '/'
+}
+
+function Ensure-ScriptsReadmeDocInConfig {
+    param(
+        [Parameter(Mandatory)]
+        $ConfigJson,
+
+        [Parameter(Mandatory)]
+        [string]$ConfigPath
+    )
+
+    $targetSource = 'scripts/README.md'
+    $targetHtml = 'scripts/README.html'
+    $targetPdf = 'scripts/README.pdf'
+
+    if ($null -eq $ConfigJson.docs) {
+        $ConfigJson | Add-Member -MemberType NoteProperty -Name 'docs' -Value @() -Force
+    }
+
+    $docs = @($ConfigJson.docs)
+    $targetNorm = Normalize-RepoRelPath -PathLike $targetSource
+
+    foreach ($d in $docs) {
+        if ($null -eq $d) { continue }
+        $src = $d.PSObject.Properties['source'].Value
+        if ((Normalize-RepoRelPath -PathLike ([string]$src)) -eq $targetNorm) {
+            return $false
+        }
+    }
+
+    $newEntry = [pscustomobject]@{
+        source = $targetSource
+        html   = $targetHtml
+        pdf    = $targetPdf
+    }
+
+    $ConfigJson.docs = @($docs + $newEntry)
+
+    if ($PSCmdlet.ShouldProcess($ConfigPath, "Add docs entry for $targetSource")) {
+        $jsonOut = $ConfigJson | ConvertTo-Json -Depth 50
+        # Ensure trailing newline for nicer diffs.
+        if (-not $jsonOut.EndsWith("`n")) { $jsonOut += "`n" }
+        Set-Content -LiteralPath $ConfigPath -Value $jsonOut -Encoding UTF8
+    }
+
+    return $true
+}
+
 $repoRoot = Get-RepoRoot
 $venvPython = Ensure-Venv -RepoRoot $repoRoot
 
@@ -118,6 +179,10 @@ if (-not (Test-Path -LiteralPath $ConfigPath)) {
 }
 
 $configJson = Get-Content -LiteralPath $ConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+
+# Ensure scripts/README.md is included in the docs list (so it can be rendered).
+# We do this early so the remainder of the script operates on the complete doc set.
+$configUpdated = Ensure-ScriptsReadmeDocInConfig -ConfigJson $configJson -ConfigPath $ConfigPath
 
 $defaults = $configJson.defaults
 if ($null -eq $defaults) { $defaults = @{} }
@@ -161,6 +226,20 @@ if ($emitPdf) {
             "PDF engine '$pdfEngine' not found.",
             "Install Microsoft Edge (recommended) or set defaults.pdf.engine to 'chrome'."
         ) -join "`n"
+    }
+}
+
+# By default, regenerate scripts/README.md from PowerShell comment-based help before conversions.
+# This keeps scripts documentation in-sync and ensures subsequent HTML/PDF outputs are based on the latest README.
+$generateScriptsReadme = Join-Path $PSScriptRoot 'generate-scripts-readme.ps1'
+if (-not (Test-Path -LiteralPath $generateScriptsReadme)) {
+    throw "Missing generator: $generateScriptsReadme"
+}
+
+if (-not $SkipScriptsReadme) {
+    if ($PSCmdlet.ShouldProcess('scripts/README.md', 'Generate scripts/README.md from scripts/*.ps1 help')) {
+        $outPath = Join-Path $repoRoot 'scripts/README.md'
+        & $generateScriptsReadme -OutputPath $outPath -WhatIf:$WhatIfPreference
     }
 }
 
