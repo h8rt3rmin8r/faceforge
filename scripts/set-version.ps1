@@ -83,7 +83,8 @@ Update-FileContent -Path "desktop/src-tauri/Cargo.toml" -Regex '(?m)^version = "
 
 # desktop/src-tauri/Cargo.lock
 # Update only the local faceforge_desktop package entry.
-Update-FileContent -Path "desktop/src-tauri/Cargo.lock" -Regex '(?ms)(\[\[package\]\]\s*\r?\nname = "faceforge_desktop"\s*\r?\nversion = ")\d+\.\d+\.\d+(")' -Replacement "`$1$Version`$2"
+# NOTE: Use ${1}...${2} to avoid "$1" adjacent to a version like "0.1.9" being interpreted as "$10" (group 10).
+Update-FileContent -Path "desktop/src-tauri/Cargo.lock" -Regex '(?ms)(\[\[package\]\]\s*\r?\nname = "faceforge_desktop"\s*\r?\nversion = ")\d+\.\d+\.\d+(")' -Replacement ('${1}' + $Version + '${2}')
 
 # desktop/src-tauri/tauri.conf.json
 # "version": "0.1.0"
