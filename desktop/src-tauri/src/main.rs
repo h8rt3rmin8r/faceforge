@@ -32,6 +32,7 @@ struct UiState {
     seaweed_s3_port: Option<u16>,
     auto_restart: bool,
     minimize_on_exit: bool,
+    max_log_size_mb: Option<u32>,
     install_token: Option<String>,
     status: Option<ServiceStatus>,
     error: Option<String>,
@@ -141,6 +142,7 @@ fn ui_state_from_guard(app: &tauri::AppHandle, guard: &mut AppState) -> UiState 
             .as_ref()
             .map(|s| s.minimize_on_exit)
             .unwrap_or(true),
+        max_log_size_mb: guard.settings.as_ref().map(|s| s.max_log_size_mb),
         install_token: guard.install_token.clone(),
         status,
         error,
@@ -192,6 +194,7 @@ async fn save_wizard_settings(
     // Ensure FACEFORGE_HOME layout exists; Core will also do this.
     fs::create_dir_all(payload.faceforge_home.join("config")).map_err(|e| e.to_string())?;
     fs::create_dir_all(payload.faceforge_home.join("tmp")).map_err(|e| e.to_string())?;
+    fs::create_dir_all(payload.faceforge_home.join("logs")).map_err(|e| e.to_string())?;
 
     let token = settings::write_core_json(&payload.faceforge_home, &payload)
         .map_err(|e| e.to_string())?;
@@ -214,18 +217,67 @@ async fn start_services(
     app: tauri::AppHandle,
     state: tauri::State<'_, Mutex<AppState>>,
 ) -> Result<UiState, String> {
+    let (settings, faceforge_home) = {
+        let guard = state.lock().unwrap();
+        let settings = guard
+            .settings
+            .clone()
+            .ok_or_else(|| "Not configured".to_string())?;
+        (settings.clone(), settings.faceforge_home.clone())
+    };
+
+    {
+        let mut guard = state.lock().unwrap();
+        let orch = guard
+            .orchestrator
+            .as_mut()
+            .ok_or_else(|| "Orchestrator missing".to_string())?;
+        orch.start_seaweed_if_enabled(&settings).map_err(|e| e.to_string())?;
+        orch.start_core(&settings).map_err(|e| e.to_string())?;
+        guard.desired_running = true;
+    }
+
+    // Best-effort readiness check: wait briefly for the port to accept connections.
+    // This avoids a confusing "Start" that immediately looks like it did nothing.
+    let start = std::time::Instant::now();
+    let timeout = std::time::Duration::from_secs(5);
+    while start.elapsed() < timeout {
+        if std::net::TcpStream::connect_timeout(
+            &format!("127.0.0.1:{}", settings.core_port)
+                .parse::<std::net::SocketAddr>()
+                .map_err(|e| e.to_string())?,
+            std::time::Duration::from_millis(250),
+        )
+        .is_ok()
+        {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    }
+
+    // Return updated UI state; if Core isn't up, include a hint to check logs.
     let mut guard = state.lock().unwrap();
-    let settings = guard
-        .settings
-        .clone()
-        .ok_or_else(|| "Not configured".to_string())?;
-    let orch = guard.orchestrator.as_mut().ok_or_else(|| "Orchestrator missing".to_string())?;
+    let ui = ui_state_from_guard(&app, &mut guard);
+    if ui
+        .status
+        .as_ref()
+        .map(|s| s.core_running)
+        .unwrap_or(false)
+        && ui
+            .status
+            .as_ref()
+            .map(|s| s.core_healthy)
+            .unwrap_or(false)
+    {
+        return Ok(ui);
+    }
 
-    orch.start_seaweed_if_enabled(&settings).map_err(|e| e.to_string())?;
-    orch.start_core(&settings).map_err(|e| e.to_string())?;
-    guard.desired_running = true;
-
-    Ok(ui_state_from_guard(&app, &mut guard))
+    // Even if the process is running, if it isn't accepting connections, surface guidance.
+    let core_log = faceforge_home.join("logs").join("core.log");
+    Err(format!(
+        "Core did not become ready on port {}. Check logs at {:?}",
+        settings.core_port, core_log
+    ))
 }
 
 #[tauri::command]
@@ -261,6 +313,52 @@ async fn open_ui(state: tauri::State<'_, Mutex<AppState>>) -> Result<(), String>
     let url = format!("http://127.0.0.1:{}/ui/login", settings.core_port);
     tauri_plugin_opener::open_url(url, None::<String>).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+#[tauri::command]
+async fn open_local_path(path: String) -> Result<(), String> {
+    if path.trim().is_empty() {
+        return Err("Path is empty".to_string());
+    }
+
+    // Use OS default handlers. This is more reliable than trying to treat local paths as URLs.
+    #[cfg(windows)]
+    {
+        // `start` is a cmd built-in.
+        // Use an empty title to avoid the first quoted string being treated as a window title.
+        let status = std::process::Command::new("cmd")
+            .args(["/C", "start", "", &path])
+            .status()
+            .map_err(|e| e.to_string())?;
+        if !status.success() {
+            return Err(format!("Failed to open path (exit={:?})", status.code()));
+        }
+        return Ok(());
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let status = std::process::Command::new("open")
+            .arg(&path)
+            .status()
+            .map_err(|e| e.to_string())?;
+        if !status.success() {
+            return Err(format!("Failed to open path (exit={:?})", status.code()));
+        }
+        return Ok(());
+    }
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        let status = std::process::Command::new("xdg-open")
+            .arg(&path)
+            .status()
+            .map_err(|e| e.to_string())?;
+        if !status.success() {
+            return Err(format!("Failed to open path (exit={:?})", status.code()));
+        }
+        return Ok(());
+    }
 }
 
 #[tauri::command]
@@ -319,6 +417,29 @@ fn read_core_log(app: tauri::AppHandle, lines: usize) -> Result<Vec<String>, Str
                 Ok(all_lines[start..].iter().map(|s| s.to_string()).collect())
             }
             Err(e) => Ok(vec![format!("Error reading log: {}", e)])
+        }
+    } else {
+        Ok(vec!["Settings not loaded - cannot resolve log path.".into()])
+    }
+}
+
+#[tauri::command]
+fn read_seaweed_log(app: tauri::AppHandle, lines: usize) -> Result<Vec<String>, String> {
+    let state = app.state::<Mutex<AppState>>();
+    let guard = state.lock().unwrap();
+    if let Some(s) = &guard.settings {
+        let log_path = s.faceforge_home.join("logs").join("seaweed.log");
+        if !log_path.exists() {
+            return Ok(vec![format!("Log file not found at {:?}", log_path)]);
+        }
+
+        match std::fs::read_to_string(&log_path) {
+            Ok(content) => {
+                let all_lines: Vec<&str> = content.lines().collect();
+                let start = all_lines.len().saturating_sub(lines);
+                Ok(all_lines[start..].iter().map(|s| s.to_string()).collect())
+            }
+            Err(e) => Ok(vec![format!("Error reading log: {}", e)]),
         }
     } else {
         Ok(vec!["Settings not loaded - cannot resolve log path.".into()])
@@ -394,6 +515,12 @@ fn main() {
             let app_handle = app.handle();
             build_tray(&app_handle)?;
 
+            // Dev UX: make it obvious when the app is running but hidden/minimized.
+            // (In release builds on Windows, stdout is typically not visible.)
+            println!("FaceForge Desktop started.");
+            println!("- If you don't see a window, check the system tray (FaceForge icon). Use 'Open Desktop App'.");
+            println!("- The default Close behavior may hide to tray depending on Settings > Minimize on Exit.");
+
             // Background monitor: keep Core alive and restart if needed.
             let app_handle = app_handle.clone();
             std::thread::spawn(move || loop {
@@ -429,6 +556,7 @@ fn main() {
                 };
 
                 if minimize {
+                    println!("Close requested: hiding to tray (Minimize on Exit enabled). Use the tray menu to reopen.");
                     api.prevent_close();
                     let _ = window.hide();
                 } else {
@@ -453,9 +581,11 @@ fn main() {
             stop_services,
             restart_services,
             open_ui,
+            open_local_path,
             request_exit,
             request_ui_exit,
             read_core_log,
+            read_seaweed_log,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

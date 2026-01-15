@@ -1,6 +1,7 @@
 use crate::ports::{write_ports, RuntimePorts};
 use crate::settings::WizardSettings;
 use anyhow::Context;
+use std::fs::OpenOptions;
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::net::{SocketAddr, TcpStream};
@@ -14,12 +15,14 @@ pub struct ServiceStatus {
     pub seaweed_enabled: bool,
     pub seaweed_running: bool,
     pub seaweed_s3_port: Option<u16>,
+    pub seaweed_last_error: Option<String>,
 }
 
 pub struct Orchestrator {
     repo_root: PathBuf,
     core_child: Option<Child>,
     seaweed_child: Option<Child>,
+    last_seaweed_error: Option<String>,
     last_core_start: Option<Instant>,
     core_restart_attempts: u32,
 }
@@ -30,6 +33,7 @@ impl Orchestrator {
             repo_root,
             core_child: None,
             seaweed_child: None,
+            last_seaweed_error: None,
             last_core_start: None,
             core_restart_attempts: 0,
         }
@@ -78,10 +82,72 @@ impl Orchestrator {
         None
     }
 
-    fn resolve_weed_path(&self, settings: &WizardSettings) -> Option<PathBuf> {
+    fn resolve_core_sidecar(&self) -> anyhow::Result<PathBuf> {
+        // In dev builds we keep a copy at desktop/src-tauri/binaries.
+        // In packaged builds Tauri may rename sidecars with a target triple.
+        // We therefore try a small search strategy rather than assuming an exact filename.
+
+        let mut candidates: Vec<PathBuf> = vec![
+            self.repo_root
+                .join("desktop")
+                .join("src-tauri")
+                .join("binaries")
+                .join("faceforge-core.exe"),
+            self.repo_root
+                .join("desktop")
+                .join("src-tauri")
+                .join("binaries")
+                .join("faceforge-core"),
+        ];
+
+        let exe = std::env::current_exe()?;
+        if let Some(dir) = exe.parent() {
+            candidates.push(dir.join("faceforge-core.exe"));
+            candidates.push(dir.join("faceforge-core"));
+            candidates.push(dir.join("binaries").join("faceforge-core.exe"));
+            candidates.push(dir.join("binaries").join("faceforge-core"));
+
+            // Tauri sidecars may be named like `faceforge-core-x86_64-pc-windows-msvc.exe`.
+            if let Ok(entries) = std::fs::read_dir(dir) {
+                for entry in entries.flatten() {
+                    let p = entry.path();
+                    if !p.is_file() {
+                        continue;
+                    }
+                    let Some(name) = p.file_name().and_then(|s| s.to_str()) else {
+                        continue;
+                    };
+                    if !name.starts_with("faceforge-core") {
+                        continue;
+                    }
+                    #[cfg(windows)]
+                    {
+                        if !name.ends_with(".exe") {
+                            continue;
+                        }
+                    }
+                    candidates.push(p);
+                }
+            }
+        }
+
+        for c in candidates {
+            if c.exists() {
+                return Ok(c);
+            }
+        }
+
+        anyhow::bail!(
+            "Core executable sidecar not found (and .venv missing). Looked in repo binaries and beside the desktop executable."
+        )
+    }
+
+    fn weed_candidates(&self, settings: &WizardSettings) -> Vec<PathBuf> {
+        let mut out: Vec<PathBuf> = Vec::new();
+
         if let Some(p) = &settings.seaweed_weed_path {
             if p.exists() {
-                return Some(p.clone());
+                out.push(p.clone());
             }
         }
 
@@ -108,13 +174,40 @@ impl Orchestrator {
             ];
 
             for c in candidates {
-                if c.exists() {
-                    return Some(c);
-                }
+                out.push(c);
             }
         }
-        
+
+        out
+    }
+
+    fn resolve_weed_path(&self, settings: &WizardSettings) -> Option<PathBuf> {
+        // First honor explicit setting.
+        if let Some(p) = &settings.seaweed_weed_path {
+            if p.exists() {
+                return Some(p.clone());
+            }
+        }
+
+        for c in self.weed_candidates(settings) {
+            if c.exists() {
+                return Some(c);
+            }
+        }
+
         None
+    }
+
+    fn prepare_log_file(log_path: &std::path::Path, max_log_size_mb: u32) -> anyhow::Result<std::fs::File> {
+        let max_bytes: u64 = (max_log_size_mb.max(1) as u64) * 1024 * 1024;
+        if let Ok(meta) = std::fs::metadata(log_path) {
+            if meta.len() > max_bytes {
+                let rotated = log_path.with_extension("log.1");
+                let _ = std::fs::remove_file(&rotated);
+                let _ = std::fs::rename(log_path, &rotated);
+            }
+        }
+        Ok(OpenOptions::new().create(true).append(true).open(log_path)?)
     }
 
     pub fn start_seaweed_if_enabled(&mut self, settings: &WizardSettings) -> anyhow::Result<()> {
@@ -125,30 +218,94 @@ impl Orchestrator {
             return Ok(());
         }
 
-        let weed = self
-            .resolve_weed_path(settings)
-            .context("SeaweedFS enabled but 'weed' binary not found under FACEFORGE_HOME/tools")?;
+        let result: anyhow::Result<()> = (|| {
+
+        let weed = match self.resolve_weed_path(settings) {
+            Some(p) => p,
+            None => {
+                let candidates = self
+                    .weed_candidates(settings)
+                    .into_iter()
+                    .map(|p| p.to_string_lossy().to_string())
+                    .collect::<Vec<_>>();
+                anyhow::bail!(
+                    "SeaweedFS enabled but 'weed' binary was not found. Looked for: {}. If you're building from source, run scripts/ensure-seaweedfs.ps1 to download the official Windows x64 binary.",
+                    candidates.join("; ")
+                );
+            }
+        };
+
+        #[cfg(windows)]
+        {
+            use std::io::Read;
+            // Quick sanity check: avoid trying to spawn a placeholder text file.
+            let mut f = std::fs::File::open(&weed).with_context(|| format!("Failed to open weed binary at {:?}", &weed))?;
+            let mut buf = [0u8; 128];
+            let n = f.read(&mut buf).unwrap_or(0);
+            let slice = &buf[..n];
+            let is_mz = slice.len() >= 2 && slice[0] == b'M' && slice[1] == b'Z';
+            if !is_mz {
+                let preview = String::from_utf8_lossy(slice);
+                anyhow::bail!(
+                    "SeaweedFS weed binary at {:?} is not a valid Windows executable (missing MZ header). \
+If you're building from source, run scripts/ensure-seaweedfs.ps1 (it downloads the official Windows x64 weed.exe). \
+Preview: {}",
+                    &weed,
+                    preview.replace('\r', " ").replace('\n', " ")
+                );
+            }
+        }
 
         let s3_port = settings
             .seaweed_s3_port
             .context("SeaweedFS enabled but seaweed_s3_port not set")?;
 
+        // These are currently hardcoded in the command args below.
+        let master_port: u16 = 9333;
+        let volume_port: u16 = 8080;
+        let filer_port: u16 = 8888;
+
         let data_dir = settings.faceforge_home.join("s3").join("seaweedfs");
         std::fs::create_dir_all(&data_dir)?;
 
-        let mut cmd = Command::new(weed);
+        // Preflight port checks: if anything is already listening, SeaweedFS may fail or exit immediately.
+        let mut conflicts: Vec<String> = Vec::new();
+        for (name, port) in [
+            ("master", master_port),
+            ("volume", volume_port),
+            ("filer", filer_port),
+            ("s3", s3_port),
+        ] {
+            if Self::tcp_port_open("127.0.0.1", port, Duration::from_millis(120)) {
+                conflicts.push(format!("{name}:{port}"));
+            }
+        }
+        if !conflicts.is_empty() {
+            anyhow::bail!(
+                "SeaweedFS cannot start because these ports already have listeners: {}",
+                conflicts.join(", ")
+            );
+        }
+
+        let mut cmd = Command::new(&weed);
         cmd.arg("server")
             .arg("-ip=127.0.0.1")
             .arg(format!("-dir={}", data_dir.to_string_lossy()))
-            .arg("-master.port=9333")
-            .arg("-volume.port=8080")
-            .arg("-filer.port=8888")
+            .arg(format!("-master.port={}", master_port))
+            .arg(format!("-volume.port={}", volume_port))
+            .arg(format!("-filer.port={}", filer_port))
             .arg("-s3")
             .arg(format!("-s3.port={}", s3_port))
             .current_dir(&settings.faceforge_home)
-            .stdin(Stdio::null())
-            .stdout(Stdio::null())
-            .stderr(Stdio::null());
+            .stdin(Stdio::null());
+
+        // Log to FACEFORGE_HOME/logs/seaweed.log for debugging.
+        let logs_dir = settings.faceforge_home.join("logs");
+        std::fs::create_dir_all(&logs_dir)?;
+        let log_path = logs_dir.join("seaweed.log");
+        let out = Self::prepare_log_file(&log_path, settings.max_log_size_mb)?;
+        let err = out.try_clone()?;
+        cmd.stdout(Stdio::from(out)).stderr(Stdio::from(err));
 
         #[cfg(windows)]
         {
@@ -157,8 +314,78 @@ impl Orchestrator {
             cmd.creation_flags(0x00000200 | 0x08000000);
         }
 
-        self.seaweed_child = Some(cmd.spawn().context("Failed to start SeaweedFS")?);
+        fn format_spawn_error(e: &std::io::Error) -> String {
+            let raw = e.raw_os_error();
+            let mut s = format!("{}", e);
+            s.push_str(&format!(" (kind={:?}", e.kind()));
+            if let Some(code) = raw {
+                s.push_str(&format!(", os_error={}", code));
+                #[cfg(windows)]
+                {
+                    // Common Windows causes:
+                    // 2 = file not found, 5 = access denied, 193 = bad exe, 126 = missing DLL/module.
+                    if code == 2 {
+                        s.push_str(", hint=path not found");
+                    } else if code == 5 {
+                        s.push_str(", hint=access denied (AV/quarantine/permissions)");
+                    } else if code == 193 {
+                        s.push_str(", hint=not a valid Windows executable (wrong arch?)");
+                    } else if code == 126 {
+                        s.push_str(", hint=missing dependency/DLL (VC runtime?)");
+                    }
+                }
+            }
+            s.push(')');
+            s
+        }
+
+        let child = cmd.spawn().map_err(|e| {
+            let msg = format!(
+                "Failed to start SeaweedFS (weed={:?}, s3_port={}, log={:?}). Spawn error: {}",
+                &weed,
+                s3_port,
+                log_path,
+                format_spawn_error(&e)
+            );
+            anyhow::anyhow!(msg)
+        })?;
+
+        self.seaweed_child = Some(child);
+
+        // Brief readiness probe: if the process exits immediately, return an actionable error.
+        let start = Instant::now();
+        let timeout = Duration::from_secs(2);
+        while start.elapsed() < timeout {
+            if Self::tcp_port_open("127.0.0.1", s3_port, Duration::from_millis(120)) {
+                return Ok(());
+            }
+            if let Some(child) = &mut self.seaweed_child {
+                if let Ok(Some(status)) = child.try_wait() {
+                    self.seaweed_child = None;
+                    anyhow::bail!(
+                        "SeaweedFS exited immediately ({:?}). Check logs at {:?}",
+                        status,
+                        log_path
+                    );
+                }
+            }
+            std::thread::sleep(Duration::from_millis(100));
+        }
+
         Ok(())
+        })();
+
+        match result {
+            Ok(()) => {
+                self.last_seaweed_error = None;
+                Ok(())
+            }
+            Err(e) => {
+                // Preserve for Status UI; string is fine for MVP.
+                self.last_seaweed_error = Some(e.to_string());
+                Err(e)
+            }
+        }
     }
 
     pub fn stop_seaweed(&mut self) {
@@ -182,7 +409,7 @@ impl Orchestrator {
             },
         )?;
 
-        // Strategy: prefer venv python (dev mode), fallback to bundled executable sidecar (prod mode).
+        // Strategy: prefer venv python (dev mode), fallback to bundled executable sidecar.
         let (bin_path, args, work_dir) = if let Some(python) = self.find_venv_python() {
             // Dev mode
             (
@@ -191,13 +418,8 @@ impl Orchestrator {
                 Some(self.repo_root.clone()),
             )
         } else {
-            // Prod mode: expect `faceforge-core.exe` sidecar adjacent to this executable.
-            let exe = std::env::current_exe()?;
-            let dir = exe.parent().context("Cannot resolve parent of current executable")?;
-            let sidecar = dir.join("faceforge-core.exe");
-            if !sidecar.exists() {
-                anyhow::bail!("Core executable not found at {:?} (and .venv missing)", sidecar);
-            }
+            // Packaged mode: use a sidecar.
+            let sidecar = self.resolve_core_sidecar()?;
             (sidecar, vec![], None)
         };
 
@@ -215,9 +437,15 @@ impl Orchestrator {
         cmd.args(args)
             .env("FACEFORGE_HOME", &settings.faceforge_home)
             .env("FACEFORGE_BIND", "127.0.0.1")
-            .stdin(Stdio::null())
-            .stdout(Stdio::null())
-            .stderr(Stdio::null());
+            .stdin(Stdio::null());
+
+        // Capture output for diagnosis (Core can fail fast in dev if deps are missing).
+        let logs_dir = settings.faceforge_home.join("logs");
+        std::fs::create_dir_all(&logs_dir)?;
+        let log_path = logs_dir.join("core.log");
+        let out = Self::prepare_log_file(&log_path, settings.max_log_size_mb)?;
+        let err = out.try_clone()?;
+        cmd.stdout(Stdio::from(out)).stderr(Stdio::from(err));
 
         #[cfg(windows)]
         {
@@ -299,6 +527,7 @@ impl Orchestrator {
             seaweed_enabled: settings.seaweed_enabled,
             seaweed_running: self.is_seaweed_running(),
             seaweed_s3_port: settings.seaweed_s3_port,
+            seaweed_last_error: self.last_seaweed_error.clone(),
         }
     }
 }

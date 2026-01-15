@@ -35,46 +35,32 @@
 
     <!-- LOADING OVERLAY -->
     <div id="loading-overlay" class="loading-overlay hidden" aria-live="polite" aria-busy="true">
-      <div class="loading-card">
-        <div class="loading-brand">
-          <div class="loading-title">FaceForge</div>
-          <div id="loading-subtitle" class="loading-subtitle">Initializing…</div>
-        </div>
-
-        <div class="loading-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Loading"></div>
-
-        <div class="loading-steps" aria-hidden="true">
-          <div class="loading-step" data-step="config">
-            <span class="loading-dot"></span>
-            <span class="loading-label">Configuration</span>
-          </div>
-          <div class="loading-step" data-step="engine">
-            <span class="loading-dot"></span>
-            <span class="loading-label">Engine</span>
-          </div>
-          <div class="loading-step" data-step="ready">
-            <span class="loading-dot"></span>
-            <span class="loading-label">Ready</span>
+      <div class="loading-card" role="status" aria-label="Working">
+        <div class="loading-row">
+          <div class="loading-spinner" aria-hidden="true"></div>
+          <div class="loading-text">
+            <div class="loading-title">FaceForge</div>
+            <div id="loading-subtitle" class="loading-subtitle">Working…</div>
+            <div id="loading-detail" class="loading-detail">Please wait</div>
           </div>
         </div>
-
-        <div class="loading-lines" aria-hidden="true">
-          <div class="loading-line"></div>
-          <div class="loading-line"></div>
-          <div class="loading-line"></div>
-        </div>
-
-        <div id="loading-detail" class="loading-detail">Contacting desktop backend</div>
       </div>
     </div>
 
-    <section id="error-banner" class="banner hidden">
+    <section id="error-banner" class="banner banner-hidden" role="status" aria-live="polite" aria-hidden="true">
       <div class="banner-text">
         <div id="error-title" class="banner-title"></div>
-        <div id="error-detail" class="banner-detail"></div>
+        <div id="error-summary" class="banner-summary"></div>
+        <pre id="error-detail" class="banner-detail hidden"></pre>
       </div>
-      <button id="btn-error-dismiss" class="banner-dismiss">Dismiss</button>
+      <div class="banner-actions">
+        <button id="btn-error-toggle" class="banner-btn">Details</button>
+        <button id="btn-error-copy" class="banner-btn">Copy</button>
+        <button id="btn-error-dismiss" class="banner-btn">Dismiss</button>
+      </div>
     </section>
+
+    <div id="toast" class="toast toast-hidden" role="status" aria-live="polite" aria-hidden="true"></div>
 
     <main class="main-content">
       <!-- SETTINGS / WIZARD -->
@@ -195,8 +181,12 @@
     <!-- LOGS DRAWER -->
     <footer id="logs-drawer" class="logs-drawer collapsed">
         <div class="logs-header">
-            <span style="font-weight:600">Core Logs (tail)</span>
+            <span style="font-weight:600">Logs (tail)</span>
             <div style="display:flex; gap:10px; align-items:center;">
+               <select id="logs-source" style="height:24px; font-size:12px;">
+                 <option value="core">Core</option>
+                 <option value="seaweed">SeaweedFS</option>
+               </select>
                <label style="display:flex;gap:4px;cursor:pointer"><input type="checkbox" id="logs-auto-scroll" checked> Auto-scroll</label>
                <button id="btn-refresh-logs" class="icon-btn">Refresh</button>
                <button id="btn-close-logs" class="icon-btn">Close</button>

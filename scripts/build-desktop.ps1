@@ -90,14 +90,14 @@ Write-Host "Building FaceForge Desktop bundle ($Bundles)..." -ForegroundColor Cy
 Push-Location $repoRoot
 try {
   if (-not $SkipCoreBuild) {
-    Write-Host 'Step 1/3: Building Core executable (PyInstaller)' -ForegroundColor Cyan
+    Write-Host 'Step 1/4: Building Core executable (PyInstaller)' -ForegroundColor Cyan
     $coreArgs = @{}
     if ($KeepBuildHistory) { $coreArgs['KeepBuildHistory'] = $true }
     if ($AllowTimestampFallback) { $coreArgs['AllowTimestampFallback'] = $true }
 
     Invoke-Checked { & (Join-Path $repoRoot 'scripts/build-core.ps1') @coreArgs | Out-Host } 'Core build failed'
   } else {
-    Write-Host 'Step 1/3: Skipping Core build (using existing executable)' -ForegroundColor Yellow
+    Write-Host 'Step 1/4: Skipping Core build (using existing executable)' -ForegroundColor Yellow
   }
 
   $coreExe = Join-Path $repoRoot 'core/dist/faceforge-core.exe'
@@ -105,12 +105,15 @@ try {
     throw "Core executable not found at $coreExe. Re-run without -SkipCoreBuild."
   }
 
-  Write-Host 'Step 2/3: Staging Core sidecar into Desktop binaries/' -ForegroundColor Cyan
+  Write-Host 'Step 2/4: Staging Core sidecar into Desktop binaries/' -ForegroundColor Cyan
   $dstDir = Join-Path $repoRoot 'desktop/src-tauri/binaries'
   New-Item -ItemType Directory -Force -Path $dstDir | Out-Null
   Copy-Item -Force $coreExe (Join-Path $dstDir 'faceforge-core.exe')
 
-  Write-Host 'Step 3/3: Building Desktop installer(s) via Tauri' -ForegroundColor Cyan
+  Write-Host 'Step 3/4: Ensuring SeaweedFS weed.exe (Windows x64)' -ForegroundColor Cyan
+  Invoke-Checked { & (Join-Path $repoRoot 'scripts/ensure-seaweedfs.ps1') | Out-Host } 'SeaweedFS tool setup failed'
+
+  Write-Host 'Step 4/4: Building Desktop installer(s) via Tauri' -ForegroundColor Cyan
   $desktopTauriDir = Join-Path $repoRoot 'desktop/src-tauri'
 
   Push-Location $desktopTauriDir
@@ -126,6 +129,10 @@ try {
 
   $bundleDir = Join-Path $repoRoot 'desktop/src-tauri/target/release/bundle'
   Write-Host "Build complete. Bundle outputs under: $bundleDir" -ForegroundColor Green
+  Write-Host 'What you just built:' -ForegroundColor DarkGray
+  Write-Host '  - MSI: Windows Installer package (enterprise-friendly installer)' -ForegroundColor DarkGray
+  Write-Host '  - NSIS `*-setup.exe`: Windows installer executable (this is an installer, not the app itself)' -ForegroundColor DarkGray
+  Write-Host 'For running the dev app (no installers), use: `./scripts/dev-desktop.ps1`' -ForegroundColor DarkGray
 } finally {
   Pop-Location
 }

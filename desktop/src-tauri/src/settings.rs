@@ -19,6 +19,7 @@ pub struct WizardSettings {
     pub seaweed_weed_path: Option<PathBuf>,
     pub auto_restart: bool,
     pub minimize_on_exit: bool,
+    pub max_log_size_mb: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -64,11 +65,39 @@ pub fn write_core_json(faceforge_home: &Path, settings: &WizardSettings) -> anyh
     let existing_token = read_install_token(faceforge_home).ok();
     let token = existing_token.unwrap_or_else(generate_install_token);
 
+    let existing_s3_creds: Option<(String, String)> = (|| {
+        let raw = fs::read_to_string(core_json_path(faceforge_home)).ok()?;
+        let v: serde_json::Value = serde_json::from_str(&raw).ok()?;
+        let access = v
+            .get("storage")?
+            .get("s3")?
+            .get("access_key")?
+            .as_str()?
+            .trim()
+            .to_string();
+        let secret = v
+            .get("storage")?
+            .get("s3")?
+            .get("secret_key")?
+            .as_str()?
+            .trim()
+            .to_string();
+        if access.is_empty() || secret.is_empty() {
+            return None;
+        }
+        Some((access, secret))
+    })();
+
     let storage = if settings.seaweed_enabled {
-        let mut access = [0u8; 16];
-        let mut secret = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut access);
-        rand::thread_rng().fill_bytes(&mut secret);
+        let (access_key, secret_key) = if let Some((a, s)) = existing_s3_creds {
+            (a, s)
+        } else {
+            let mut access = [0u8; 16];
+            let mut secret = [0u8; 32];
+            rand::thread_rng().fill_bytes(&mut access);
+            rand::thread_rng().fill_bytes(&mut secret);
+            (URL_SAFE_NO_PAD.encode(access), URL_SAFE_NO_PAD.encode(secret))
+        };
         serde_json::json!({
             "routing": {
                 "default_provider": "s3",
@@ -78,8 +107,8 @@ pub fn write_core_json(faceforge_home: &Path, settings: &WizardSettings) -> anyh
             "s3": {
                 "enabled": true,
                 "endpoint_url": null,
-                "access_key": URL_SAFE_NO_PAD.encode(access),
-                "secret_key": URL_SAFE_NO_PAD.encode(secret),
+                "access_key": access_key,
+                "secret_key": secret_key,
                 "bucket": "faceforge",
                 "region": "us-east-1",
                 "use_ssl": false
@@ -150,7 +179,8 @@ pub fn write_desktop_json(faceforge_home: &Path, settings: &WizardSettings) -> a
         "seaweed_s3_port": settings.seaweed_s3_port,
         "seaweed_weed_path": settings.seaweed_weed_path,
         "auto_restart": settings.auto_restart,
-        "minimize_on_exit": settings.minimize_on_exit
+        "minimize_on_exit": settings.minimize_on_exit,
+        "max_log_size_mb": settings.max_log_size_mb
     });
     fs::write(desktop_json_path(faceforge_home), serde_json::to_vec_pretty(&payload)?)?;
     Ok(())
@@ -181,6 +211,10 @@ pub fn read_desktop_json(faceforge_home: &Path) -> anyhow::Result<WizardSettings
             .get("minimize_on_exit")
             .and_then(|x| x.as_bool())
             .unwrap_or(true),
+        max_log_size_mb: v
+            .get("max_log_size_mb")
+            .and_then(|x| x.as_u64())
+            .unwrap_or(10) as u32,
     })
 }
 

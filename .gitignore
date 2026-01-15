@@ -79,6 +79,13 @@ db.sqlite3-journal
 # FaceForge local runtime home (dev/test)
 .faceforge/
 
+# Local build scratch / MSI inspection
+.tmp/
+
+# Generated third-party tools (downloaded during build)
+desktop/src-tauri/resources/tools/weed.exe
+desktop/src-tauri/resources/tools/seaweedfs.version.txt
+
 # Release artifacts (generated locally/CI)
 SHA256SUMS.txt
 
