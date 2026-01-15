@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "defaults": {
+    "skipUnchanged": true,
+    "failOnMissingSource": true,
+    "emitHtml": true,
+    "emitPdf": true,
+    "cssFiles": [
+      "brand/fonts/fonts.css"
+    ],
+    "pdf": {
+      "engine": "edge"
+    }
+  },
+  "docs": [
+    {
+      "source": "README.md",
+      "html": "README.html",
+      "pdf": "README.pdf"
+    },
+    {
+      "source": "RELEASE_NOTES.md",
+      "html": "RELEASE_NOTES.html",
+      "pdf": "RELEASE_NOTES.pdf"
+    },
+    {
+      "source": "core/README.md",
+      "html": "core/README.html",
+      "pdf": "core/README.pdf"
+    },
+    {
+      "source": "desktop/README.md",
+      "html": "desktop/README.html",
+      "pdf": "desktop/README.pdf"
+    },
+    {
+      "source": "scripts/README.md",
+      "html": "scripts/README.html",
+      "pdf": "scripts/README.pdf"
+    },
+    {
+      "source": "docs/FaceForge Core - Project Design Specification.md",
+      "html": "docs/FaceForge Core - Project Design Specification.html",
+      "pdf": "docs/FaceForge Core - Project Design Specification.pdf"
+    },
+    {
+      "source": "docs/FaceForge User Guide.md",
+      "html": "docs/FaceForge User Guide.html",
+      "pdf": "docs/FaceForge User Guide.pdf"
+    }
+  ]
+}
