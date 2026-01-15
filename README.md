@@ -19,7 +19,7 @@ This repository is currently **docs-first scaffolding** with an initial runnable
 
 If you’re arriving here to understand the project, start with:
 
-- Design spec: [docs/FaceForge Core - Project Design Specification - v0.2.9.html](docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.html)
+- Design spec: [docs/FaceForge Core - Project Design Specification.html](docs/FaceForge%20Core%20-%20Project%20Design%20Specification.html)
 
 ## What FaceForge is (and isn’t)
 
@@ -330,9 +330,9 @@ These scripts create/use the repo-local `.venv` and always run commands through 
 To get productive right now:
 
 - Read the Project Design Specification:
-  - [HTML](docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.html)
-  - [Markdown](docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.md)
-  - [PDF](docs/FaceForge%20Core%20-%20Project%20Design%20Specification%20-%20v0.2.9.pdf)
+  - [HTML](docs/FaceForge%20Core%20-%20Project%20Design%20Specification.html)
+  - [Markdown](docs/FaceForge%20Core%20-%20Project%20Design%20Specification.md)
+  - [PDF](docs/FaceForge%20Core%20-%20Project%20Design%20Specification.pdf)
 - For implementers using AI assistance (e.g. GitHub Copilot), follow these guidelines
   - Markdown doc via the repo UI: [copilot-instructions.md](https://github.com/h8rt3rmin8r/faceforge/blob/main/.github/copilot-instructions.md)
 
