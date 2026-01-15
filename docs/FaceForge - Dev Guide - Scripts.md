@@ -451,6 +451,100 @@
 
 ## update-docs.ps1
 
-update-docs.ps1 [-ConfigPath <string>] [-Force] [-SkipScriptsReadme] [-WhatIf] [-Confirm] [<CommonParameters>]
+### NAME
+
+    ./scripts\update-docs.ps1
+
+### SYNOPSIS
+
+    Builds HTML and PDF renderings for selected Markdown docs.
+
+### SYNTAX
+```text
+    ./scripts\update-docs.ps1 [-ConfigPath <String>] [-Force] [-SkipScriptsReadme] [-WhatIf] [-Confirm] [<CommonParameters>]
+
+```
+
+### DESCRIPTION
+
+    Reads scripts/update-docs_config.json for a list of "actions" and executes them in phases:
+        1) copy      (sync files into their canonical docs/ locations)
+        2) transform (e.g. Markdown -> HTML)
+        3) print     (e.g. HTML -> PDF via headless Chromium)
+
+    This intentionally does NOT add Node.js tooling to the repo.
+
+### PARAMETERS
+
+    -ConfigPath <String>
+
+        Required?                    false
+        Position?                    named
+        Default value
+        Accept pipeline input?       false
+        Aliases
+        Accept wildcard characters?  false
+
+    -Force [<SwitchParameter>]
+
+        Required?                    false
+        Position?                    named
+        Default value                False
+        Accept pipeline input?       false
+        Aliases
+        Accept wildcard characters?  false
+
+    -SkipScriptsReadme [<SwitchParameter>]
+        By default, docs/FaceForge - Dev Guide - Scripts.md is regenerated (from comment-based help) before any doc conversions.
+        Use this switch to bypass that behavior.
+
+        Required?                    false
+        Position?                    named
+        Default value                False
+        Accept pipeline input?       false
+        Aliases
+        Accept wildcard characters?  false
+
+    -WhatIf [<SwitchParameter>]
+
+        Required?                    false
+        Position?                    named
+        Default value
+        Accept pipeline input?       false
+        Aliases
+        Accept wildcard characters?  false
+
+    -Confirm [<SwitchParameter>]
+
+        Required?                    false
+        Position?                    named
+        Default value
+        Accept pipeline input?       false
+        Aliases
+        Accept wildcard characters?  false
+
+    <CommonParameters>
+        This cmdlet supports the common parameters: Verbose, Debug,
+        ErrorAction, ErrorVariable, WarningAction, WarningVariable,
+        OutBuffer, PipelineVariable, and OutVariable. For more information, see
+        about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
+
+### INPUTS
+
+### OUTPUTS
+
+    -------------------------- EXAMPLE 1 --------------------------
+
+    PS > ./scripts/update-docs.ps1
+
+    -------------------------- EXAMPLE 2 --------------------------
+
+    PS > ./scripts/update-docs.ps1 -WhatIf
+
+    -------------------------- EXAMPLE 3 --------------------------
+
+    PS > ./scripts/update-docs.ps1 -ConfigPath ./scripts/update-docs_config.json -Force
+
+### RELATED LINKS
 
 

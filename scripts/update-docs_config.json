@@ -1,52 +1,208 @@
 {
-  "version": 1,
-  "defaults": {
-    "skipUnchanged": true,
-    "failOnMissingSource": true,
-    "emitHtml": true,
-    "emitPdf": true,
-    "cssFiles": [
-      "brand/fonts/fonts.css"
-    ],
-    "pdf": {
-      "engine": "edge"
-    }
-  },
-  "docs": [
-    {
-      "source": "docs/FaceForge - Dev Guide - Release Notes.md",
-      "html": "docs/FaceForge - Dev Guide - Release Notes.html",
-      "pdf": "docs/FaceForge - Dev Guide - Release Notes.pdf"
+    "version": 2,
+    "defaults": {
+        "skipUnchanged": true,
+        "failOnMissingSource": true,
+        "cssFiles": [
+            "brand/fonts/fonts.css"
+        ],
+        "headless": {
+            "primary": {
+                "name": "edge",
+                "path": {
+                    "windows": "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+                    "linux": "/usr/bin/microsoft-edge",
+                    "darwin": "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"
+                }
+            },
+            "fallback": {
+                "name": "chrome",
+                "path": {
+                    "windows": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+                    "linux": "/usr/bin/google-chrome",
+                    "darwin": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+                }
+            }
+        }
     },
-    {
-      "source": "docs/FaceForge - Readme.md",
-      "html": "docs/FaceForge - Readme.html",
-      "pdf": "docs/FaceForge - Readme.pdf"
-    },
-    {
-      "source": "docs/FaceForge - Dev Guide - Scripts.md",
-      "html": "docs/FaceForge - Dev Guide - Scripts.html",
-      "pdf": "docs/FaceForge - Dev Guide - Scripts.pdf"
-    },
-    {
-      "source": "docs/FaceForge - Dev Guide - Core.md",
-      "html": "docs/FaceForge - Dev Guide - Core.html",
-      "pdf": "docs/FaceForge - Dev Guide - Core.pdf"
-    },
-    {
-      "source": "docs/FaceForge - Dev Guide - Desktop.md",
-      "html": "docs/FaceForge - Dev Guide - Desktop.html",
-      "pdf": "docs/FaceForge - Dev Guide - Desktop.pdf"
-    },
-    {
-      "source": "docs/FaceForge - Dev Guide - Project Design Specification.md",
-      "html": "docs/FaceForge - Dev Guide - Project Design Specification.html",
-      "pdf": "docs/FaceForge - Dev Guide - Project Design Specification.pdf"
-    },
-    {
-      "source": "docs/FaceForge - User Guide.md",
-      "html": "docs/FaceForge - User Guide.html",
-      "pdf": "docs/FaceForge - User Guide.pdf"
-    }
-  ]
+    "actions": [
+        {
+            "action": "copy",
+            "source": "RELEASE_NOTES.md",
+            "targets": [
+                {
+                    "type": "md",
+                    "destination": "docs/FaceForge - Dev Guide - Release Notes.md"
+                }
+            ]
+        },
+        {
+            "action": "copy",
+            "source": "README.md",
+            "targets": [
+                {
+                    "type": "md",
+                    "destination": "docs/FaceForge - Readme.md"
+                }
+            ]
+        },
+        {
+            "action": "transform",
+            "transform": "scriptsReadme",
+            "source": "scripts/*.ps1",
+            "targets": [
+                {
+                    "type": "md",
+                    "destination": "docs/FaceForge - Dev Guide - Scripts.md"
+                }
+            ]
+        },
+        {
+            "action": "transform",
+            "transform": "markdownToHtml",
+            "source": "docs/FaceForge - Dev Guide - Release Notes.md",
+            "targets": [
+                {
+                    "type": "html",
+                    "destination": "docs/FaceForge - Dev Guide - Release Notes.html"
+                }
+            ]
+        },
+        {
+            "action": "print",
+            "source": "docs/FaceForge - Dev Guide - Release Notes.html",
+            "targets": [
+                {
+                    "type": "pdf",
+                    "destination": "docs/FaceForge - Dev Guide - Release Notes.pdf"
+                }
+            ]
+        },
+        {
+            "action": "transform",
+            "transform": "markdownToHtml",
+            "source": "docs/FaceForge - Readme.md",
+            "targets": [
+                {
+                    "type": "html",
+                    "destination": "docs/FaceForge - Readme.html"
+                }
+            ]
+        },
+        {
+            "action": "print",
+            "source": "docs/FaceForge - Readme.html",
+            "targets": [
+                {
+                    "type": "pdf",
+                    "destination": "docs/FaceForge - Readme.pdf"
+                }
+            ]
+        },
+        {
+            "action": "transform",
+            "transform": "markdownToHtml",
+            "source": "docs/FaceForge - Dev Guide - Scripts.md",
+            "targets": [
+                {
+                    "type": "html",
+                    "destination": "docs/FaceForge - Dev Guide - Scripts.html"
+                }
+            ]
+        },
+        {
+            "action": "print",
+            "source": "docs/FaceForge - Dev Guide - Scripts.html",
+            "targets": [
+                {
+                    "type": "pdf",
+                    "destination": "docs/FaceForge - Dev Guide - Scripts.pdf"
+                }
+            ]
+        },
+        {
+            "action": "transform",
+            "transform": "markdownToHtml",
+            "source": "docs/FaceForge - Dev Guide - Core.md",
+            "targets": [
+                {
+                    "type": "html",
+                    "destination": "docs/FaceForge - Dev Guide - Core.html"
+                }
+            ]
+        },
+        {
+            "action": "print",
+            "source": "docs/FaceForge - Dev Guide - Core.html",
+            "targets": [
+                {
+                    "type": "pdf",
+                    "destination": "docs/FaceForge - Dev Guide - Core.pdf"
+                }
+            ]
+        },
+        {
+            "action": "transform",
+            "transform": "markdownToHtml",
+            "source": "docs/FaceForge - Dev Guide - Desktop.md",
+            "targets": [
+                {
+                    "type": "html",
+                    "destination": "docs/FaceForge - Dev Guide - Desktop.html"
+                }
+            ]
+        },
+        {
+            "action": "print",
+            "source": "docs/FaceForge - Dev Guide - Desktop.html",
+            "targets": [
+                {
+                    "type": "pdf",
+                    "destination": "docs/FaceForge - Dev Guide - Desktop.pdf"
+                }
+            ]
+        },
+        {
+            "action": "transform",
+            "transform": "markdownToHtml",
+            "source": "docs/FaceForge - Dev Guide - Project Design Specification.md",
+            "targets": [
+                {
+                    "type": "html",
+                    "destination": "docs/FaceForge - Dev Guide - Project Design Specification.html"
+                }
+            ]
+        },
+        {
+            "action": "print",
+            "source": "docs/FaceForge - Dev Guide - Project Design Specification.html",
+            "targets": [
+                {
+                    "type": "pdf",
+                    "destination": "docs/FaceForge - Dev Guide - Project Design Specification.pdf"
+                }
+            ]
+        },
+        {
+            "action": "transform",
+            "transform": "markdownToHtml",
+            "source": "docs/FaceForge - User Guide.md",
+            "targets": [
+                {
+                    "type": "html",
+                    "destination": "docs/FaceForge - User Guide.html"
+                }
+            ]
+        },
+        {
+            "action": "print",
+            "source": "docs/FaceForge - User Guide.html",
+            "targets": [
+                {
+                    "type": "pdf",
+                    "destination": "docs/FaceForge - User Guide.pdf"
+                }
+            ]
+        }
+    ]
 }
