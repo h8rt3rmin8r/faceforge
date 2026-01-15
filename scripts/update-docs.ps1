@@ -273,9 +273,11 @@ function Ensure-DocsStyles {
         }
     }
 
-    # Generate syntax highlighting CSS (used by HTML/PDF renders).
+    # Generate syntax highlighting CSS.
+    # - Screen: dark code blocks (matches the default dark UI)
+    # - Print/PDF: keep light code blocks (standard white document theme)
     $syntaxCssPath = Join-Path $stylesDir 'syntax.css'
-    $syntaxCss = & $VenvPython -c "from pygments.formatters import HtmlFormatter; print(HtmlFormatter(style='default').get_style_defs('.codehilite'))" | Out-String
+    $syntaxCss = & $VenvPython -c "from pygments.formatters import HtmlFormatter; print('@media screen {'); print(HtmlFormatter(style='monokai').get_style_defs('.codehilite')); print('}'); print('@media print {'); print(HtmlFormatter(style='default').get_style_defs('.codehilite')); print('}')" | Out-String
     if (-not $syntaxCss.EndsWith("`n")) { $syntaxCss += "`n" }
 
     $needsWrite = $true
@@ -349,6 +351,11 @@ if (-not (Test-Path -LiteralPath $renderPy)) {
     throw "Missing renderer: $renderPy"
 }
 
+$printPdfPy = Join-Path $PSScriptRoot '_update_docs_print_pdf.py'
+if (-not (Test-Path -LiteralPath $printPdfPy)) {
+    throw "Missing PDF printer: $printPdfPy"
+}
+
 # Ensure markdown renderer dependency is present in the repo venv.
 # (No global Python packages; no Node.)
 & $venvPython -c "import markdown" 2>$null
@@ -362,6 +369,13 @@ if ($LASTEXITCODE -ne 0) {
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Installing Python package: Pygments (for docs syntax highlighting)" -ForegroundColor Cyan
     & $venvPython -m pip install --upgrade "Pygments>=2.17" | Out-Host
+}
+
+# Ensure DevTools PDF printing dependency is present.
+& $venvPython -c "import websockets" 2>$null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Installing Python package: websockets (for PDF footer control)" -ForegroundColor Cyan
+    & $venvPython -m pip install --upgrade "websockets>=12" | Out-Host
 }
 
 $pdfCmd = $null
@@ -501,34 +515,13 @@ foreach ($doc in $docs) {
                 New-Item -ItemType Directory -Path $pdfDir -Force | Out-Null
             }
 
-            $htmlUri = (Get-Item -LiteralPath $htmlPath).FullName | ForEach-Object { (New-Object System.Uri($_)).AbsoluteUri }
-
-            $argsNew = @(
-                '--headless=new',
-                '--disable-gpu',
-                "--print-to-pdf=$pdfPath",
-                '--no-first-run',
-                '--no-default-browser-check',
-                $htmlUri
-            )
-
-            & $pdfCmd @argsNew | Out-Host
+            # Use DevTools protocol printing so we can control headers/footers.
+            # This avoids Chromium's default footer showing machine-local absolute paths.
+            & $venvPython $printPdfPy `
+                --browser $pdfCmd `
+                --html $htmlPath `
+                --pdf $pdfPath | Out-Host
             $exit = $LASTEXITCODE
-
-            if ($exit -ne 0) {
-                $argsOld = @(
-                    '--headless',
-                    '--disable-gpu',
-                    "--print-to-pdf=$pdfPath",
-                    '--no-first-run',
-                    '--no-default-browser-check',
-                    $htmlUri
-                )
-
-                & $pdfCmd @argsOld | Out-Host
-                $exit = $LASTEXITCODE
-            }
-
             if ($exit -ne 0) {
                 throw "PDF generation failed for $sourceRel (exit code $exit)"
             }
