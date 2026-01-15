@@ -1,550 +1,680 @@
 # Scripts
 
+---
+
 ## _ensure-venv.ps1
 
-### NAME
 
-    ./scripts\_ensure-venv.ps1
+- NAME
 
-### SYNOPSIS
+        ./scripts\_ensure-venv.ps1
 
-    Helper utilities for FaceForge PowerShell scripts.
+- SYNOPSIS
 
-### SYNTAX
-```text
-    ./scripts\_ensure-venv.ps1 [<CommonParameters>]
+        Helper utilities for FaceForge PowerShell scripts.
 
-```
 
-### DESCRIPTION
+- SYNTAX
 
-    This file is intended to be dot-sourced by other scripts in the `scripts/` directory.
-    It provides shared helpers for:
-        - Resolving the repository root.
-        - Creating and locating the repo-local Python virtual environment (`.venv`).
-        - Returning the correct `.venv` Python executable path for downstream scripts.
+        ./scripts\_ensure-venv.ps1 [<CommonParameters>]
 
-    Design goals:
-        - Never depend on global Python packages at runtime.
-        - Prefer the Windows `py` launcher to bootstrap Python 3.12 venv creation.
-        - Make failures actionable with clear error messages.
 
-### PARAMETERS
+- DESCRIPTION
 
-    <CommonParameters>
-        This cmdlet supports the common parameters: Verbose, Debug,
-        ErrorAction, ErrorVariable, WarningAction, WarningVariable,
-        OutBuffer, PipelineVariable, and OutVariable. For more information, see
-        about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
+        This file is intended to be dot-sourced by other scripts in the `scripts/` directory.
+        It provides shared helpers for:
+            - Resolving the repository root.
+            - Creating and locating the repo-local Python virtual environment (`.venv`).
+            - Returning the correct `.venv` Python executable path for downstream scripts.
 
-### INPUTS
+        Design goals:
+            - Never depend on global Python packages at runtime.
+            - Prefer the Windows `py` launcher to bootstrap Python 3.12 venv creation.
+            - Make failures actionable with clear error messages.
 
-### OUTPUTS
 
-### NOTES
+- PARAMETERS
 
-        This file defines functions and does not execute any build/run tasks on its own.
-        Usage pattern:
-            . (Join-Path $PSScriptRoot '_ensure-venv.ps1')
-            $repoRoot = Get-RepoRoot
-            $venvPython = Ensure-Venv -RepoRoot $repoRoot
+        <CommonParameters>
+            This cmdlet supports the common parameters: Verbose, Debug,
+            ErrorAction, ErrorVariable, WarningAction, WarningVariable,
+            OutBuffer, PipelineVariable, and OutVariable. For more information, see
+            about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 
-### RELATED LINKS
+- INPUTS
+
+
+- OUTPUTS
+
+
+- NOTES
+
+
+
+            This file defines functions and does not execute any build/run tasks on its own.
+            Usage pattern:
+                . (Join-Path $PSScriptRoot '_ensure-venv.ps1')
+                $repoRoot = Get-RepoRoot
+                $venvPython = Ensure-Venv -RepoRoot $repoRoot
+
+
+- RELATED LINKS
+
+---
 
 ## build-core.ps1
 
-### NAME
 
-    ./scripts\build-core.ps1
+- NAME
 
-### SYNOPSIS
+        ./scripts\build-core.ps1
 
-    Builds the FaceForge Core executable for local bundling and releases.
+- SYNOPSIS
 
-### SYNTAX
-```text
-    ./scripts\build-core.ps1 [-KeepBuildHistory] [-AllowTimestampFallback] [<CommonParameters>]
+        Builds the FaceForge Core executable for local bundling and releases.
 
-```
 
-### DESCRIPTION
+- SYNTAX
 
-    Produces a Windows executable for FaceForge Core using PyInstaller, using the repo-local
-    virtual environment under `.venv`.
+        ./scripts\build-core.ps1 [-KeepBuildHistory] [-AllowTimestampFallback] [<CommonParameters>]
 
-    This script is designed to be safe and repeatable:
-    - Uses a repo-local venv (never relies on global site-packages after bootstrapping).
-    - Cleans previous `core/build` and `core/dist` output directories.
-    - When requested, falls back to timestamped output folders if directories are locked.
-    - Normalizes output to a stable path `core/dist/faceforge-core.exe` for downstream scripts.
 
-    Intended consumers:
-    - Local developers running the Desktop orchestrator.
-    - CI pipelines producing release artifacts.
-    - The all-in-one desktop bundler script (`scripts/build-desktop.ps1`).
+- DESCRIPTION
 
-### PARAMETERS
+        Produces a Windows executable for FaceForge Core using PyInstaller, using the repo-local
+        virtual environment under `.venv`.
 
-    -KeepBuildHistory [<SwitchParameter>]
-        Preserves older timestamped output folders (e.g. `core/build-YYYYMMDD-HHMMSS`, `core/dist-...`).
-        By default, old timestamped output folders are pruned to keep the repo tidy.
+        This script is designed to be safe and repeatable:
+        - Uses a repo-local venv (never relies on global site-packages after bootstrapping).
+        - Cleans previous `core/build` and `core/dist` output directories.
+        - When requested, falls back to timestamped output folders if directories are locked.
+        - Normalizes output to a stable path `core/dist/faceforge-core.exe` for downstream scripts.
 
-        Required?                    false
-        Position?                    named
-        Default value                False
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
+        Intended consumers:
+        - Local developers running the Desktop orchestrator.
+        - CI pipelines producing release artifacts.
+        - The all-in-one desktop bundler script (`scripts/build-desktop.ps1`).
 
-    -AllowTimestampFallback [<SwitchParameter>]
-        If `core/build` or `core/dist` cannot be deleted (e.g. open file handles from Explorer or a
-        terminal with CWD inside those folders), the default behavior is to fail with a helpful message.
-        When this switch is provided, the script will instead build into timestamped folders.
 
-        Required?                    false
-        Position?                    named
-        Default value                False
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
+- PARAMETERS
 
-    <CommonParameters>
-        This cmdlet supports the common parameters: Verbose, Debug,
-        ErrorAction, ErrorVariable, WarningAction, WarningVariable,
-        OutBuffer, PipelineVariable, and OutVariable. For more information, see
-        about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
+        -KeepBuildHistory [<SwitchParameter>]
+            Preserves older timestamped output folders (e.g. `core/build-YYYYMMDD-HHMMSS`, `core/dist-...`).
+            By default, old timestamped output folders are pruned to keep the repo tidy.
 
-### INPUTS
+            Required?                    false
+            Position?                    named
+            Default value                False
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
 
-### OUTPUTS
+        -AllowTimestampFallback [<SwitchParameter>]
+            If `core/build` or `core/dist` cannot be deleted (e.g. open file handles from Explorer or a
+            terminal with CWD inside those folders), the default behavior is to fail with a helpful message.
+            When this switch is provided, the script will instead build into timestamped folders.
 
-    On success, you will have:
-      - `core/dist/faceforge-core.exe`
+            Required?                    false
+            Position?                    named
+            Default value                False
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
 
-### NOTES
+        <CommonParameters>
+            This cmdlet supports the common parameters: Verbose, Debug,
+            ErrorAction, ErrorVariable, WarningAction, WarningVariable,
+            OutBuffer, PipelineVariable, and OutVariable. For more information, see
+            about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 
-        Prerequisites:
-          - Python 3.12.x installed (only needed to bootstrap `.venv` the first time).
-          - Build dependencies are installed into `.venv` automatically.
-        This script intentionally disables confirmation prompts for non-interactive execution.
+- INPUTS
 
-    -------------------------- EXAMPLE 1 --------------------------
 
-    PS > ./scripts/build-core.ps1
-    Builds Core into `core/dist/faceforge-core.exe`, cleaning old outputs.
+- OUTPUTS
 
-    -------------------------- EXAMPLE 2 --------------------------
+        On success, you will have:
+          - `core/dist/faceforge-core.exe`
 
-    PS > ./scripts/build-core.ps1 -AllowTimestampFallback
-    Builds Core even if `core/dist` is locked, by using timestamped folders.
 
-### RELATED LINKS
+- NOTES
+
+
+
+            Prerequisites:
+              - Python 3.12.x installed (only needed to bootstrap `.venv` the first time).
+              - Build dependencies are installed into `.venv` automatically.
+            This script intentionally disables confirmation prompts for non-interactive execution.
+
+        -------------------------- EXAMPLE 1 --------------------------
+
+        PS > ./scripts/build-core.ps1
+        Builds Core into `core/dist/faceforge-core.exe`, cleaning old outputs.
+
+
+
+
+
+
+        -------------------------- EXAMPLE 2 --------------------------
+
+        PS > ./scripts/build-core.ps1 -AllowTimestampFallback
+        Builds Core even if `core/dist` is locked, by using timestamped folders.
+
+
+
+
+
+
+
+- RELATED LINKS
+
+---
 
 ## build-desktop.ps1
 
-### NAME
 
-    ./scripts\build-desktop.ps1
+- NAME
 
-### SYNOPSIS
+        ./scripts\build-desktop.ps1
 
-    Builds a full FaceForge Desktop bundle (Desktop + Core sidecar).
+- SYNOPSIS
 
-### SYNTAX
-```text
-    ./scripts\build-desktop.ps1 [-Bundles <String>] [-SkipCoreBuild] [-KeepBuildHistory] [-AllowTimestampFallback] [<CommonParameters>]
+        Builds a full FaceForge Desktop bundle (Desktop + Core sidecar).
 
-```
 
-### DESCRIPTION
+- SYNTAX
 
-    This script follows the project’s packaging intent:
-      - Build FaceForge Core as a standalone executable (PyInstaller)
-      - Stage it into Desktop’s Tauri sidecar binaries folder
-      - Produce Desktop installers via `tauri build`
+        ./scripts\build-desktop.ps1 [-Bundles <String>] [-SkipCoreBuild] [-KeepBuildHistory] [-AllowTimestampFallback] [<CommonParameters>]
 
-    This script is designed for repeatable local and CI builds:
-      - Uses the repo-local `.venv` for Core builds (never global site-packages).
-      - Stages the Core sidecar into `desktop/src-tauri/binaries/faceforge-core.exe`.
-      - Runs `cargo tauri build` to produce installable artifacts.
 
-    Prerequisites (Windows):
-      - Rust toolchain installed (cargo).
-      - Tauri prerequisites (WebView2, bundler toolchains). Tauri will prompt/download some tooling.
+- DESCRIPTION
 
-    Outputs (Windows):
-      - desktop/src-tauri/target/release/bundle/msi/*.msi
-      - desktop/src-tauri/target/release/bundle/nsis/*-setup.exe
+        This script follows the project’s packaging intent:
+          - Build FaceForge Core as a standalone executable (PyInstaller)
+          - Stage it into Desktop’s Tauri sidecar binaries folder
+          - Produce Desktop installers via `tauri build`
 
-### PARAMETERS
+        This script is designed for repeatable local and CI builds:
+          - Uses the repo-local `.venv` for Core builds (never global site-packages).
+          - Stages the Core sidecar into `desktop/src-tauri/binaries/faceforge-core.exe`.
+          - Runs `cargo tauri build` to produce installable artifacts.
 
-    -Bundles <String>
-        Which bundle target(s) to build. Allowed values: all, msi, nsis.
-        Default: all.
-
-        Required?                    false
-        Position?                    named
-        Default value                all
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
-
-    -SkipCoreBuild [<SwitchParameter>]
-        Skip running scripts/build-core.ps1 (expects core/dist/faceforge-core.exe to already exist).
-
-        Required?                    false
-        Position?                    named
-        Default value                False
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
-
-    -KeepBuildHistory [<SwitchParameter>]
-        Forwarded to scripts/build-core.ps1; preserves old build/dist folders under core/.
-
-        Required?                    false
-        Position?                    named
-        Default value                False
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
-
-    -AllowTimestampFallback [<SwitchParameter>]
-        Forwarded to scripts/build-core.ps1; if core/build or core/dist are locked, build into timestamped folders.
-
-        Required?                    false
-        Position?                    named
-        Default value                False
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
-
-    <CommonParameters>
-        This cmdlet supports the common parameters: Verbose, Debug,
-        ErrorAction, ErrorVariable, WarningAction, WarningVariable,
-        OutBuffer, PipelineVariable, and OutVariable. For more information, see
-        about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
-
-### INPUTS
-
-### OUTPUTS
-
-### NOTES
+        Prerequisites (Windows):
+          - Rust toolchain installed (cargo).
+          - Tauri prerequisites (WebView2, bundler toolchains). Tauri will prompt/download some tooling.
 
         Outputs (Windows):
           - desktop/src-tauri/target/release/bundle/msi/*.msi
           - desktop/src-tauri/target/release/bundle/nsis/*-setup.exe
 
-        This script sets `PositionalBinding = $false` to discourage ambiguous invocation.
 
-    -------------------------- EXAMPLE 1 --------------------------
+- PARAMETERS
 
-    PS > ./scripts/build-desktop.ps1
-    Builds Core + Desktop, producing both MSI and NSIS artifacts.
+        -Bundles <String>
+            Which bundle target(s) to build. Allowed values: all, msi, nsis.
+            Default: all.
 
-    -------------------------- EXAMPLE 2 --------------------------
+            Required?                    false
+            Position?                    named
+            Default value                all
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
 
-    PS > ./scripts/build-desktop.ps1 -Bundles nsis
-    Builds only the NSIS installer.
+        -SkipCoreBuild [<SwitchParameter>]
+            Skip running scripts/build-core.ps1 (expects core/dist/faceforge-core.exe to already exist).
 
-    -------------------------- EXAMPLE 3 --------------------------
+            Required?                    false
+            Position?                    named
+            Default value                False
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
 
-    PS > ./scripts/build-desktop.ps1 -SkipCoreBuild -Bundles msi
-    Fast path when nothing changed in Core.
+        -KeepBuildHistory [<SwitchParameter>]
+            Forwarded to scripts/build-core.ps1; preserves old build/dist folders under core/.
 
-### RELATED LINKS
+            Required?                    false
+            Position?                    named
+            Default value                False
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
+
+        -AllowTimestampFallback [<SwitchParameter>]
+            Forwarded to scripts/build-core.ps1; if core/build or core/dist are locked, build into timestamped folders.
+
+            Required?                    false
+            Position?                    named
+            Default value                False
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
+
+        <CommonParameters>
+            This cmdlet supports the common parameters: Verbose, Debug,
+            ErrorAction, ErrorVariable, WarningAction, WarningVariable,
+            OutBuffer, PipelineVariable, and OutVariable. For more information, see
+            about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
+
+- INPUTS
+
+
+- OUTPUTS
+
+
+- NOTES
+
+
+
+            Outputs (Windows):
+              - desktop/src-tauri/target/release/bundle/msi/*.msi
+              - desktop/src-tauri/target/release/bundle/nsis/*-setup.exe
+
+            This script sets `PositionalBinding = $false` to discourage ambiguous invocation.
+
+        -------------------------- EXAMPLE 1 --------------------------
+
+        PS > ./scripts/build-desktop.ps1
+        Builds Core + Desktop, producing both MSI and NSIS artifacts.
+
+
+
+
+
+
+        -------------------------- EXAMPLE 2 --------------------------
+
+        PS > ./scripts/build-desktop.ps1 -Bundles nsis
+        Builds only the NSIS installer.
+
+
+
+
+
+
+        -------------------------- EXAMPLE 3 --------------------------
+
+        PS > ./scripts/build-desktop.ps1 -SkipCoreBuild -Bundles msi
+        Fast path when nothing changed in Core.
+
+
+
+
+
+
+
+- RELATED LINKS
+
+---
 
 ## check-core.ps1
 
-### NAME
 
-    ./scripts\check-core.ps1
+- NAME
 
-### SYNOPSIS
+        ./scripts\check-core.ps1
 
-    Runs FaceForge Core quality gates (format, lint, tests).
+- SYNOPSIS
 
-### SYNTAX
-```text
-    ./scripts\check-core.ps1 [<CommonParameters>]
+        Runs FaceForge Core quality gates (format, lint, tests).
 
-```
 
-### DESCRIPTION
+- SYNTAX
 
-    Installs FaceForge Core in editable mode with development dependencies into the repo-local
-    virtual environment (`.venv`), then runs:
-      - ruff format --check
-      - ruff check
-      - pytest
+        ./scripts\check-core.ps1 [<CommonParameters>]
 
-    This is intended for local verification and CI usage. It will stop on the first failure and
-    return a non-zero exit code.
 
-### PARAMETERS
+- DESCRIPTION
 
-    <CommonParameters>
-        This cmdlet supports the common parameters: Verbose, Debug,
-        ErrorAction, ErrorVariable, WarningAction, WarningVariable,
-        OutBuffer, PipelineVariable, and OutVariable. For more information, see
-        about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
+        Installs FaceForge Core in editable mode with development dependencies into the repo-local
+        virtual environment (`.venv`), then runs:
+          - ruff format --check
+          - ruff check
+          - pytest
 
-### INPUTS
+        This is intended for local verification and CI usage. It will stop on the first failure and
+        return a non-zero exit code.
 
-### OUTPUTS
 
-    Console output from tooling. Exits non-zero on failure.
+- PARAMETERS
 
-### NOTES
+        <CommonParameters>
+            This cmdlet supports the common parameters: Verbose, Debug,
+            ErrorAction, ErrorVariable, WarningAction, WarningVariable,
+            OutBuffer, PipelineVariable, and OutVariable. For more information, see
+            about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 
-        Prerequisites:
-          - Python 3.12.x is recommended (used only to bootstrap `.venv` on first run).
-        This script does not rely on global Python packaging once `.venv` exists.
+- INPUTS
 
-    -------------------------- EXAMPLE 1 --------------------------
 
-    PS > ./scripts/check-core.ps1
-    Runs format, lint, and tests.
+- OUTPUTS
 
-### RELATED LINKS
+        Console output from tooling. Exits non-zero on failure.
+
+
+- NOTES
+
+
+
+            Prerequisites:
+              - Python 3.12.x is recommended (used only to bootstrap `.venv` on first run).
+            This script does not rely on global Python packaging once `.venv` exists.
+
+        -------------------------- EXAMPLE 1 --------------------------
+
+        PS > ./scripts/check-core.ps1
+        Runs format, lint, and tests.
+
+
+
+
+
+
+
+- RELATED LINKS
+
+---
 
 ## dev-core.ps1
 
-### NAME
 
-    ./scripts\dev-core.ps1
+- NAME
 
-### SYNOPSIS
+        ./scripts\dev-core.ps1
 
-    Runs FaceForge Core locally in development mode.
+- SYNOPSIS
 
-### SYNTAX
-```text
-    ./scripts\dev-core.ps1 [<CommonParameters>]
+        Runs FaceForge Core locally in development mode.
 
-```
 
-### DESCRIPTION
+- SYNTAX
 
-    Bootstraps the repo-local virtual environment (`.venv`) if needed, installs FaceForge Core
-    in editable mode with development dependencies, then launches the Core server.
+        ./scripts\dev-core.ps1 [<CommonParameters>]
 
-    Environment variables (optional):
-      - FACEFORGE_BIND: bind host for Uvicorn/FastAPI (default: 127.0.0.1)
-      - FACEFORGE_PORT: bind port for Core (default: 8787)
 
-    This script is intended for local development. For Desktop orchestration, run the Tauri app
-    and let it start Core.
+- DESCRIPTION
 
-### PARAMETERS
+        Bootstraps the repo-local virtual environment (`.venv`) if needed, installs FaceForge Core
+        in editable mode with development dependencies, then launches the Core server.
 
-    <CommonParameters>
-        This cmdlet supports the common parameters: Verbose, Debug,
-        ErrorAction, ErrorVariable, WarningAction, WarningVariable,
-        OutBuffer, PipelineVariable, and OutVariable. For more information, see
-        about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
+        Environment variables (optional):
+          - FACEFORGE_BIND: bind host for Uvicorn/FastAPI (default: 127.0.0.1)
+          - FACEFORGE_PORT: bind port for Core (default: 8787)
 
-### INPUTS
+        This script is intended for local development. For Desktop orchestration, run the Tauri app
+        and let it start Core.
 
-### OUTPUTS
 
-### NOTES
+- PARAMETERS
 
-        This script intentionally uses `.venv\Scripts\python.exe` for all Python execution.
-        External command failures (pip install, server start) cause the script to fail fast.
+        <CommonParameters>
+            This cmdlet supports the common parameters: Verbose, Debug,
+            ErrorAction, ErrorVariable, WarningAction, WarningVariable,
+            OutBuffer, PipelineVariable, and OutVariable. For more information, see
+            about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 
-    -------------------------- EXAMPLE 1 --------------------------
+- INPUTS
 
-    PS > ./scripts/dev-core.ps1
-    Starts Core at http://127.0.0.1:8787
 
-    -------------------------- EXAMPLE 2 --------------------------
+- OUTPUTS
 
-    PS > $env:FACEFORGE_PORT = '43210'
-    ./scripts/dev-core.ps1
-    Starts Core at http://127.0.0.1:43210
 
-### RELATED LINKS
+- NOTES
+
+
+
+            This script intentionally uses `.venv\Scripts\python.exe` for all Python execution.
+            External command failures (pip install, server start) cause the script to fail fast.
+
+        -------------------------- EXAMPLE 1 --------------------------
+
+        PS > ./scripts/dev-core.ps1
+        Starts Core at http://127.0.0.1:8787
+
+
+
+
+
+
+        -------------------------- EXAMPLE 2 --------------------------
+
+        PS > $env:FACEFORGE_PORT = '43210'
+        ./scripts/dev-core.ps1
+        Starts Core at http://127.0.0.1:43210
+
+
+
+
+
+
+
+- RELATED LINKS
+
+---
 
 ## set-version.ps1
 
-### NAME
 
-    ./scripts\set-version.ps1
+- NAME
 
-### SYNOPSIS
+        ./scripts\set-version.ps1
 
-    Bumps FaceForge version across Core + Desktop manifests.
+- SYNOPSIS
 
-### SYNTAX
-```text
-    ./scripts\set-version.ps1 -Version <String> [-WhatIf] [-Confirm] [<CommonParameters>]
+        Bumps FaceForge version across Core + Desktop manifests.
 
-```
 
-### DESCRIPTION
+- SYNTAX
 
-    Updates version strings in the following files:
-      - core/pyproject.toml
-      - core/src/faceforge_core/app.py
-      - desktop/src-tauri/Cargo.toml
-    - desktop/src-tauri/Cargo.lock
-      - desktop/src-tauri/tauri.conf.json
+        ./scripts\set-version.ps1 -Version <String> [-WhatIf] [-Confirm] [<CommonParameters>]
 
-    The script supports -WhatIf / -Confirm for safe previews.
 
-### PARAMETERS
+- DESCRIPTION
 
-    -Version <String>
-        The semantic version to set (e.g. 0.1.2).
+        Updates version strings in the following files:
+          - core/pyproject.toml
+          - core/src/faceforge_core/app.py
+          - desktop/src-tauri/Cargo.toml
+        - desktop/src-tauri/Cargo.lock
+          - desktop/src-tauri/tauri.conf.json
 
-        Required?                    true
-        Position?                    named
-        Default value
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
+        The script supports -WhatIf / -Confirm for safe previews.
 
-    -WhatIf [<SwitchParameter>]
 
-        Required?                    false
-        Position?                    named
-        Default value
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
+- PARAMETERS
 
-    -Confirm [<SwitchParameter>]
+        -Version <String>
+            The semantic version to set (e.g. 0.1.2).
 
-        Required?                    false
-        Position?                    named
-        Default value
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
+            Required?                    true
+            Position?                    named
+            Default value
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
 
-    <CommonParameters>
-        This cmdlet supports the common parameters: Verbose, Debug,
-        ErrorAction, ErrorVariable, WarningAction, WarningVariable,
-        OutBuffer, PipelineVariable, and OutVariable. For more information, see
-        about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
+        -WhatIf [<SwitchParameter>]
 
-### INPUTS
+            Required?                    false
+            Position?                    named
+            Default value
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
 
-### OUTPUTS
+        -Confirm [<SwitchParameter>]
 
-### NOTES
+            Required?                    false
+            Position?                    named
+            Default value
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
 
-        If a target file or pattern is not found, the script emits a warning and continues.
+        <CommonParameters>
+            This cmdlet supports the common parameters: Verbose, Debug,
+            ErrorAction, ErrorVariable, WarningAction, WarningVariable,
+            OutBuffer, PipelineVariable, and OutVariable. For more information, see
+            about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 
-    -------------------------- EXAMPLE 1 --------------------------
+- INPUTS
 
-    PS > ./scripts/set-version.ps1 -Version 0.1.2
-    Updates all known manifests to 0.1.2.
 
-    -------------------------- EXAMPLE 2 --------------------------
+- OUTPUTS
 
-    PS > ./scripts/set-version.ps1 -Version 0.1.2 -WhatIf
-    Shows what would change without modifying files.
 
-### RELATED LINKS
+- NOTES
+
+
+
+            If a target file or pattern is not found, the script emits a warning and continues.
+
+        -------------------------- EXAMPLE 1 --------------------------
+
+        PS > ./scripts/set-version.ps1 -Version 0.1.2
+        Updates all known manifests to 0.1.2.
+
+
+
+
+
+
+        -------------------------- EXAMPLE 2 --------------------------
+
+        PS > ./scripts/set-version.ps1 -Version 0.1.2 -WhatIf
+        Shows what would change without modifying files.
+
+
+
+
+
+
+
+- RELATED LINKS
+
+---
 
 ## update-docs.ps1
 
-### NAME
 
-    ./scripts\update-docs.ps1
+- NAME
 
-### SYNOPSIS
+        ./scripts\update-docs.ps1
 
-    Builds HTML and PDF renderings for selected Markdown docs.
+- SYNOPSIS
 
-### SYNTAX
-```text
-    ./scripts\update-docs.ps1 [-ConfigPath <String>] [-Force] [-SkipScriptsReadme] [-WhatIf] [-Confirm] [<CommonParameters>]
+        Builds HTML and PDF renderings for selected Markdown docs.
 
-```
 
-### DESCRIPTION
+- SYNTAX
 
-    Reads scripts/update-docs_config.json for a list of "actions" and executes them in phases:
-        1) copy      (sync files into their canonical docs/ locations)
-        2) transform (e.g. Markdown -> HTML)
-        3) print     (e.g. HTML -> PDF via headless Chromium)
+        ./scripts\update-docs.ps1 [-ConfigPath <String>] [-Force] [-SkipScriptsReadme] [-WhatIf] [-Confirm] [<CommonParameters>]
 
-    This intentionally does NOT add Node.js tooling to the repo.
 
-### PARAMETERS
+- DESCRIPTION
 
-    -ConfigPath <String>
+        Reads scripts/update-docs_config.json for a list of "actions" and executes them in phases:
+            1) copy      (sync files into their canonical docs/ locations)
+            2) transform (e.g. Markdown -> HTML)
+            3) print     (e.g. HTML -> PDF via headless Chromium)
 
-        Required?                    false
-        Position?                    named
-        Default value
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
+        This intentionally does NOT add Node.js tooling to the repo.
 
-    -Force [<SwitchParameter>]
 
-        Required?                    false
-        Position?                    named
-        Default value                False
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
+- PARAMETERS
 
-    -SkipScriptsReadme [<SwitchParameter>]
-        By default, docs/FaceForge - Dev Guide - Scripts.md is regenerated (from comment-based help) before any doc conversions.
-        Use this switch to bypass that behavior.
+        -ConfigPath <String>
 
-        Required?                    false
-        Position?                    named
-        Default value                False
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
+            Required?                    false
+            Position?                    named
+            Default value
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
 
-    -WhatIf [<SwitchParameter>]
+        -Force [<SwitchParameter>]
 
-        Required?                    false
-        Position?                    named
-        Default value
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
+            Required?                    false
+            Position?                    named
+            Default value                False
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
 
-    -Confirm [<SwitchParameter>]
+        -SkipScriptsReadme [<SwitchParameter>]
+            By default, docs/FaceForge - Dev Guide - Scripts.md is regenerated (from comment-based help) before any doc conversions.
+            Use this switch to bypass that behavior.
 
-        Required?                    false
-        Position?                    named
-        Default value
-        Accept pipeline input?       false
-        Aliases
-        Accept wildcard characters?  false
+            Required?                    false
+            Position?                    named
+            Default value                False
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
 
-    <CommonParameters>
-        This cmdlet supports the common parameters: Verbose, Debug,
-        ErrorAction, ErrorVariable, WarningAction, WarningVariable,
-        OutBuffer, PipelineVariable, and OutVariable. For more information, see
-        about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
+        -WhatIf [<SwitchParameter>]
 
-### INPUTS
+            Required?                    false
+            Position?                    named
+            Default value
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
 
-### OUTPUTS
+        -Confirm [<SwitchParameter>]
 
-    -------------------------- EXAMPLE 1 --------------------------
+            Required?                    false
+            Position?                    named
+            Default value
+            Accept pipeline input?       false
+            Aliases
+            Accept wildcard characters?  false
 
-    PS > ./scripts/update-docs.ps1
+        <CommonParameters>
+            This cmdlet supports the common parameters: Verbose, Debug,
+            ErrorAction, ErrorVariable, WarningAction, WarningVariable,
+            OutBuffer, PipelineVariable, and OutVariable. For more information, see
+            about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 
-    -------------------------- EXAMPLE 2 --------------------------
+- INPUTS
 
-    PS > ./scripts/update-docs.ps1 -WhatIf
 
-    -------------------------- EXAMPLE 3 --------------------------
+- OUTPUTS
 
-    PS > ./scripts/update-docs.ps1 -ConfigPath ./scripts/update-docs_config.json -Force
 
-### RELATED LINKS
+        -------------------------- EXAMPLE 1 --------------------------
+
+        PS > ./scripts/update-docs.ps1
+
+
+
+
+
+
+        -------------------------- EXAMPLE 2 --------------------------
+
+        PS > ./scripts/update-docs.ps1 -WhatIf
+
+
+
+
+
+
+        -------------------------- EXAMPLE 3 --------------------------
+
+        PS > ./scripts/update-docs.ps1 -ConfigPath ./scripts/update-docs_config.json -Force
+
+
+
+
+
+
+
+- RELATED LINKS
+
+
+
+
 
 

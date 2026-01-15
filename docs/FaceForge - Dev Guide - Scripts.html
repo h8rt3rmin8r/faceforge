@@ -23,20 +23,29 @@
 </head>
 <body>
 <h1 id="scripts">Scripts</h1>
+<hr>
 <h2 id="_ensure-venvps1">_ensure-venv.ps1</h2>
-<h3 id="name">NAME</h3>
+<ul>
+<li>
+<p>NAME</p>
 <div class="codehilite"><pre><span></span><code>./scripts\_ensure-venv.ps1
 </code></pre></div>
 
-<h3 id="synopsis">SYNOPSIS</h3>
+</li>
+<li>
+<p>SYNOPSIS</p>
 <div class="codehilite"><pre><span></span><code>Helper utilities for FaceForge PowerShell scripts.
 </code></pre></div>
 
-<h3 id="syntax">SYNTAX</h3>
-<div class="codehilite"><pre><span></span><code>    ./scripts\_ensure-venv.ps1 [&lt;CommonParameters&gt;]
+</li>
+<li>
+<p>SYNTAX</p>
+<div class="codehilite"><pre><span></span><code>./scripts\_ensure-venv.ps1 [&lt;CommonParameters&gt;]
 </code></pre></div>
 
-<h3 id="description">DESCRIPTION</h3>
+</li>
+<li>
+<p>DESCRIPTION</p>
 <div class="codehilite"><pre><span></span><code>This file is intended to be dot-sourced by other scripts in the `scripts/` directory.
 It provides shared helpers for:
     - Resolving the repository root.
@@ -49,7 +58,9 @@ Design goals:
     - Make failures actionable with clear error messages.
 </code></pre></div>
 
-<h3 id="parameters">PARAMETERS</h3>
+</li>
+<li>
+<p>PARAMETERS</p>
 <div class="codehilite"><pre><span></span><code>&lt;CommonParameters&gt;
     This cmdlet supports the common parameters: Verbose, Debug,
     ErrorAction, ErrorVariable, WarningAction, WarningVariable,
@@ -57,9 +68,15 @@ Design goals:
     about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 </code></pre></div>
 
-<h3 id="inputs">INPUTS</h3>
-<h3 id="outputs">OUTPUTS</h3>
-<h3 id="notes">NOTES</h3>
+</li>
+<li>
+<p>INPUTS</p>
+</li>
+<li>
+<p>OUTPUTS</p>
+</li>
+<li>
+<p>NOTES</p>
 <div class="codehilite"><pre><span></span><code>    This file defines functions and does not execute any build/run tasks on its own.
     Usage pattern:
         . (Join-Path $PSScriptRoot &#39;_ensure-venv.ps1&#39;)
@@ -67,21 +84,34 @@ Design goals:
         $venvPython = Ensure-Venv -RepoRoot $repoRoot
 </code></pre></div>
 
-<h3 id="related-links">RELATED LINKS</h3>
+</li>
+<li>
+<p>RELATED LINKS</p>
+</li>
+</ul>
+<hr>
 <h2 id="build-coreps1">build-core.ps1</h2>
-<h3 id="name_1">NAME</h3>
+<ul>
+<li>
+<p>NAME</p>
 <div class="codehilite"><pre><span></span><code>./scripts\build-core.ps1
 </code></pre></div>
 
-<h3 id="synopsis_1">SYNOPSIS</h3>
+</li>
+<li>
+<p>SYNOPSIS</p>
 <div class="codehilite"><pre><span></span><code>Builds the FaceForge Core executable for local bundling and releases.
 </code></pre></div>
 
-<h3 id="syntax_1">SYNTAX</h3>
-<div class="codehilite"><pre><span></span><code>    ./scripts\build-core.ps1 [-KeepBuildHistory] [-AllowTimestampFallback] [&lt;CommonParameters&gt;]
+</li>
+<li>
+<p>SYNTAX</p>
+<div class="codehilite"><pre><span></span><code>./scripts\build-core.ps1 [-KeepBuildHistory] [-AllowTimestampFallback] [&lt;CommonParameters&gt;]
 </code></pre></div>
 
-<h3 id="description_1">DESCRIPTION</h3>
+</li>
+<li>
+<p>DESCRIPTION</p>
 <div class="codehilite"><pre><span></span><code>Produces a Windows executable for FaceForge Core using PyInstaller, using the repo-local
 virtual environment under `.venv`.
 
@@ -97,7 +127,9 @@ Intended consumers:
 - The all-in-one desktop bundler script (`scripts/build-desktop.ps1`).
 </code></pre></div>
 
-<h3 id="parameters_1">PARAMETERS</h3>
+</li>
+<li>
+<p>PARAMETERS</p>
 <div class="codehilite"><pre><span></span><code>-KeepBuildHistory [&lt;SwitchParameter&gt;]
     Preserves older timestamped output folders (e.g. `core/build-YYYYMMDD-HHMMSS`, `core/dist-...`).
     By default, old timestamped output folders are pruned to keep the repo tidy.
@@ -128,13 +160,19 @@ Intended consumers:
     about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 </code></pre></div>
 
-<h3 id="inputs_1">INPUTS</h3>
-<h3 id="outputs_1">OUTPUTS</h3>
+</li>
+<li>
+<p>INPUTS</p>
+</li>
+<li>
+<p>OUTPUTS</p>
 <div class="codehilite"><pre><span></span><code>On success, you will have:
   - `core/dist/faceforge-core.exe`
 </code></pre></div>
 
-<h3 id="notes_1">NOTES</h3>
+</li>
+<li>
+<p>NOTES</p>
 <div class="codehilite"><pre><span></span><code>    Prerequisites:
       - Python 3.12.x installed (only needed to bootstrap `.venv` the first time).
       - Build dependencies are installed into `.venv` automatically.
@@ -151,21 +189,34 @@ PS &gt; ./scripts/build-core.ps1 -AllowTimestampFallback
 Builds Core even if `core/dist` is locked, by using timestamped folders.
 </code></pre></div>
 
-<h3 id="related-links_1">RELATED LINKS</h3>
+</li>
+<li>
+<p>RELATED LINKS</p>
+</li>
+</ul>
+<hr>
 <h2 id="build-desktopps1">build-desktop.ps1</h2>
-<h3 id="name_2">NAME</h3>
+<ul>
+<li>
+<p>NAME</p>
 <div class="codehilite"><pre><span></span><code>./scripts\build-desktop.ps1
 </code></pre></div>
 
-<h3 id="synopsis_2">SYNOPSIS</h3>
+</li>
+<li>
+<p>SYNOPSIS</p>
 <div class="codehilite"><pre><span></span><code>Builds a full FaceForge Desktop bundle (Desktop + Core sidecar).
 </code></pre></div>
 
-<h3 id="syntax_2">SYNTAX</h3>
-<div class="codehilite"><pre><span></span><code>    ./scripts\build-desktop.ps1 [-Bundles &lt;String&gt;] [-SkipCoreBuild] [-KeepBuildHistory] [-AllowTimestampFallback] [&lt;CommonParameters&gt;]
+</li>
+<li>
+<p>SYNTAX</p>
+<div class="codehilite"><pre><span></span><code>./scripts\build-desktop.ps1 [-Bundles &lt;String&gt;] [-SkipCoreBuild] [-KeepBuildHistory] [-AllowTimestampFallback] [&lt;CommonParameters&gt;]
 </code></pre></div>
 
-<h3 id="description_2">DESCRIPTION</h3>
+</li>
+<li>
+<p>DESCRIPTION</p>
 <div class="codehilite"><pre><span></span><code>This script follows the project’s packaging intent:
   - Build FaceForge Core as a standalone executable (PyInstaller)
   - Stage it into Desktop’s Tauri sidecar binaries folder
@@ -185,7 +236,9 @@ Outputs (Windows):
   - desktop/src-tauri/target/release/bundle/nsis/*-setup.exe
 </code></pre></div>
 
-<h3 id="parameters_2">PARAMETERS</h3>
+</li>
+<li>
+<p>PARAMETERS</p>
 <div class="codehilite"><pre><span></span><code>-Bundles &lt;String&gt;
     Which bundle target(s) to build. Allowed values: all, msi, nsis.
     Default: all.
@@ -234,9 +287,15 @@ Outputs (Windows):
     about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 </code></pre></div>
 
-<h3 id="inputs_2">INPUTS</h3>
-<h3 id="outputs_2">OUTPUTS</h3>
-<h3 id="notes_2">NOTES</h3>
+</li>
+<li>
+<p>INPUTS</p>
+</li>
+<li>
+<p>OUTPUTS</p>
+</li>
+<li>
+<p>NOTES</p>
 <div class="codehilite"><pre><span></span><code>    Outputs (Windows):
       - desktop/src-tauri/target/release/bundle/msi/*.msi
       - desktop/src-tauri/target/release/bundle/nsis/*-setup.exe
@@ -259,21 +318,34 @@ PS &gt; ./scripts/build-desktop.ps1 -SkipCoreBuild -Bundles msi
 Fast path when nothing changed in Core.
 </code></pre></div>
 
-<h3 id="related-links_2">RELATED LINKS</h3>
+</li>
+<li>
+<p>RELATED LINKS</p>
+</li>
+</ul>
+<hr>
 <h2 id="check-coreps1">check-core.ps1</h2>
-<h3 id="name_3">NAME</h3>
+<ul>
+<li>
+<p>NAME</p>
 <div class="codehilite"><pre><span></span><code>./scripts\check-core.ps1
 </code></pre></div>
 
-<h3 id="synopsis_3">SYNOPSIS</h3>
+</li>
+<li>
+<p>SYNOPSIS</p>
 <div class="codehilite"><pre><span></span><code>Runs FaceForge Core quality gates (format, lint, tests).
 </code></pre></div>
 
-<h3 id="syntax_3">SYNTAX</h3>
-<div class="codehilite"><pre><span></span><code>    ./scripts\check-core.ps1 [&lt;CommonParameters&gt;]
+</li>
+<li>
+<p>SYNTAX</p>
+<div class="codehilite"><pre><span></span><code>./scripts\check-core.ps1 [&lt;CommonParameters&gt;]
 </code></pre></div>
 
-<h3 id="description_3">DESCRIPTION</h3>
+</li>
+<li>
+<p>DESCRIPTION</p>
 <div class="codehilite"><pre><span></span><code>Installs FaceForge Core in editable mode with development dependencies into the repo-local
 virtual environment (`.venv`), then runs:
   - ruff format --check
@@ -284,7 +356,9 @@ This is intended for local verification and CI usage. It will stop on the first 
 return a non-zero exit code.
 </code></pre></div>
 
-<h3 id="parameters_3">PARAMETERS</h3>
+</li>
+<li>
+<p>PARAMETERS</p>
 <div class="codehilite"><pre><span></span><code>&lt;CommonParameters&gt;
     This cmdlet supports the common parameters: Verbose, Debug,
     ErrorAction, ErrorVariable, WarningAction, WarningVariable,
@@ -292,12 +366,18 @@ return a non-zero exit code.
     about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 </code></pre></div>
 
-<h3 id="inputs_3">INPUTS</h3>
-<h3 id="outputs_3">OUTPUTS</h3>
+</li>
+<li>
+<p>INPUTS</p>
+</li>
+<li>
+<p>OUTPUTS</p>
 <div class="codehilite"><pre><span></span><code>Console output from tooling. Exits non-zero on failure.
 </code></pre></div>
 
-<h3 id="notes_3">NOTES</h3>
+</li>
+<li>
+<p>NOTES</p>
 <div class="codehilite"><pre><span></span><code>    Prerequisites:
       - Python 3.12.x is recommended (used only to bootstrap `.venv` on first run).
     This script does not rely on global Python packaging once `.venv` exists.
@@ -308,21 +388,34 @@ PS &gt; ./scripts/check-core.ps1
 Runs format, lint, and tests.
 </code></pre></div>
 
-<h3 id="related-links_3">RELATED LINKS</h3>
+</li>
+<li>
+<p>RELATED LINKS</p>
+</li>
+</ul>
+<hr>
 <h2 id="dev-coreps1">dev-core.ps1</h2>
-<h3 id="name_4">NAME</h3>
+<ul>
+<li>
+<p>NAME</p>
 <div class="codehilite"><pre><span></span><code>./scripts\dev-core.ps1
 </code></pre></div>
 
-<h3 id="synopsis_4">SYNOPSIS</h3>
+</li>
+<li>
+<p>SYNOPSIS</p>
 <div class="codehilite"><pre><span></span><code>Runs FaceForge Core locally in development mode.
 </code></pre></div>
 
-<h3 id="syntax_4">SYNTAX</h3>
-<div class="codehilite"><pre><span></span><code>    ./scripts\dev-core.ps1 [&lt;CommonParameters&gt;]
+</li>
+<li>
+<p>SYNTAX</p>
+<div class="codehilite"><pre><span></span><code>./scripts\dev-core.ps1 [&lt;CommonParameters&gt;]
 </code></pre></div>
 
-<h3 id="description_4">DESCRIPTION</h3>
+</li>
+<li>
+<p>DESCRIPTION</p>
 <div class="codehilite"><pre><span></span><code>Bootstraps the repo-local virtual environment (`.venv`) if needed, installs FaceForge Core
 in editable mode with development dependencies, then launches the Core server.
 
@@ -334,7 +427,9 @@ This script is intended for local development. For Desktop orchestration, run th
 and let it start Core.
 </code></pre></div>
 
-<h3 id="parameters_4">PARAMETERS</h3>
+</li>
+<li>
+<p>PARAMETERS</p>
 <div class="codehilite"><pre><span></span><code>&lt;CommonParameters&gt;
     This cmdlet supports the common parameters: Verbose, Debug,
     ErrorAction, ErrorVariable, WarningAction, WarningVariable,
@@ -342,9 +437,15 @@ and let it start Core.
     about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 </code></pre></div>
 
-<h3 id="inputs_4">INPUTS</h3>
-<h3 id="outputs_4">OUTPUTS</h3>
-<h3 id="notes_4">NOTES</h3>
+</li>
+<li>
+<p>INPUTS</p>
+</li>
+<li>
+<p>OUTPUTS</p>
+</li>
+<li>
+<p>NOTES</p>
 <div class="codehilite"><pre><span></span><code>    This script intentionally uses `.venv\Scripts\python.exe` for all Python execution.
     External command failures (pip install, server start) cause the script to fail fast.
 
@@ -360,21 +461,34 @@ PS &gt; $env:FACEFORGE_PORT = &#39;43210&#39;
 Starts Core at http://127.0.0.1:43210
 </code></pre></div>
 
-<h3 id="related-links_4">RELATED LINKS</h3>
+</li>
+<li>
+<p>RELATED LINKS</p>
+</li>
+</ul>
+<hr>
 <h2 id="set-versionps1">set-version.ps1</h2>
-<h3 id="name_5">NAME</h3>
+<ul>
+<li>
+<p>NAME</p>
 <div class="codehilite"><pre><span></span><code>./scripts\set-version.ps1
 </code></pre></div>
 
-<h3 id="synopsis_5">SYNOPSIS</h3>
+</li>
+<li>
+<p>SYNOPSIS</p>
 <div class="codehilite"><pre><span></span><code>Bumps FaceForge version across Core + Desktop manifests.
 </code></pre></div>
 
-<h3 id="syntax_5">SYNTAX</h3>
-<div class="codehilite"><pre><span></span><code>    ./scripts\set-version.ps1 -Version &lt;String&gt; [-WhatIf] [-Confirm] [&lt;CommonParameters&gt;]
+</li>
+<li>
+<p>SYNTAX</p>
+<div class="codehilite"><pre><span></span><code>./scripts\set-version.ps1 -Version &lt;String&gt; [-WhatIf] [-Confirm] [&lt;CommonParameters&gt;]
 </code></pre></div>
 
-<h3 id="description_5">DESCRIPTION</h3>
+</li>
+<li>
+<p>DESCRIPTION</p>
 <div class="codehilite"><pre><span></span><code>Updates version strings in the following files:
   - core/pyproject.toml
   - core/src/faceforge_core/app.py
@@ -385,7 +499,9 @@ Starts Core at http://127.0.0.1:43210
 The script supports -WhatIf / -Confirm for safe previews.
 </code></pre></div>
 
-<h3 id="parameters_5">PARAMETERS</h3>
+</li>
+<li>
+<p>PARAMETERS</p>
 <div class="codehilite"><pre><span></span><code>-Version &lt;String&gt;
     The semantic version to set (e.g. 0.1.2).
 
@@ -421,9 +537,15 @@ The script supports -WhatIf / -Confirm for safe previews.
     about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 </code></pre></div>
 
-<h3 id="inputs_5">INPUTS</h3>
-<h3 id="outputs_5">OUTPUTS</h3>
-<h3 id="notes_5">NOTES</h3>
+</li>
+<li>
+<p>INPUTS</p>
+</li>
+<li>
+<p>OUTPUTS</p>
+</li>
+<li>
+<p>NOTES</p>
 <div class="codehilite"><pre><span></span><code>    If a target file or pattern is not found, the script emits a warning and continues.
 
 -------------------------- EXAMPLE 1 --------------------------
@@ -437,21 +559,34 @@ PS &gt; ./scripts/set-version.ps1 -Version 0.1.2 -WhatIf
 Shows what would change without modifying files.
 </code></pre></div>
 
-<h3 id="related-links_5">RELATED LINKS</h3>
+</li>
+<li>
+<p>RELATED LINKS</p>
+</li>
+</ul>
+<hr>
 <h2 id="update-docsps1">update-docs.ps1</h2>
-<h3 id="name_6">NAME</h3>
+<ul>
+<li>
+<p>NAME</p>
 <div class="codehilite"><pre><span></span><code>./scripts\update-docs.ps1
 </code></pre></div>
 
-<h3 id="synopsis_6">SYNOPSIS</h3>
+</li>
+<li>
+<p>SYNOPSIS</p>
 <div class="codehilite"><pre><span></span><code>Builds HTML and PDF renderings for selected Markdown docs.
 </code></pre></div>
 
-<h3 id="syntax_6">SYNTAX</h3>
-<div class="codehilite"><pre><span></span><code>    ./scripts\update-docs.ps1 [-ConfigPath &lt;String&gt;] [-Force] [-SkipScriptsReadme] [-WhatIf] [-Confirm] [&lt;CommonParameters&gt;]
+</li>
+<li>
+<p>SYNTAX</p>
+<div class="codehilite"><pre><span></span><code>./scripts\update-docs.ps1 [-ConfigPath &lt;String&gt;] [-Force] [-SkipScriptsReadme] [-WhatIf] [-Confirm] [&lt;CommonParameters&gt;]
 </code></pre></div>
 
-<h3 id="description_6">DESCRIPTION</h3>
+</li>
+<li>
+<p>DESCRIPTION</p>
 <div class="codehilite"><pre><span></span><code>Reads scripts/update-docs_config.json for a list of &quot;actions&quot; and executes them in phases:
     1) copy      (sync files into their canonical docs/ locations)
     2) transform (e.g. Markdown -&gt; HTML)
@@ -460,7 +595,9 @@ Shows what would change without modifying files.
 This intentionally does NOT add Node.js tooling to the repo.
 </code></pre></div>
 
-<h3 id="parameters_6">PARAMETERS</h3>
+</li>
+<li>
+<p>PARAMETERS</p>
 <div class="codehilite"><pre><span></span><code>-ConfigPath &lt;String&gt;
 
     Required?                    false
@@ -515,8 +652,12 @@ This intentionally does NOT add Node.js tooling to the repo.
     about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 </code></pre></div>
 
-<h3 id="inputs_6">INPUTS</h3>
-<h3 id="outputs_6">OUTPUTS</h3>
+</li>
+<li>
+<p>INPUTS</p>
+</li>
+<li>
+<p>OUTPUTS</p>
 <div class="codehilite"><pre><span></span><code>-------------------------- EXAMPLE 1 --------------------------
 
 PS &gt; ./scripts/update-docs.ps1
@@ -530,6 +671,10 @@ PS &gt; ./scripts/update-docs.ps1 -WhatIf
 PS &gt; ./scripts/update-docs.ps1 -ConfigPath ./scripts/update-docs_config.json -Force
 </code></pre></div>
 
-<h3 id="related-links_6">RELATED LINKS</h3>
+</li>
+<li>
+<p>RELATED LINKS</p>
+</li>
+</ul>
 </body>
 </html>

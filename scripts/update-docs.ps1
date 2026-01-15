@@ -278,7 +278,7 @@ function Ensure-DocsStyles {
     # - Screen: dark code blocks (matches the default dark UI)
     # - Print/PDF: keep light code blocks (standard white document theme)
     $syntaxCssPath = Join-Path $stylesDir 'syntax.css'
-    $syntaxCss = & $VenvPython -c "from pygments.formatters import HtmlFormatter; print('@media screen {'); print(HtmlFormatter(style='monokai').get_style_defs('.codehilite')); print('}'); print('@media print {'); print(HtmlFormatter(style='default').get_style_defs('.codehilite')); print('}')" | Out-String
+    $syntaxCss = & $VenvPython -c "from pygments.formatters import HtmlFormatter; print('@media screen {'); print(HtmlFormatter(style='monokai').get_style_defs('.codehilite')); print('}'); print('@media print {'); print(HtmlFormatter(style='default').get_style_defs('.codehilite')); print('pre, code, .codehilite pre, .codehilite code { font-size: 10px; line-height: 1.25; }'); print('pre, .codehilite pre { white-space: pre-wrap !important; overflow-x: visible !important; overflow-wrap: anywhere; word-break: break-word; }'); print('code { white-space: pre-wrap; }'); print('}')" | Out-String
     if (-not $syntaxCss.EndsWith("`n")) { $syntaxCss += "`n" }
 
     $needsWrite = $true
@@ -604,7 +604,22 @@ foreach ($a in $printActions) {
         if (-not $Force -and $skipUnchanged -and (Test-Path -LiteralPath $pdfPath)) {
             $srcItem = Get-Item -LiteralPath $sourcePath
             $outItem = Get-Item -LiteralPath $pdfPath
-            if ($outItem.LastWriteTimeUtc -ge $srcItem.LastWriteTimeUtc) {
+
+            # PDFs depend on the HTML plus any referenced local CSS assets.
+            $latestDepUtc = $srcItem.LastWriteTimeUtc
+            foreach ($css in @($staged.CssFiles)) {
+                $cssPath = [string]$css
+                if ([string]::IsNullOrWhiteSpace($cssPath)) { continue }
+                if ($cssPath -match '^[a-zA-Z][a-zA-Z0-9+.-]*://') { continue }
+                if (-not (Test-Path -LiteralPath $cssPath)) { continue }
+
+                $cssItem = Get-Item -LiteralPath $cssPath
+                if ($cssItem.LastWriteTimeUtc -gt $latestDepUtc) {
+                    $latestDepUtc = $cssItem.LastWriteTimeUtc
+                }
+            }
+
+            if ($outItem.LastWriteTimeUtc -ge $latestDepUtc) {
                 $needsPdf = $false
             }
         }
